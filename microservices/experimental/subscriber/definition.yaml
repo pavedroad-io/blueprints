@@ -1,0 +1,128 @@
+schemas:
+- user-table:
+    columns:
+    - name: id
+      json-handling: ''
+      json-name: id
+      contraints: ''
+      type: uuid
+    - name: metadata
+      json-handling: ''
+      json-name: metadata
+      contraints: ''
+      type: user-metadata
+- user-metadata:
+    columns:
+    - name: id
+      json-handling: ''
+      json-name: ''
+      contraints: ''
+      type: ''
+project:
+  maintainer-email: support@pavedroad.io
+  integrations:
+  - config:
+      options:
+        coverage:
+          report: $ref->go.coverage.artifacts
+          enable: true
+        lint:
+          report: $ref->go.lint.artifacts
+          enable: true
+        go-sec:
+          report: $ref->go.sec.artifacts
+          enable: true
+      configuration-file:
+        path: .
+        name: sonar-project.properties
+        artifacts-dir: ./artifacts
+        src: templatedir
+    name: sonarcloud
+  project-files:
+  - path: .
+    description: 'Information about the project and project status'
+    name: README.md
+    src: templatedir
+  - path: .
+    description: 'Summary documentation in swagger 2.0 and godoc format'
+    name: templateDoc.go
+    src: templatedir
+  - path: .
+    description: 'Main entry point for microservice'
+    name: templateMain.go
+    src: templatedir
+  - path: .
+    description: 'Business logic for the application'
+    name: templateApp.go
+    src: templatedir
+  - path: .
+    description: 'Generated data model for the microservice'
+    name: templateModel.go
+    src: templatedir
+  - path: .
+    description: 'Generated test cases for microservice'
+    name: template_test.go
+    src: templatedir
+  maintainer: www.pavedroad.io
+  dependencies:
+  - docker-info:
+      image: cockroachdb/cockroach:1.12
+      command: start --insecure
+      ports:
+      - internal: '26257'
+        external: '26257'
+      - internal: '8080'
+        external: '6060'
+      comments: map http port to 6060 to avoid conflict with k8s
+      volumes:
+      - path: ./data/db-1:/cockroach/cockroach-data
+        mount: ! '-'
+    name: cockroachdb
+  - docker-info:
+      image: wurstmeister/kafka
+      command: start --insecure
+      topics:
+      - microservice-emit
+      - microservice-consume
+      ports:
+      - internal: '9092'
+        external: '9094'
+      comments: used for events
+      volumes: []
+    name: kafka
+  maintainer-slack: pavedroad.slack.com
+  license: Apache2
+  description: A kafka consumer microservie
+name: kafka-consummer
+api-version: '1.0.0'
+version: '1.0.0'
+id: kafka-consumer
+release-status: alpha
+community:
+  community-files:
+  - path: .
+    name: CODE_OF_CONDUCT.md
+    src: templatedir
+  - path: .
+    name: CONTRIBUTING.md
+    src: templatedir
+  - path: .
+    name: COVERNANCE.md
+    src: templatedir
+  - path: .
+    name: MEETING.md
+    src: templatedir
+  - path: .
+    name: OWNERS.md
+    src: templatedir
+  - path: .
+    name: SECURITY.md
+    src: templatedir
+  - path: .
+    name: SUPPORT.md
+    src: git-api://templates.pavedroad.io/templates/oos/support.md
+  - md5: '123123123123123123231'
+    path: .
+    name: ROADMAP.md
+    src: https://w.pavedroad.io/templates/roadmap.md
+  description: list of community files to include
