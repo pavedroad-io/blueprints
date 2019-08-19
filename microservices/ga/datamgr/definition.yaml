@@ -98,6 +98,7 @@ api-version: '1.0.0'
 version: '1.0.0'
 id: datamgr
 release-status: alpha
+orginazation: poobear
 community:
   community-files:
   - path: .
