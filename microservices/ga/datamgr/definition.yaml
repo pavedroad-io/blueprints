@@ -74,9 +74,7 @@ project:
       - internal: '8080'
         external: '6060'
       comments: map http port to 6060 to avoid conflict with k8s
-      volumes:
-      - path: ./data/db-1:/cockroach/cockroach-data
-        mount: ! '-'
+      volumes: []
     name: cockroachdb
   - docker-info:
       image: wurstmeister/kafka
@@ -94,11 +92,11 @@ project:
   license: Apache2
   description: Microservice for managing a backend persistent store for an object
 name: datamgr
+organization: "acme"
 api-version: '1.0.0'
 version: '1.0.0'
 id: datamgr
 release-status: alpha
-orginazation: poobear
 community:
   community-files:
   - path: .

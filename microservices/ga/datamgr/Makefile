@@ -1,6 +1,7 @@
+{{define "Makefile"}}
 #-include .env
 
-VERSION := {{.version}}
+VERSION := {{.Version}}
 BUILD := $(shell git rev-parse --short HEAD)
 PROJECTNAME := $(shell basename "$(PWD)")
 PROJDIR := $(shell pwd)
@@ -16,7 +17,7 @@ ASSETS := "$(PROJDIR)/assets/images"
 ARTIFACTS := "$(PROJDIR)/artifacts"
 GOCOVERAGE := "$(ARTIFACTS)/coverage.out"
 GOLINTREPORT := "$(ARTIFACTS)/lint.out"
-GOTESTREPORT := "https://sonarcloud.io/dashboard?id={{.orginzation}}_{{.name}}"
+GOTESTREPORT := "https://sonarcloud.io/dashboard?id={{.Organization}}_{{.Name}}"
 
 SHELL := /bin/bash
 
@@ -163,3 +164,4 @@ $(ARTIFACTS):
 	$(shell mkdir -p $(ARTIFACTS))
 
 
+{{end}}

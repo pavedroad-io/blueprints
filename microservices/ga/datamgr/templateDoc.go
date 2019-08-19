@@ -26,7 +26,7 @@
 //     BasePath: /api/v1/namespace/pavedroad.io/prUserIdMappers
 //     Version: 0.0.1
 //     License: Apache 2
-       {{.maintain}} {{.maintainer-email}} {{.maintainer}}
+       {{.Maintain}} {{.MaintainerEmail}} {{.Maintainer}}
 //
 //     Consumes:
 //     - application/json

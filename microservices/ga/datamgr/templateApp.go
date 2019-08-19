@@ -1,9 +1,9 @@
 {{define "templateApp.go"}}
 // Pavedroad license / copyright information
-{{.pavedroad-info}}
+{{.PavedroadInfo}}
 
 // User project / copyright / usage information
-{{.project-info}}
+{{.ProjectInfo}}
 
 package main
 
@@ -24,7 +24,7 @@ import (
 
 // Initialize setups database connection object and the http server
 //
-func (a *{{.name}}App) Initialize() {
+func (a *{{.Name}}App) Initialize() {
 
   // Override defaults
   a.initializeEnvironment()
@@ -51,7 +51,7 @@ func (a *{{.name}}App) Initialize() {
 }
 
 // Start the server
-func (a *{{.name}}App) Run(addr string) {
+func (a *{{.Name}}App) Run(addr string) {
 
   log.Println("Listing at: " + addr)
   srv := &http.Server{
@@ -173,31 +173,31 @@ func (a *prUserIdMapperApp) initializeEnvironment() {
 
 }
 
-{{.all-routes-swagger-doc}}
-func (a *{{.name}}App) initializeRoutes() {
-  uri := {{.name}}APIVersion + "/" + {{.name}}NamespaceID + "/{namespace}/" +
-    {{.name}}ResourceType + "LIST"
-  a.Router.HandleFunc(uri, a.get{{.name-exported}}s).Methods("GET")
+{{.AllRoutesSwaggerDoc}}
+func (a *{{.Name}}App) initializeRoutes() {
+  uri := {{.Name}}APIVersion + "/" + {{.Name}}NamespaceID + "/{namespace}/" +
+    {{.Name}}ResourceType + "LIST"
+  a.Router.HandleFunc(uri, a.get{{.NameExported}}s).Methods("GET")
 
-  uri = {{.name}}APIVersion + "/" + {{.name}}NamespaceID + "/{namespace}/" +
-    {{.name}}ResourceType + "/{key}"
-  a.Router.HandleFunc(uri, a.get{{.name-exported}}).Methods("GET")
+  uri = {{.Name}}APIVersion + "/" + {{.Name}}NamespaceID + "/{namespace}/" +
+    {{.Name}}ResourceType + "/{key}"
+  a.Router.HandleFunc(uri, a.get{{.NameExported}}).Methods("GET")
 
-  uri = {{.name}}APIVersion + "/" + {{.name}}NamespaceID + "/{namespace}/" + {{.name}}ResourceType
-  a.Router.HandleFunc(uri, a.create{{.name-exported}}).Methods("POST")
+  uri = {{.Name}}APIVersion + "/" + {{.Name}}NamespaceID + "/{namespace}/" + {{.Name}}ResourceType
+  a.Router.HandleFunc(uri, a.create{{.NameExported}}).Methods("POST")
 
-  uri = {{.name}}APIVersion + "/" + {{.name}}NamespaceID + "/{namespace}/" +
-    {{.name}}ResourceType + {{.name-exported}}Key
-  a.Router.HandleFunc(uri, a.update{{.name-exported}}).Methods("PUT")
+  uri = {{.Name}}APIVersion + "/" + {{.Name}}NamespaceID + "/{namespace}/" +
+    {{.Name}}ResourceType + {{.NameExported}}Key
+  a.Router.HandleFunc(uri, a.update{{.NameExported}}).Methods("PUT")
 
-  uri = {{.name}}APIVersion + "/" + {{.name}}NamespaceID + "/{namespace}/" +
-    {{.name}}ResourceType + {{.name-exported}}Key
-  a.Router.HandleFunc(uri, a.delete{{.name-exported}}).Methods("DELETE")
+  uri = {{.Name}}APIVersion + "/" + {{.Name}}NamespaceID + "/{namespace}/" +
+    {{.Name}}ResourceType + {{.NameExported}}Key
+  a.Router.HandleFunc(uri, a.delete{{.NameExported}}).Methods("DELETE")
 }
 
-{{.get-all-swagger-doc}}
-func (a *{{.name}}App) get{{.-name-exported}}s(w http.ResponseWriter, r *http.Request) {
-  {{.-name-exported}} := {{.name}}{}
+{{.GetAllSwaggerDoc}}
+func (a *{{.Name}}App) get{{.NameExported}}s(w http.ResponseWriter, r *http.Request) {
+  {{.NameExported}} := {{.Name}}{}
 
   //vars := mux.Vars(r)
   //fmt.Println("list tokens: ", vars)
@@ -212,7 +212,7 @@ func (a *{{.name}}App) get{{.-name-exported}}s(w http.ResponseWriter, r *http.Re
     start = 0
   }
 
-  mappings, err := {{.-name-exported}}.get{{.-name-exported}}s(a.DB, start, count)
+  mappings, err := {{.NameExported}}.get{{.NameExported}}s(a.DB, start, count)
   if err != nil {
     respondWithError(w, http.StatusInternalServerError, err.Error())
     return
@@ -221,24 +221,24 @@ func (a *{{.name}}App) get{{.-name-exported}}s(w http.ResponseWriter, r *http.Re
   respondWithJSON(w, http.StatusOK, mappings)
 }
 
-{{.get-swagger-doc}}
-func (a *{{.name-exported}}App) get{{.name-exported}}(w http.ResponseWriter, r *http.Request) {
+{{.GetSwaggerDoc}}
+func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
-  {{.name-exported}} := {{.name-exported}}{}
+  {{.NameExported}} := {{.NameExported}}{}
 
-  err := {{.name-exported}}.get{{.name-exported}}(a.DB, vars["key"])
+  err := {{.NameExported}}.get{{.NameExported}}(a.DB, vars["key"])
   if err != nil {
     respondWithError(w, http.StatusNotFound, err.Error())
     return
   }
 
-  respondWithJSON(w, http.StatusOK, {{.name-exported}})
+  respondWithJSON(w, http.StatusOK, {{.NameExported}})
 }
 
-{{.post-swagger-doc}}
-func (a *{{.name-exported}}App) create{{.name-exported}}(w http.ResponseWriter, r *http.Request) {
+{{.PostSwaggerDoc}}
+func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   // New map structure
-  {{.name}} := {{.name-exported}}{}
+  {{.Name}} := {{.NameExported}}{}
 
   htmlData, err := ioutil.ReadAll(r.Body)
   if err != nil {
@@ -246,29 +246,29 @@ func (a *{{.name-exported}}App) create{{.name-exported}}(w http.ResponseWriter, 
     os.Exit(1)
   }
 
-  err = json.Unmarshal(htmlData, &{{.name}})
+  err = json.Unmarshal(htmlData, &{{.Name}})
   if err != nil {
     log.Println(err)
     os.Exit(1)
   }
 
   ct := time.Now().UTC()
-  {{.name}}.Created = ct.Format(time.RFC3339)
-  {{.name}}.Updated = ct.Format(time.RFC3339)
-  {{.name}}.LoginCount = 1
+  {{.Name}}.Created = ct.Format(time.RFC3339)
+  {{.Name}}.Updated = ct.Format(time.RFC3339)
+  {{.Name}}.LoginCount = 1
 
   // Save into backend storage
-  if err := {{.name}}.create{{.name-exported}}(a.DB); err != nil {
+  if err := {{.Name}}.create{{.NameExported}}(a.DB); err != nil {
     respondWithError(w, http.StatusBadRequest, "Invalid request payload")
     return
   }
 
-  respondWithJSON(w, http.StatusCreated, {{.name}})
+  respondWithJSON(w, http.StatusCreated, {{.Name}})
 }
 
-{{.put-swagger-doc}}
-func (a *{{.name-exported}}App) update{{.name-exported}}(w http.ResponseWriter, r *http.Request) {
-  {{.name}} := {{.name-exported}}{}
+{{.PutSwaggerDoc}}
+func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
+  {{.Name}} := {{.NameExported}}{}
 
   // Read URI variables
   // vars := mux.Vars(r)
@@ -279,30 +279,30 @@ func (a *{{.name-exported}}App) update{{.name-exported}}(w http.ResponseWriter, 
     return
   }
 
-  err = json.Unmarshal(htmlData, &{{.name}})
+  err = json.Unmarshal(htmlData, &{{.Name}})
   if err != nil {
     log.Println(err)
     return
   }
 
   ct := time.Now().UTC()
-  {{.name}}.Updated = ct.Format(time.RFC3339)
-  {{.name}}.LoginCount += 1
+  {{.Name}}.Updated = ct.Format(time.RFC3339)
+  {{.Name}}.LoginCount += 1
 
-  if err := {{.name}}.update{{.name-exported}}(a.DB); err != nil {
+  if err := {{.Name}}.update{{.NameExported}}(a.DB); err != nil {
     respondWithError(w, http.StatusBadRequest, "Invalid request payload")
     return
   }
 
-  respondWithJSON(w, http.StatusOK, {{.name}})
+  respondWithJSON(w, http.StatusOK, {{.Name}})
 }
 
-{{.delete-swagger-doc}}
-func (a *{{.name-exported}}App) delete{{.name-exported}}(w http.ResponseWriter, r *http.Request) {
-  {{.name-exported}} := {{.name-exported}}{}
+{{.DeleteSwaggerDoc}}
+func (a *{{.NameExported}}App) delete{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
+  {{.NameExported}} := {{.NameExported}}{}
   vars := mux.Vars(r)
 
-  err := {{.name-exported}}.delete{{.name-exported}}(a.DB, vars["key"])
+  err := {{.NameExported}}.delete{{.NameExported}}(a.DB, vars["key"])
   if err != nil {
     respondWithError(w, http.StatusNotFound, err.Error())
     return
@@ -354,9 +354,9 @@ func openLogFile(logfile string) {
   }
 }
 
-func dump{{.name-exported}}(m {{.name-exported}}) {
-  fmt.Println("Dump {{.name}}")
-  {{.dump-structs}}
+func dump{{.NameExported}}(m {{.NameExported}}) {
+  fmt.Println("Dump {{.Name}}")
+  {{.DumpStructs}}
 }
 {{end}}
 

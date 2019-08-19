@@ -1,9 +1,9 @@
-{{define "templateApp.go"}}
+{{define "templateModel.go"}}
 // Pavedroad license / copyright information
-{{.{{.orginazation}}-info}}
+{{.OrganizationLicense}}
 
 // User project / copyright / usage information
-{{.project-info}}
+{{.ProjectInfo}}
 
 package main
 
@@ -34,32 +34,32 @@ type statusResponse struct {
   msg error `json:"message"`
 }
 
-// Return list of {{.name}}s
+// Return list of {{.Name}}s
 //
-// swagger:response tokenList
+// swagger:response {{.Name}}List
 type listResponse struct {
 	// in: body
-  mappingList []{{.name-exported}} `json:"{{.name}}s"`
+  mappingList []{{.NameExported}} `json:"{{.Name}}s"`
 }
 
 // Generated structures with Swagger docs
-{{.swagger-generated-structs}}
+{{.SwaggerGeneratedStructs}}
 
-// An {{.name-exported}} response model
+// An {{.NameExported}} response model
 //
 // This is used for returning a response with a single mapper as body
 //
 // swagger:response mapperResponse
-type {{.name-exported}}Response struct {
+type {{.NameExported}}Response struct {
 	// in: body
 	response string `json:"order"`
 }
 
-// update{{.name-exported}}{{.name-exported}} in database
-func (t *{{.name-exported}}) update{{.name-exported}}{{.name-exported}}(db *sql.DB) error {
+// update{{.NameExported}}{{.NameExported}} in database
+func (t *{{.NameExported}}) update{{.NameExported}}{{.NameExported}}(db *sql.DB) error {
 	update := `
-	UPDATE {{.orginzation}}.{{.name}}
-    SET {{.name}} = '%s'
+	UPDATE {{.Organization}}.{{.Name}}
+    SET {{.Name}} = '%s'
   WHERE UUID = '%s';`
 
   jb, err := json.Marshal(t)
@@ -79,14 +79,14 @@ func (t *{{.name-exported}}) update{{.name-exported}}{{.name-exported}}(db *sql.
   return nil
 }
 
-// create{{.name-exported}}{{.name-exported}} in database
-func (t *{{.name-exported}}) create{{.name-exported}}{{.name-exported}}(db *sql.DB) error {
+// create{{.NameExported}}{{.NameExported}} in database
+func (t *{{.NameExported}}) create{{.NameExported}}{{.NameExported}}(db *sql.DB) error {
   jb, err := json.Marshal(t)
   if err != nil {
     panic(err)
   }
 
-  statement := fmt.Sprintf("INSERT INTO {{.orginazation}}.{{.name}}({{.name}}) VALUES('%s') RETURNING uuid", jb)
+  statement := fmt.Sprintf("INSERT INTO {{.Organization}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING uuid", jb)
   rows, er1 := db.Query(statement)
 
   if er1 != nil {
@@ -108,13 +108,13 @@ func (t *{{.name-exported}}) create{{.name-exported}}{{.name-exported}}(db *sql.
 
 }
 
-// get{{.name-exported}}{{.name-exported}}s: return a list of tokens
+// get{{.NameExported}}{{.NameExported}}s: return a list of {{.Name}}
 //
-func (t *{{.name-exported}}) get{{.name-exported}}{{.name-exported}}s(db *sql.DB, start, count int) ([]{{.name-exported}}, error) {
+func (t *{{.NameExported}}) get{{.NameExported}}{{.NameExported}}s(db *sql.DB, start, count int) ([]{{.NameExported}}, error) {
     qry := `select uuid,
-          {{.name}} ->> 'active' as active,
-          {{.name}} -> 'Metadata' ->> 'name' as name
-          from {{.orginazation}}.{{.name}} LIMIT %d OFFSET %d;`
+          {{.Name}} ->> 'active' as active,
+          {{.Name}} -> 'Metadata' ->> 'name' as name
+          from {{.Organization}}.{{.Name}} LIMIT %d OFFSET %d;`
   statement := fmt.Sprintf(qry, count, start)
   rows, err := db.Query(statement)
 
@@ -141,22 +141,22 @@ func (t *{{.name-exported}}) get{{.name-exported}}{{.name-exported}}s(db *sql.DB
   return ul, nil
 }
 
-// get{{.name-exported}}{{.name-exported}}: return a token based on credential
+// get{{.NameExported}}{{.NameExported}}: return a {{.Name}} based on the key
 //
-func (t *{{.name-exported}}) get{{.name-exported}}{{.name-exported}}(db *sql.DB, key string) error {
+func (t *{{.NameExported}}) get{{.NameExported}}{{.NameExported}}(db *sql.DB, key string) error {
     var statement string
 
   switch method {
   case UUID:
     statement = fmt.Sprintf(`
-  SELECT uuid, {{.name}}
-  FROM {{.orginazation}}.{{.name}}
+  SELECT uuid, {{.Name}}
+  FROM {{.Organization}}.{{.Name}}
   WHERE uuid = '%s';`, key)
   case NAME:
     statement = fmt.Sprintf(`
-  SELECT uuid, {{.name}}
-  FROM {{.orginazation}}.{{.name}}
-  WHERE {{.name}} -> 'Metadata' ->> 'name' = '%s';`, key)
+  SELECT uuid, {{.Name}}
+  FROM {{.Organization}}.{{.Name}}
+  WHERE {{.Name}} -> 'Metadata' ->> 'name' = '%s';`, key)
   }
   row := db.QueryRow(statement)
 
@@ -184,10 +184,10 @@ func (t *{{.name-exported}}) get{{.name-exported}}{{.name-exported}}(db *sql.DB,
   return nil
 }
 
-// delete{{.name-exported}}{{.name-exported}}: return a token based on UID
+// delete{{.NameExported}}{{.NameExported}}: return a {{.Name}} based on UID
 //
-func (t *{{.name-exported}}) delete{{.name-exported}}{{.name-exported}}(db *sql.DB, cred string) error {
-	statement := fmt.Sprintf("DELETE FROM {{.orginzation}}.{{.name}} WHERE uuid = '%s'", uuid)
+func (t *{{.NameExported}}) delete{{.NameExported}}{{.NameExported}}(db *sql.DB, cred string) error {
+	statement := fmt.Sprintf("DELETE FROM {{.Organization}}.{{.Name}} WHERE uuid = '%s'", uuid)
   result, err := db.Exec(statement)
   c, e := result.RowsAffected()
 
