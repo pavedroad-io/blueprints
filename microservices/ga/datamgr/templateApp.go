@@ -1,9 +1,8 @@
 {{define "templateApp.go"}}
-// Pavedroad license / copyright information
 {{.PavedroadInfo}}
 
 // User project / copyright / usage information
-{{.ProjectInfo}}
+// {{.ProjectInfo}}
 
 package main
 
@@ -24,7 +23,7 @@ import (
 
 // Initialize setups database connection object and the http server
 //
-func (a *{{.Name}}App) Initialize() {
+func (a *{{.NameExported}}App) Initialize() {
 
   // Override defaults
   a.initializeEnvironment()
@@ -51,7 +50,7 @@ func (a *{{.Name}}App) Initialize() {
 }
 
 // Start the server
-func (a *{{.Name}}App) Run(addr string) {
+func (a *{{.NameExported}}App) Run(addr string) {
 
   log.Println("Listing at: " + addr)
   srv := &http.Server{
@@ -83,7 +82,7 @@ func (a *{{.Name}}App) Run(addr string) {
 }
 
 // Get for ennvironment variable overrides
-func (a *prUserIdMapperApp) initializeEnvironment() {
+func (a *{{.NameExported}}App) initializeEnvironment() {
   var envVar = ""
 
   //look for environment variables overrides
@@ -174,30 +173,30 @@ func (a *prUserIdMapperApp) initializeEnvironment() {
 }
 
 {{.AllRoutesSwaggerDoc}}
-func (a *{{.Name}}App) initializeRoutes() {
-  uri := {{.Name}}APIVersion + "/" + {{.Name}}NamespaceID + "/{namespace}/" +
-    {{.Name}}ResourceType + "LIST"
-  a.Router.HandleFunc(uri, a.get{{.NameExported}}s).Methods("GET")
+func (a *{{.NameExported}}App) initializeRoutes() {
+  uri := {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+    {{.NameExported}}ResourceType + "LIST"
+  a.Router.HandleFunc(uri, a.list{{.NameExported}}).Methods("GET")
 
-  uri = {{.Name}}APIVersion + "/" + {{.Name}}NamespaceID + "/{namespace}/" +
-    {{.Name}}ResourceType + "/{key}"
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+    {{.NameExported}}ResourceType + "/{key}"
   a.Router.HandleFunc(uri, a.get{{.NameExported}}).Methods("GET")
 
-  uri = {{.Name}}APIVersion + "/" + {{.Name}}NamespaceID + "/{namespace}/" + {{.Name}}ResourceType
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" + {{.NameExported}}ResourceType
   a.Router.HandleFunc(uri, a.create{{.NameExported}}).Methods("POST")
 
-  uri = {{.Name}}APIVersion + "/" + {{.Name}}NamespaceID + "/{namespace}/" +
-    {{.Name}}ResourceType + {{.NameExported}}Key
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+    {{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.update{{.NameExported}}).Methods("PUT")
 
-  uri = {{.Name}}APIVersion + "/" + {{.Name}}NamespaceID + "/{namespace}/" +
-    {{.Name}}ResourceType + {{.NameExported}}Key
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+    {{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.delete{{.NameExported}}).Methods("DELETE")
 }
 
 {{.GetAllSwaggerDoc}}
-func (a *{{.Name}}App) get{{.NameExported}}s(w http.ResponseWriter, r *http.Request) {
-  {{.NameExported}} := {{.Name}}{}
+func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
+  {{.Name}} := {{.Name}}{}
 
   //vars := mux.Vars(r)
   //fmt.Println("list tokens: ", vars)
@@ -212,7 +211,7 @@ func (a *{{.Name}}App) get{{.NameExported}}s(w http.ResponseWriter, r *http.Requ
     start = 0
   }
 
-  mappings, err := {{.NameExported}}.get{{.NameExported}}s(a.DB, start, count)
+  mappings, err := {{.Name}}.list{{.NameExported}}(a.DB, start, count)
   if err != nil {
     respondWithError(w, http.StatusInternalServerError, err.Error())
     return
@@ -224,21 +223,22 @@ func (a *{{.Name}}App) get{{.NameExported}}s(w http.ResponseWriter, r *http.Requ
 {{.GetSwaggerDoc}}
 func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
-  {{.NameExported}} := {{.NameExported}}{}
+  {{.Name}} := {{.Name}}{}
 
-  err := {{.NameExported}}.get{{.NameExported}}(a.DB, vars["key"])
+  //TODO: allows them to specify the column used to retrieve user
+  err := {{.Name}}.get{{.NameExported}}(a.DB, vars["key"], UUID)
   if err != nil {
     respondWithError(w, http.StatusNotFound, err.Error())
     return
   }
 
-  respondWithJSON(w, http.StatusOK, {{.NameExported}})
+  respondWithJSON(w, http.StatusOK, {{.Name}})
 }
 
 {{.PostSwaggerDoc}}
 func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   // New map structure
-  {{.Name}} := {{.NameExported}}{}
+  {{.Name}} := {{.Name}}{}
 
   htmlData, err := ioutil.ReadAll(r.Body)
   if err != nil {
@@ -255,10 +255,10 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
   ct := time.Now().UTC()
   {{.Name}}.Created = ct.Format(time.RFC3339)
   {{.Name}}.Updated = ct.Format(time.RFC3339)
-  {{.Name}}.LoginCount = 1
 
   // Save into backend storage
-  if err := {{.Name}}.create{{.NameExported}}(a.DB); err != nil {
+  // returns the UUID if needed
+  if _, err := {{.Name}}.create{{.NameExported}}(a.DB); err != nil {
     respondWithError(w, http.StatusBadRequest, "Invalid request payload")
     return
   }
@@ -268,7 +268,7 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
 
 {{.PutSwaggerDoc}}
 func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
-  {{.Name}} := {{.NameExported}}{}
+  {{.Name}} := {{.Name}}{}
 
   // Read URI variables
   // vars := mux.Vars(r)
@@ -287,9 +287,8 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
 
   ct := time.Now().UTC()
   {{.Name}}.Updated = ct.Format(time.RFC3339)
-  {{.Name}}.LoginCount += 1
 
-  if err := {{.Name}}.update{{.NameExported}}(a.DB); err != nil {
+  if err := {{.Name}}.update{{.NameExported}}(a.DB, {{.Name}}.{{.NameExported}}UUID); err != nil {
     respondWithError(w, http.StatusBadRequest, "Invalid request payload")
     return
   }
@@ -299,10 +298,10 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
 
 {{.DeleteSwaggerDoc}}
 func (a *{{.NameExported}}App) delete{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
-  {{.NameExported}} := {{.NameExported}}{}
+  {{.Name}} := {{.Name}}{}
   vars := mux.Vars(r)
 
-  err := {{.NameExported}}.delete{{.NameExported}}(a.DB, vars["key"])
+  err := {{.Name}}.delete{{.NameExported}}(a.DB, vars["key"])
   if err != nil {
     respondWithError(w, http.StatusNotFound, err.Error())
     return
@@ -310,19 +309,6 @@ func (a *{{.NameExported}}App) delete{{.NameExported}}(w http.ResponseWriter, r 
 
   respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
-
-func respondWithError(w http.ResponseWriter, code int, message string) {
-  respondWithJSON(w, code, map[string]string{"error": message})
-}
-
-func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
-  response, _ := json.Marshal(payload)
-
-  w.Header().Set("Content-Type", "application/json")
-  w.WriteHeader(code)
-  w.Write(response)
-}
-
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
   respondWithJSON(w, code, map[string]string{"error": message})
@@ -354,9 +340,10 @@ func openLogFile(logfile string) {
   }
 }
 
+/*
 func dump{{.NameExported}}(m {{.NameExported}}) {
   fmt.Println("Dump {{.Name}}")
   {{.DumpStructs}}
 }
+*/
 {{end}}
-

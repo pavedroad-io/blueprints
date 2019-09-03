@@ -1,23 +1,32 @@
 schemas:
-- user-table:
-    columns:
-    - name: id
-      json-handling: ''
-      json-name: id
-      contraints: ''
-      type: uuid
-    - name: metadata
-      json-handling: ''
-      json-name: metadata
-      contraints: ''
-      type: user-metadata
-- user-metadata:
-    columns:
-    - name: id
-      json-handling: ''
-      json-name: ''
-      contraints: ''
-      type: ''
+  tables:
+    - table-name: users
+      table-type: jsonb
+      parent-tables: ""
+      columns:
+      - name: id
+        mapped-name: ''
+        modifiers: ''
+        contraints: ''
+        type: uuid
+      - name: updated
+        mapped-name: ''
+        modifiers: ''
+        contraints: ''
+        type: data-time
+      - name: created
+        mapped-name: ''
+        modifiers: ''
+        contraints: ''
+        type: data-time
+    - table-name: metadata
+      parent-table: "users"
+      columns:
+      - name: id
+        json-handling: ''
+        json-name: ''
+        contraints: ''
+        type: ''
 project:
   maintainer-email: support@pavedroad.io
   integrations:
@@ -122,6 +131,12 @@ community:
     src: git-api://templates.pavedroad.io/templates/oos/support.md
   - md5: '123123123123123123231'
     path: .
+    name: ROADMAP.md
+    src: https://w.pavedroad.io/templates/roadmap.md
+  - path: .
+    name: SECURITY.md
+    src: templatedir
+  - path: .
     name: ROADMAP.md
     src: https://w.pavedroad.io/templates/roadmap.md
   description: list of community files to include

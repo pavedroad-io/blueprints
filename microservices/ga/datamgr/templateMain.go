@@ -1,9 +1,8 @@
 {{define "templateMain.go"}}
-// Pavedroad license / copyright information
 {{.PavedroadInfo}}
 
 // User project / copyright / usage information
-{{.ProjectInfo}}
+// {{.ProjectInfo}}
 
 package main
 
@@ -23,12 +22,18 @@ const (
   // {{.NameExported}}DefaultNamespace Default namespace
   {{.NameExported}}DefaultNamespace string = "pavedroad.io"
   // {{.NameExported}}ResourceType CRD Type per k8s
-  {{.NameExported}}ResourceType string = "{{.NameExported}}s"
+  {{.NameExported}}ResourceType string = "{{.NameExported}}"
   // The email or account login used by 3rd parth provider
-  {{.Name}}Key string = "/{key}"
+  {{.NameExported}}Key string = "/{key}"
 )
 
-/ holds pointers to database and http server
+// Options for looking up a user
+const (
+  UUID = iota
+  NAME
+)
+
+// holds pointers to database and http server
 type {{.NameExported}}App struct {
   Router *mux.Router
   DB     *sql.DB
@@ -60,8 +65,6 @@ type httpConfig struct {
 
 // Set default database configuration
 var dbconf = databaseConfig{username: "root", password: "", database: "pavedroad", sslMode: "disable", dbDriver: "postgres", ip: "127.0.0.1", port: "26257"}
-// Set default database configuration
-var dbconf = databaseConfig{username: "root", password: "", database: "pavedroad", sslMode: "disable", dbDriver: "postgres", ip: "127.0.0.1", port: "26257"}
 
 // Set default http configuration
 var httpconf = httpConfig{ip: "127.0.0.1", port: "8082", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "127.0.0.1:8082", logPath: "logs/{{.Name}}.log"}
@@ -81,6 +84,4 @@ func main() {
   a.Initialize()
   a.Run(httpconf.listenString)
 }
-
 {{end}}
-
