@@ -25,10 +25,10 @@
 //
 //     Schemes: http, https
 //     Host: api.pavedroad.io
-//     BasePath: /api/v1/namespace/pavedroad.io/prUserIdMappers
+//     BasePath: /api/v1/namespace/pavedroad.io/{{.NameExported}}
 //     Version: 0.0.1
 //     License: Apache 2
-//     {{.Maintain}}{{.MaintainerEmail}} {{.Maintainer}}
+//     Contact: Foo<{{.MaintainerEmail}}> {{.Maintainer}}
 //
 //     Consumes:
 //     - application/json

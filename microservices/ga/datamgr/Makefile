@@ -14,7 +14,10 @@ GOBIN := $(GOBASE)/bin
 GOFILES := $(wildcard *.go)
 GOLINT := $(shell which golint)
 ASSETS := "$(PROJDIR)/assets/images"
+ASSETS := "$(PROJDIR)/assets/images"
 ARTIFACTS := "$(PROJDIR)/artifacts"
+DOCS := "$(PROJDIR)/docs"
+LOGS := "$(PROJDIR)/logs"
 GOCOVERAGE := "$(ARTIFACTS)/coverage.out"
 GOLINTREPORT := "$(ARTIFACTS)/lint.out"
 GOTESTREPORT := "https://sonarcloud.io/dashboard?id={{.Organization}}_{{.Name}}"
@@ -63,7 +66,7 @@ watch:
 restart-server: stop-server start-server
 
 ## compile: Compile the binary.
-compile:
+compile: $(LOGS) 
 	@-$(MAKE) -s go-compile
 
 ## exec: Run given command, wrapped with custom GOPATH. e.g; make exec run="go test ./..."
@@ -97,11 +100,11 @@ go-get: Gopkg.toml get-deps $(ASSETS)
 	@echo "  >  Creating dependencies graph png..."
 	$(shell dep status -dot | dot -T png -o $(ASSETS)/$(PROJECTNAME).png)
 
-api-doc:
+api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
-	swagger generate spec -m -t $(PROJECTNAME) -o doc/api.json
+	swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json
 	@echo "  >  Generate HTML..."
-	pretty-swag -i doc/api.json -o doc/api.html
+	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"
 
 get-deps:
@@ -162,6 +165,12 @@ $(ASSETS):
 
 $(ARTIFACTS):
 	$(shell mkdir -p $(ARTIFACTS))
+
+$(DOCS):
+	$(shell mkdir -p $(DOCS))
+
+$(LOGS):
+	$(shell mkdir -p $(LOGS))
 
 
 {{end}}

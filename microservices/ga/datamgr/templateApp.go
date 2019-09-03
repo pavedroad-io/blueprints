@@ -195,6 +195,14 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 }
 
 {{.GetAllSwaggerDoc}}
+// get{{.NameExported}} swagger:route GET /{{.NameExported}}LIST {{.Name}} list{{.NameExported}}
+//
+// Returns a list of {{.Name}}
+//
+// Responses:
+//    default: genericError
+//        200: {{.Name}}List
+
 func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   {{.Name}} := {{.Name}}{}
 
@@ -221,6 +229,14 @@ func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *h
 }
 
 {{.GetSwaggerDoc}}
+// get{{.NameExported}} swagger:route GET /{{.NameExported}}/{uuid} {{.Name}} get{{.NameExported}}
+//
+// Returns a {{.Name}} given a key, where key is a UUID
+//
+// Responses:
+//    default: genericError
+//        200: {{.Name}}Response
+
 func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
   {{.Name}} := {{.Name}}{}
@@ -236,6 +252,14 @@ func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *ht
 }
 
 {{.PostSwaggerDoc}}
+// create{{.NameExported}} swagger:route POST /{{.NameExported}} {{.Name}} create{{.NameExported}}
+//
+// Create a new {{.Name}}
+//
+// Responses:
+//    default: genericError
+//        201: {{.Name}}Response
+//        400: genericError
 func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   // New map structure
   {{.Name}} := {{.Name}}{}
@@ -267,6 +291,14 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
 }
 
 {{.PutSwaggerDoc}}
+// update{{.NameExported}} swagger:route PUT /{{.NameExported}}/{key} {{.Name}} update{{.NameExported}}
+//
+// Update a {{.Name}} specified by key, where key is a uuid
+//
+// Responses:
+//    default: genericError
+//        201: {{.Name}}Response
+//        400: genericError
 func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   {{.Name}} := {{.Name}}{}
 
@@ -297,6 +329,14 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
 }
 
 {{.DeleteSwaggerDoc}}
+// delete{{.NameExported}} swagger:route DELETE /{{.NameExported}}/{key} {{.Name}} delete{{.NameExported}}
+//
+// Update a {{.Name}} specified by key, which is a uuid
+//
+// Responses:
+//    default: genericError
+//        200: {{.Name}}Response
+//        400: genericError
 func (a *{{.NameExported}}App) delete{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   {{.Name}} := {{.Name}}{}
   vars := mux.Vars(r)

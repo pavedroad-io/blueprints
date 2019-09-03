@@ -20,9 +20,12 @@ import (
 //
 // swagger:response genericError
 type GenericError struct {
+  // The error message
 	// in: body
 	Body struct {
+    // Code: integer code for error message
 		Code    int32 `json:"code"`
+    // Message: Error message called with Method()
 		Message error `json:"message"`
 	} `json:"body"`
 }
@@ -32,6 +35,7 @@ type GenericError struct {
 // swagger:response statusResponse
 type statusResponse struct {
 	// in: body
+  // Message: Error message called with Method()
   msg error `json:"message"`
 }
 
@@ -41,6 +45,7 @@ type statusResponse struct {
 //
 // swagger:response {{.Name}}List
 type listResponse struct {
+  // in: body
   UUID  string `json:"uuid"`
 }
 
@@ -49,9 +54,9 @@ type listResponse struct {
 
 // An {{.NameExported}} response model
 //
-// This is used for returning a response with a single mapper as body
+// This is used for returning a response with a single {{.Name}} as body
 //
-// swagger:response mapperResponse
+// swagger:response {{.Name}}Response
 type {{.NameExported}}Response struct {
 	// in: body
 	response string `json:"order"`
