@@ -28,7 +28,7 @@
 //     BasePath: /api/v1/namespace/pavedroad.io/{{.NameExported}}
 //     Version: 0.0.1
 //     License: Apache 2
-//     Contact: Foo<{{.MaintainerEmail}}> {{.Maintainer}}
+//     Contact: {{.MaintainerName}}<{{.MaintainerEmail}}> {{.MaintainerWeb}}
 //
 //     Consumes:
 //     - application/json
