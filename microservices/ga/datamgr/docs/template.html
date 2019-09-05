@@ -31,9 +31,18 @@
     {{.Badges}}
   </div>
   <div class="container" style="margin-top: 25px;">
+    <b>Company:</b> {{.Organization}}<br>
+    <b>Contact:</b> {{.MaintainerName}} {{.MaintainerEmail}}<br>
+    <b>Slack:</b> {{.MaintainerSlack}}<br>
+    <b>License:</b> {{.OrganizationLicense}}<br>
+    <b>Version:</b> {{.Version}}<br>
+    <b>Template</b>: {{.TplName}}<br>
+    <b>Definition file</b>: {{.DefFile}}
+  </div>
+
+  <div class="container" style="margin-top: 25px;">
   <h5>Description</h5>
-  The prUserIdMapper works in conjustion with prUser and prToken to map a 3rd party access token, like 
-  GitHub, to an internal PavedRoad user account.  
+  {{.ProjectInfo}}
   </div>
 
   <div class="container" style="margin-top: 25px;">
