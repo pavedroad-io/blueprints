@@ -18,6 +18,8 @@ ASSETS := "$(PROJDIR)/assets/images"
 ARTIFACTS := "$(PROJDIR)/artifacts"
 DOCS := "$(PROJDIR)/docs"
 LOGS := "$(PROJDIR)/logs"
+MANIFEST := "$(PROJDIR)/manifests"
+K8S = ~"$(PROJDIR)/manifest/kubernetes"
 GOCOVERAGE := "$(ARTIFACTS)/coverage.out"
 GOLINTREPORT := "$(ARTIFACTS)/lint.out"
 GOTESTREPORT := "https://sonarcloud.io/dashboard?id={{.Organization}}_{{.Name}}"
@@ -78,7 +80,7 @@ clean:
 	@-rm $(GOBIN)/$(PROJECTNAME) 2> /dev/null
 	@-$(MAKE) go-clean
 
-go-compile: go-get api-doc go-build
+go-compile: go-get api-doc $(K8S) go-build
 
 go-build:
 	@echo "  >  Building binary..."
@@ -117,7 +119,7 @@ go-clean:
 	@echo "  >  Cleaning build cache"
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go clean
 
-#check: sonar-scanner lint kompose
+#check: sonar-scanner lint
 check:
 	@echo "  >  Starting cockroach DB..."
 	docker-compose -f manifests/docker-db-only.yaml up -d
@@ -144,7 +146,8 @@ lint: $(GOFILES) $(ARTIFACTS)
 	@echo $?
 	$(GOLINT) $? > $(GOLINTREPORT)
 
-kompose:
+$(K8S):
+	$(shell mkdir -p manifests/kubernetes)
 	$(shell cd manifests/kubernetes;kompose convert -f ../docker-compose.yaml)
 
 fmt: $(GOFILES)

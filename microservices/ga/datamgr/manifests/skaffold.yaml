@@ -14,9 +14,9 @@ build:
 deploy:
   kubectl:
     manifests:
-    - manifests/{{.Name}}-deployment.yaml
-    - manifests/{{.Name}}-service.yaml
-    - manifests/roach-ui-claim0-persistentvolumeclaim.yaml
-    - manifests/roach-ui-deployment.yaml
-    - manifests/roach-ui-service.yaml
+    - manifests/kubernetes/{{.Name}}-deployment.yaml
+    - manifests/kubernetes/{{.Name}}-service.yaml
+    - manifests/kubernetes/roach-ui-claim0-persistentvolumeclaim.yaml
+    - manifests/kubernetes/roach-ui-deployment.yaml
+    - manifests/kubernetes/roach-ui-service.yaml
 {{end}}
