@@ -196,7 +196,7 @@ func TestMarshall{{.NameExported}}(t *testing.T) {
 //
 func add{{.NameExported}}(t *{{.Name}}) (string) {
 
-  statement := fmt.Sprintf("INSERT INTO {{.Organization}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.Name}}UUID", newUsersJSON)
+  statement := fmt.Sprintf("INSERT INTO {{.Organization}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.Name}}UUID", new{{.NameExported}}JSON)
   rows, er1 := a.DB.Query(statement)
 
 	if er1 != nil {
@@ -222,7 +222,7 @@ func add{{.NameExported}}(t *{{.Name}}) (string) {
 // 
 func New{{.NameExported}}() (t *{{.Name}}) {
 	var n {{.Name}}
-  json.Unmarshal([]byte(newUsersJSON), &n) 
+  json.Unmarshal([]byte(new{{.NameExported}}JSON), &n) 
 	return &n
 }
 
