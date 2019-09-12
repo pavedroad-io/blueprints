@@ -10,8 +10,10 @@ package main
 import (
 	"database/sql"
   "encoding/json"
+  "github.com/google/uuid"
 	"errors"
 	"fmt"
+  "time"
 	"log"
 )
 
@@ -67,7 +69,7 @@ func (t *{{.Name}}) update{{.NameExported}}(db *sql.DB, key string) error {
 	update := `
 	UPDATE {{.Organization}}.{{.Name}}
     SET {{.Name}} = '%s'
-  WHERE UUID = '%s';`
+  WHERE {{.Name}}UUID = '%s';`
 
   jb, err := json.Marshal(t)
   if err != nil {
@@ -93,7 +95,7 @@ func (t *{{.Name}}) create{{.NameExported}}(db *sql.DB) (string, error) {
     panic(err)
   }
 
-  statement := fmt.Sprintf("INSERT INTO {{.Organization}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING uuid", jb)
+  statement := fmt.Sprintf("INSERT INTO {{.Organization}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.NameExported}}UUID", jb)
   rows, er1 := db.Query(statement)
 
   if er1 != nil {
@@ -115,7 +117,7 @@ func (t *{{.Name}}) create{{.NameExported}}(db *sql.DB) (string, error) {
 
 }
 
-// get{{.Name}}{{.NameExported}}: return a list of {{.Name}}
+// list{{.Name}}{{.NameExported}}: return a list of {{.Name}}
 //
 func (t *{{.Name}}) list{{.NameExported}}(db *sql.DB, start, count int) ([]listResponse, error) {
 /*
@@ -124,7 +126,7 @@ func (t *{{.Name}}) list{{.NameExported}}(db *sql.DB, start, count int) ([]listR
           {{.Name}} -> 'Metadata' ->> 'name' as name
           from {{.Organization}}.{{.Name}} LIMIT %d OFFSET %d;`
 */
-    qry := `select uuid,
+    qry := `select {{.NameExported}}UUID
           from {{.Organization}}.{{.Name}} LIMIT %d OFFSET %d;`
   statement := fmt.Sprintf(qry, count, start)
   rows, err := db.Query(statement)
@@ -159,18 +161,17 @@ func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) err
 
   switch method {
   case UUID:
+    _, err := uuid.Parse(key)
+    if err != nil {
+      m := fmt.Sprintf("400: invalid UUID: %s", key)
+      return errors.New(m)
+    }
     statement = fmt.Sprintf(`
-  SELECT uuid, {{.Name}}
+  SELECT {{.NameExported}}UUID, {{.Name}}
   FROM {{.Organization}}.{{.Name}}
-  WHERE uuid = '%s';`, key)
-  /*
-  case NAME:
-    statement = fmt.Sprintf(`
-  SELECT uuid, {{.Name}}
-  FROM {{.Organization}}.{{.Name}}
-  WHERE {{.Name}} -> 'Metadata' ->> 'name' = '%s';`, key)
-  */
+  WHERE {{.NameExported}}UUID = '%s';`, key)
   }
+
   row := db.QueryRow(statement)
 
   // Fill in mapper
@@ -179,12 +180,12 @@ func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) err
   switch err := row.Scan(&uid, &jb); err {
 
   case sql.ErrNoRows:
-    m := fmt.Sprintf("name %s does not exist", key)
+    m := fmt.Sprintf("404:name %s does not exist", key)
     return errors.New(m)
   case nil:
     err = json.Unmarshal(jb, t)
     if err != nil {
-      m := fmt.Sprintf("unmarshal failed %s", key)
+      m := fmt.Sprintf("400:unmarshal failed %s", key)
       return errors.New(m)
     }
     t.{{.NameExported}}UUID = uid
@@ -200,7 +201,7 @@ func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) err
 // delete{{.Name}}{{.NameExported}}: return a {{.Name}} based on UID
 //
 func (t *{{.Name}}) delete{{.NameExported}}(db *sql.DB, key string) error {
-	statement := fmt.Sprintf("DELETE FROM {{.Organization}}.{{.Name}} WHERE uuid = '%s'", key)
+	statement := fmt.Sprintf("DELETE FROM {{.Organization}}.{{.Name}} WHERE {{.NameExported}}UUID = '%s'", key)
   result, err := db.Exec(statement)
   c, e := result.RowsAffected()
 

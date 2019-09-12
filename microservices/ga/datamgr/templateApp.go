@@ -206,9 +206,6 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   {{.Name}} := {{.Name}}{}
 
-  //vars := mux.Vars(r)
-  //fmt.Println("list tokens: ", vars)
-
   count, _ := strconv.Atoi(r.FormValue("count"))
   start, _ := strconv.Atoi(r.FormValue("start"))
 
@@ -243,8 +240,15 @@ func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *ht
 
   //TODO: allows them to specify the column used to retrieve user
   err := {{.Name}}.get{{.NameExported}}(a.DB, vars["key"], UUID)
+
   if err != nil {
-    respondWithError(w, http.StatusNotFound, err.Error())
+    errmsg := err.Error()
+    errno :=  errmsg[0:3]
+    if errno == "400" {
+      respondWithError(w, http.StatusBadRequest, err.Error())
+    } else {
+      respondWithError(w, http.StatusNotFound, err.Error())
+    }
     return
   }
 
@@ -277,8 +281,8 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
   }
 
   ct := time.Now().UTC()
-  {{.Name}}.Created = ct.Format(time.RFC3339)
-  {{.Name}}.Updated = ct.Format(time.RFC3339)
+  {{.Name}}.Created = ct
+  {{.Name}}.Updated = ct
 
   // Save into backend storage
   // returns the UUID if needed
@@ -318,7 +322,7 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
   }
 
   ct := time.Now().UTC()
-  {{.Name}}.Updated = ct.Format(time.RFC3339)
+  {{.Name}}.Updated = ct
 
   if err := {{.Name}}.update{{.NameExported}}(a.DB, {{.Name}}.{{.NameExported}}UUID); err != nil {
     respondWithError(w, http.StatusBadRequest, "Invalid request payload")
