@@ -14,7 +14,6 @@ GOBIN := $(GOBASE)/bin
 GOFILES := $(wildcard *.go)
 GOLINT := $(shell which golint)
 ASSETS := "$(PROJDIR)/assets/images"
-ASSETS := "$(PROJDIR)/assets/images"
 ARTIFACTS := "$(PROJDIR)/artifacts"
 DOCS := "$(PROJDIR)/docs"
 LOGS := "$(PROJDIR)/logs"
@@ -57,26 +56,31 @@ start-server: stop-server
 	@cat $(PID) | sed "/^/s/^/  \>  PID: /"
 
 stop-server:
+	@echo "  >  $(PROJECTNAME) shutting down"
 	@-touch $(PID)
 	@-kill `cat $(PID)` 2> /dev/null || true
 	@-rm $(PID)
 
 ## watch: Run given command when code changes. e.g; make watch run="echo 'hey'"
 watch:
+	@echo "  Watch"
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) yolo -i . -e vendor -e bin -c "$(run)"
 
 restart-server: stop-server start-server
 
 ## compile: Compile the binary.
-compile: $(LOGS) 
+compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS)
+	@echo "  Compiling"
 	@-$(MAKE) -s go-compile
 
 ## exec: Run given command, wrapped with custom GOPATH. e.g; make exec run="go test ./..."
 exec:
+	@echo "  execute $(GOBIN)"
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) $(run)
 
 ## clean: Clean build files. Runs `go clean` internally.
 clean:
+	@echo "  execute go-clean"
 	@-rm $(GOBIN)/$(PROJECTNAME) 2> /dev/null
 	@-$(MAKE) go-clean
 
@@ -96,21 +100,22 @@ go-generate:
 
 Gopkg.toml:
 	@echo "  >  initialize dep support..."
-	$(shell export GOPATH=$(GOPATH);dep init)
+	$(shell (export GOPATH=$(GOPATH);dep init))
 
 go-get: Gopkg.toml get-deps $(ASSETS)
 	@echo "  >  Creating dependencies graph png..."
-	$(shell dep status -dot | dot -T png -o $(ASSETS)/$(PROJECTNAME).png)
+	$(shell (export GOPATH=$(GOPATH);dep status -dot | dot -T png -o $(ASSETS)/$(PROJECTNAME).png))
 
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
-	swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json
+	$(shell (export GOPATH=$(GOPATH);swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"
 
 get-deps:
-	$(shell GOPATH=$(GOPATH);dep ensure $?)
+	@echo "  >  dep ensure..."
+	$(shell (GOPATH=$(GOPATH);dep ensure $?))
 
 go-install:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go install $(GOFILES)
@@ -119,8 +124,9 @@ go-clean:
 	@echo "  >  Cleaning build cache"
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go clean
 
-#check: sonar-scanner lint
-check:
+# TODO: enable sonar scanner once we get API key
+# check: lint sonar-scanner $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
+check: lint $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
 	@echo "  >  Starting cockroach DB..."
 	docker-compose -f manifests/docker-db-only.yaml up -d
 	@echo "  >  running to tests..."
@@ -164,15 +170,19 @@ help: Makefile
 	@echo
 
 $(ASSETS):
+	@echo "  >  Creating assets directory"
 	$(shell mkdir -p $(ASSETS))
 
 $(ARTIFACTS):
+	@echo "  >  Creating artifacts directory"
 	$(shell mkdir -p $(ARTIFACTS))
 
 $(DOCS):
+	@echo "  >  Creating docs directory"
 	$(shell mkdir -p $(DOCS))
 
 $(LOGS):
+	@echo "  >  Creating logs directory"
 	$(shell mkdir -p $(LOGS))
 
 
