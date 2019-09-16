@@ -1,16 +1,19 @@
-{{define "templateApp.go"}}
-// Pavedroad license / copyright information
-{{.{{.orginazation}}-info}}
+{{define "templateModel.go"}}
+{{.PavedroadInfo}}
+// {{.OrganizationLicense}}
 
 // User project / copyright / usage information
-{{.project-info}}
+// {{.ProjectInfo}}
 
 package main
 
 import (
 	"database/sql"
+  "encoding/json"
+  "github.com/google/uuid"
 	"errors"
 	"fmt"
+  "time"
 	"log"
 )
 
@@ -19,9 +22,12 @@ import (
 //
 // swagger:response genericError
 type GenericError struct {
+  // The error message
 	// in: body
 	Body struct {
+    // Code: integer code for error message
 		Code    int32 `json:"code"`
+    // Message: Error message called with Method()
 		Message error `json:"message"`
 	} `json:"body"`
 }
@@ -31,36 +37,39 @@ type GenericError struct {
 // swagger:response statusResponse
 type statusResponse struct {
 	// in: body
+  // Message: Error message called with Method()
   msg error `json:"message"`
 }
 
-// Return list of {{.name}}s
+// Return list of {{.Name}}s
 //
-// swagger:response tokenList
+// TODO: add method of including subattributes
+//
+// swagger:response {{.Name}}List
 type listResponse struct {
-	// in: body
-  mappingList []{{.name-exported}} `json:"{{.name}}s"`
+  // in: body
+  UUID  string `json:"uuid"`
 }
 
 // Generated structures with Swagger docs
-{{.swagger-generated-structs}}
+{{.SwaggerGeneratedStructs}}
 
-// An {{.name-exported}} response model
+// An {{.NameExported}} response model
 //
-// This is used for returning a response with a single mapper as body
+// This is used for returning a response with a single {{.Name}} as body
 //
-// swagger:response mapperResponse
-type {{.name-exported}}Response struct {
+// swagger:response {{.Name}}Response
+type {{.NameExported}}Response struct {
 	// in: body
 	response string `json:"order"`
 }
 
-// update{{.name-exported}}{{.name-exported}} in database
-func (t *{{.name-exported}}) update{{.name-exported}}{{.name-exported}}(db *sql.DB) error {
+// update{{.Name}}{{.NameExported}} in database
+func (t *{{.Name}}) update{{.NameExported}}(db *sql.DB, key string) error {
 	update := `
-	UPDATE {{.orginzation}}.{{.name}}
-    SET {{.name}} = '%s'
-  WHERE UUID = '%s';`
+	UPDATE {{.Organization}}.{{.Name}}
+    SET {{.Name}} = '%s'
+  WHERE {{.Name}}UUID = '%s';`
 
   jb, err := json.Marshal(t)
   if err != nil {
@@ -79,18 +88,18 @@ func (t *{{.name-exported}}) update{{.name-exported}}{{.name-exported}}(db *sql.
   return nil
 }
 
-// create{{.name-exported}}{{.name-exported}} in database
-func (t *{{.name-exported}}) create{{.name-exported}}{{.name-exported}}(db *sql.DB) error {
+// create{{.Name}}{{.NameExported}} in database
+func (t *{{.Name}}) create{{.NameExported}}(db *sql.DB) (string, error) {
   jb, err := json.Marshal(t)
   if err != nil {
     panic(err)
   }
 
-  statement := fmt.Sprintf("INSERT INTO {{.orginazation}}.{{.name}}({{.name}}) VALUES('%s') RETURNING uuid", jb)
+  statement := fmt.Sprintf("INSERT INTO {{.Organization}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.NameExported}}UUID", jb)
   rows, er1 := db.Query(statement)
 
   if er1 != nil {
-    log.Printf("Insert failed for: %s", t.Metadata.Name)
+    log.Printf("Insert failed for: %s", t.{{.NameExported}}UUID)
     log.Printf("SQL Error: %s", er1)
     return "", er1
   }
@@ -98,23 +107,27 @@ func (t *{{.name-exported}}) create{{.name-exported}}{{.name-exported}}(db *sql.
   defer rows.Close()
 
   for rows.Next() {
-    err := rows.Scan(&t.Metadata.UUID)
+    err := rows.Scan(&t.{{.NameExported}}UUID)
     if err != nil {
       return "", err
     }
   }
 
-  return t.Metadata.UUID, nil
+  return t.{{.NameExported}}UUID, nil
 
 }
 
-// get{{.name-exported}}{{.name-exported}}s: return a list of tokens
+// list{{.Name}}{{.NameExported}}: return a list of {{.Name}}
 //
-func (t *{{.name-exported}}) get{{.name-exported}}{{.name-exported}}s(db *sql.DB, start, count int) ([]{{.name-exported}}, error) {
+func (t *{{.Name}}) list{{.NameExported}}(db *sql.DB, start, count int) ([]listResponse, error) {
+/*
     qry := `select uuid,
-          {{.name}} ->> 'active' as active,
-          {{.name}} -> 'Metadata' ->> 'name' as name
-          from {{.orginazation}}.{{.name}} LIMIT %d OFFSET %d;`
+          {{.Name}} ->> 'active' as active,
+          {{.Name}} -> 'Metadata' ->> 'name' as name
+          from {{.Organization}}.{{.Name}} LIMIT %d OFFSET %d;`
+*/
+    qry := `select {{.NameExported}}UUID
+          from {{.Organization}}.{{.Name}} LIMIT %d OFFSET %d;`
   statement := fmt.Sprintf(qry, count, start)
   rows, err := db.Query(statement)
 
@@ -124,11 +137,11 @@ func (t *{{.name-exported}}) get{{.name-exported}}{{.name-exported}}s(db *sql.DB
 
   defer rows.Close()
 
-  ul := []userList{}
+  ul := []listResponse{}
 
   for rows.Next() {
-    var t userList
-    err := rows.Scan(&t.UUID, &t.Active, &t.Name)
+    var t listResponse
+    err := rows.Scan(&t.UUID)
 
     if err != nil {
       log.Printf("SQL rows.Scan failed: %s", err)
@@ -141,23 +154,24 @@ func (t *{{.name-exported}}) get{{.name-exported}}{{.name-exported}}s(db *sql.DB
   return ul, nil
 }
 
-// get{{.name-exported}}{{.name-exported}}: return a token based on credential
+// get{{.NameExported}}{{.NameExported}}: return a {{.Name}} based on the key
 //
-func (t *{{.name-exported}}) get{{.name-exported}}{{.name-exported}}(db *sql.DB, key string) error {
+func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) error {
     var statement string
 
   switch method {
   case UUID:
+    _, err := uuid.Parse(key)
+    if err != nil {
+      m := fmt.Sprintf("400: invalid UUID: %s", key)
+      return errors.New(m)
+    }
     statement = fmt.Sprintf(`
-  SELECT uuid, {{.name}}
-  FROM {{.orginazation}}.{{.name}}
-  WHERE uuid = '%s';`, key)
-  case NAME:
-    statement = fmt.Sprintf(`
-  SELECT uuid, {{.name}}
-  FROM {{.orginazation}}.{{.name}}
-  WHERE {{.name}} -> 'Metadata' ->> 'name' = '%s';`, key)
+  SELECT {{.NameExported}}UUID, {{.Name}}
+  FROM {{.Organization}}.{{.Name}}
+  WHERE {{.NameExported}}UUID = '%s';`, key)
   }
+
   row := db.QueryRow(statement)
 
   // Fill in mapper
@@ -166,15 +180,15 @@ func (t *{{.name-exported}}) get{{.name-exported}}{{.name-exported}}(db *sql.DB,
   switch err := row.Scan(&uid, &jb); err {
 
   case sql.ErrNoRows:
-    m := fmt.Sprintf("name %s does not exist", key)
+    m := fmt.Sprintf("404:name %s does not exist", key)
     return errors.New(m)
   case nil:
     err = json.Unmarshal(jb, t)
     if err != nil {
-      m := fmt.Sprintf("unmarshal failed %s", key)
+      m := fmt.Sprintf("400:unmarshal failed %s", key)
       return errors.New(m)
     }
-    t.Metadata.UUID = uid
+    t.{{.NameExported}}UUID = uid
     break
   default:
     //Some error to catch
@@ -184,15 +198,15 @@ func (t *{{.name-exported}}) get{{.name-exported}}{{.name-exported}}(db *sql.DB,
   return nil
 }
 
-// delete{{.name-exported}}{{.name-exported}}: return a token based on UID
+// delete{{.Name}}{{.NameExported}}: return a {{.Name}} based on UID
 //
-func (t *{{.name-exported}}) delete{{.name-exported}}{{.name-exported}}(db *sql.DB, cred string) error {
-	statement := fmt.Sprintf("DELETE FROM {{.orginzation}}.{{.name}} WHERE uuid = '%s'", uuid)
+func (t *{{.Name}}) delete{{.NameExported}}(db *sql.DB, key string) error {
+	statement := fmt.Sprintf("DELETE FROM {{.Organization}}.{{.Name}} WHERE {{.NameExported}}UUID = '%s'", key)
   result, err := db.Exec(statement)
   c, e := result.RowsAffected()
 
   if e == nil && c == 0 {
-    em := fmt.Sprintf("UUID %s does not exist", uuid)
+    em := fmt.Sprintf("UUID %s does not exist", key)
     log.Println(em)
     log.Println(e)
     return errors.New(em)

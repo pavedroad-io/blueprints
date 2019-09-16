@@ -1,0 +1,3 @@
+{{ define "template.json"}}
+{{.PostJSON}}
+{{ end }}

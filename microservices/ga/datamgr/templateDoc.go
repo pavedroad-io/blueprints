@@ -1,4 +1,6 @@
 {{define "templateDoc.go"}}
+{{.PavedroadInfo}}
+
 // Copyright 2015 go-swagger maintainers
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +25,10 @@
 //
 //     Schemes: http, https
 //     Host: api.pavedroad.io
-//     BasePath: /api/v1/namespace/pavedroad.io/prUserIdMappers
+//     BasePath: /api/v1/namespace/pavedroad.io/{{.NameExported}}
 //     Version: 0.0.1
 //     License: Apache 2
-       {{.maintain}} {{.maintainer-email}} {{.maintainer}}
+//     Contact: {{.MaintainerName}}<{{.MaintainerEmail}}> {{.MaintainerWeb}}
 //
 //     Consumes:
 //     - application/json
