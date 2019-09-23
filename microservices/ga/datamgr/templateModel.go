@@ -32,15 +32,6 @@ type GenericError struct {
 	} `json:"body"`
 }
 
-// Return a basic message as json in the body
-//
-// swagger:response statusResponse
-type statusResponse struct {
-	// in: body
-  // Message: Error message called with Method()
-  msg error `json:"message"`
-}
-
 // Return list of {{.Name}}s
 //
 // TODO: add method of including subattributes

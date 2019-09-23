@@ -7,10 +7,13 @@
 package main
 
 import (
-  "database/sql"
-  "github.com/gorilla/mux"
-  "log"
-  "time"
+        "database/sql"
+        "flag"
+        "fmt"
+        "github.com/gorilla/mux"
+        "log"
+        "os"
+        "time"
 )
 
 // Contants to build up a k8s style URL
@@ -72,8 +75,26 @@ var httpconf = httpConfig{ip: "127.0.0.1", port: "8082", shutdownTimeout: 15, re
 // shutdownTimeout will be initialized based on the default or HTTP_SHUTDOWN_TIMEOUT
 var shutdowTimeout time.Duration
 
+var GitTag string
+var Version string
+var Build string
+
+// printVersion
+func printVersion() {
+        fmt.Printf("{\"Version\": \"%v\", \"Build\": \"%v\", \"GitTag\": \"%v\"}\n",
+                Version, Build, GitTag)
+        os.Exit(0)
+}
+
 // main entry point for server
 func main() {
+
+	versionFlag := flag.Bool("v", false, "Print version information")
+        flag.Parse()
+
+        if *versionFlag {
+                printVersion()
+        }
 
   // Setup loggin
   openLogFile(httpconf.logPath)
