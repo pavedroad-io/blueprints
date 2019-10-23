@@ -1,0 +1,177 @@
+DESCRIPTION:
+
+The datamgr template provide a low-code environment for creating a
+micro service that manages a data base object. You customize the 
+micro service to your use case by creating a definitions file.
+Use to generate a definitions file you can alter:
+
+roadctl describe templates datamgr > mydefinitions.yaml
+
+Data attributes are defined in the Tables field and tables can 
+be nested.  All records are automatically assigned a UUID that
+acts as the key.
+
+FIELDS:
+info <Object>
+  api-version <string>
+  API version used to generate it
+
+  id <string> datamgr
+  Name of this template
+
+  organization <string>
+  The name of your organization to use in automatically
+  generated documentation
+
+  name <string>
+  A user friendly name for your service
+
+  release-status <string>
+  Specifies the stability of this template:
+    ga - general availability, aka stable
+    incubation - represents beta quality code
+    experimental - represents proof of concepts
+
+  version <string>
+  Object data model version
+
+community <object>
+     For Open Source projects, the community object specifies which web pages
+     and files are included into the repository.  This includes linking to 
+     social accounts such as slack, twitter, or linked in.
+
+     description <string>
+     A descriptive string about this collection of files
+
+     community-files <object>
+      name <string>
+       The name of the file on disk
+
+      path <string>
+      The path to the directory this file is copied too.
+
+      src <string>
+      Is either "templatedir" or a URL.  Using a URL is useful
+      for templates you want to share across services.  For
+      example, shared CI/CD templates
+
+      MD5 <string>
+      An MD5 hash that is used to validate resource retrieved 
+      via URL.
+
+
+project <object>
+     Defines project/service level objects including:
+        dependencies <object>
+        A list of images required to run this micro service
+
+        command <string>
+        Optional command line to pass too the container
+
+        comments <string>
+        Optional comment string
+
+        image <string>
+        A valid docker image tag
+
+        name <string>
+        Name for this instance of the image
+
+        ports <array>
+        A list of external to internal port mappings
+
+        volumes <array>
+        A valid docker volume definition
+
+        label
+        One or more user defined labels
+
+        description <string>
+        A description of this micro service.  It is used
+        in CI integration's and documentation
+
+        integrations
+        A list of CI/CD integration's used by this template.
+        Individual options are specific to a given integration.
+        All integration's include a list of "badges" to include
+        in the generated README.md and documentation files.
+        
+          badges <object>
+            enable <boolean>
+            true or false
+
+            link: <string>
+            Link to follow when this badge is clicked on
+
+            name: <string>
+            Used as alt link attribute if image is not found
+
+        license
+        The license used to protect this service
+
+        maintainer <object>
+        Contact information to include in documentation and APIs
+
+          email <string>
+          A valid email address
+
+          name <string>
+          The name or role of the person being contacted
+
+          slack <string>
+          A slack address that can be used for support
+
+          web <string>
+          A web address that can be used for support
+
+        project-files: <array of objects>
+        A list of the files to be included in this build of
+        the datamgr template.
+
+          description <string>
+          A friendly description of what this template file does
+
+          name <string>
+          The name of the file on disk
+
+          path <string>
+          The path to the directory this file is copied too.
+
+          src <string>
+          Is either "templatedir" or a URL.  Using a URL is useful
+          for templates you want to share across services.  For
+          example, shared CI/CD templates
+
+          MD5 <string>
+          An MD5 hash that is used to validate resource retrieved 
+          via URL.
+
+tables <object>
+  parent-tables <string>
+  The name of a parent table or "" if this is the root of the tree
+
+  table-name <string>
+  The name of this table
+
+  table-type <string>
+  Either json or jsonb, default is jsonb
+
+  columns <object>
+  A list of columns / field definitions
+
+    constraints <string>
+    A valid constraint, i.e. not-null
+
+    mapped-name <string>
+    Automatically set to snake case of the name field
+
+    modifiers <string>
+    JSON tag modifiers used when calling JSON Marshall 
+    methods
+
+    name <string>
+    The column name
+
+    type <string>
+    The type, string, number, boolen, etc
+

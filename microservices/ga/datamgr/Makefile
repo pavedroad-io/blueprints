@@ -8,16 +8,12 @@ PROJDIR := $(shell pwd)
 TARGET := $(PROJECTNAME)
 
 K8SRUNNING := $(shell dev/microk8sStatus.sh)
-K8SSTART := $(shell dev/microk8sStart.sh)
-K8SSTOP := $(shell dev/microk8sStop.sh)
 
 ASSETS := $(PROJDIR)/assets/images
 ARTIFACTS := $(PROJDIR)/artifacts
 BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
-MANIFEST := $(PROJDIR)/manifests
-K8S = ~"$(PROJDIR)/manifest/kubernetes"
 
 # Go related variables.
 GOBASE := $(shell cd ../../;pwd)
@@ -41,20 +37,12 @@ SHELL := /bin/bash
 # Use linker flags to provide version/build settings to the target
 LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD) -X=main.GitTag=$(GIT_TAG)"
 
-# Redirect error output to a file, so we can show it in development mode.
-STDERR := ./$(PROJECTNAME)-stderr.txt
-
-# PID file will keep the process id of the server
-PID := /tmp/.$(PROJECTNAME).pid
-
 # Make is verbose in Linux. Make it silent.
 # MAKEFLAGS += --silent
 
 .PHONY: check build compile sonar-scanner
 
 all: compile check
-
-#.DEFAULT_GOAL: $(TARGET)
 
 ## compile: Compile the binary.
 compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS)
@@ -69,7 +57,7 @@ clean:
 	@-$(MAKE) go-clean
 
 ## build: Build the binary for linux / mac x86 and amd
-build: go-get api-doc $(K8S) build
+build: go-get api-doc build
 	@echo "  >  Building binary..."
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
 # make this conditional on build GOARCH
@@ -87,7 +75,13 @@ ifeq "$(K8SRUNNING)" "down"
 	@echo "  >  Starting k8s for deployment..."
 	dev/microk8sStart.sh
 endif
-	skaffold run -f manifests/skaffold.yaml
+	@echo "  >  Starting k8s is up..."
+	@dev/kube-config.sh
+#       wait for the registry service to be ready	
+	@echo "  >  Wait for registry to come up..."
+	@sleep 20
+	@echo "  >  Build image and deploy..."
+	@skaffold run -f manifests/skaffold.yaml
 
 Gopkg.toml:
 	@echo "  >  initialize dep support..."
@@ -122,6 +116,8 @@ go-clean:
 check: lint $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
 	@echo "  >  Starting cockroach DB..."
 	docker-compose -f manifests/docker-db-only.yaml up -d
+	@echo "  >  Waiting cockroach DB is ready..."
+	@sleep 5
 	@echo "  >  running to tests..."
 	go test -coverprofile=$(GOCOVERAGE) -v ./...
 	@echo "  >  Stopping cockroach DB..."
@@ -147,14 +143,10 @@ lint: $(GOFILES)
 	@echo -n "  >  running lint..."
 	@echo $?
 	$(GOLINT) $? > $(GOLINTREPORT)
-	@echo "  >  running gosec..."
-	$(shell gosec -fmt=sonarqube -tests -out $(GOSECREPORT) -exclude-dir=.templates ./...)
-	@echo "  >  running go vet..."
-	$(shell go vet ./... 2&1> $(GOVETREPORT))
-
-$(K8S):
-	$(shell mkdir -p manifests/kubernetes)
-	$(shell cd manifests/kubernetes;kompose convert -f ../docker-compose.yaml)
+	@echo "  >  running gosec... > $(GOSECREPORT)"
+	$(shell (export GOPATH=$(GOPATH);gosec -fmt=sonarqube -tests -out $(GOSECREPORT) -exclude-dir=.templates ./...))
+	@echo "  >  running go vet... > $(GOVETREPORT)"
+	$(shell (export GOPATH=$(GOPATH);go vet ./... 2> $(GOVETREPORT)))
 
 ## fmt: Run gofmt on all code
 fmt: $(GOFILES)
@@ -166,12 +158,13 @@ simplify: $(GOFILES)
 
 ## k8s-start: Start local microk8s server and update configurations
 k8s-start:
-	$(K8SSTART)
+	@echo "  > dev/microk8sStart.sh"
+	dev/microk8sStart.sh
 
 ## k8s-stop: Stop local k8s cluster and delete skaffold deployments
 k8s-stop:
 	skaffold delete -f manifests/skaffold.yaml
-	$(K8SSTOP)
+	dev/microk8sStop.sh
 
 ## k8s-status: Print the status of the local cluster up or down
 k8s-status:
