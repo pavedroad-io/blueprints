@@ -7,96 +7,81 @@ PROJECTNAME := $(shell basename "$(PWD)")
 PROJDIR := $(shell pwd)
 TARGET := $(PROJECTNAME)
 
+K8SRUNNING := $(shell dev/microk8sStatus.sh)
+
+ASSETS := $(PROJDIR)/assets/images
+ARTIFACTS := $(PROJDIR)/artifacts
+BUILDS := $(PROJDIR)/builds
+DOCS := $(PROJDIR)/docs
+LOGS := $(PROJDIR)/logs
+
 # Go related variables.
 GOBASE := $(shell cd ../../;pwd)
 GOPATH := $(GOBASE)
+export GOPATH = $(GOBASE)
 GOBIN := $(GOBASE)/bin
 GOFILES := $(wildcard *.go)
 GOLINT := $(shell which golint)
-ASSETS := "$(PROJDIR)/assets/images"
-ARTIFACTS := "$(PROJDIR)/artifacts"
-DOCS := "$(PROJDIR)/docs"
-LOGS := "$(PROJDIR)/logs"
-MANIFEST := "$(PROJDIR)/manifests"
-K8S = ~"$(PROJDIR)/manifest/kubernetes"
-GOCOVERAGE := "$(ARTIFACTS)/coverage.out"
-GOLINTREPORT := "$(ARTIFACTS)/lint.out"
-GOTESTREPORT := "https://sonarcloud.io/dashboard?id={{.Organization}}_{{.Name}}"
+GOARCH := $(shell go env GOARCH)
+GOOS := $(shell go env GOOS)
+GOCOVERAGE := $(ARTIFACTS)/coverage.out
+GOLINTREPORT := $(ARTIFACTS)/lint.out
+GOSECREPORT := $(ARTIFACTS)/gosec.out
+GOVETREPORT := $(ARTIFACTS)/govet.out
+GOTESTREPORT := https://sonarcloud.io/dashboard?id={{.Organization}}_{{.Name}}
+
+GIT_TAG := $(shell git describe)
 
 SHELL := /bin/bash
 
 # Use linker flags to provide version/build settings to the target
-LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD)"
-
-# Redirect error output to a file, so we can show it in development mode.
-STDERR := ./$(PROJECTNAME)-stderr.txt
-
-# PID file will keep the process id of the server
-PID := /tmp/.$(PROJECTNAME).pid
+LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD) -X=main.GitTag=$(GIT_TAG)"
 
 # Make is verbose in Linux. Make it silent.
 # MAKEFLAGS += --silent
 
-.PHONY: check go-build compile sonar-scanner
+.PHONY: check build compile sonar-scanner
 
 all: compile check
 
-#.DEFAULT_GOAL: $(TARGET)
-
-## start: Start in development mode. Auto-starts when code changes.
-start:
-	@bash -c "trap 'make stop' EXIT; $(MAKE) clean compile start-server watch run='make clean compile start-server'"
-
-## stop: Stop development mode.
-stop: stop-server
-
-start-server: stop-server
-	@echo "  >  $(PROJECTNAME) is available at $(ADDR)"
-	@-$(GOBIN)/$(PROJECTNAME) 2>&1 & echo $$! > $(PID)
-	@cat $(PID) | sed "/^/s/^/  \>  PID: /"
-
-stop-server:
-	@echo "  >  $(PROJECTNAME) shutting down"
-	@-touch $(PID)
-	@-kill `cat $(PID)` 2> /dev/null || true
-	@-rm $(PID)
-
-## watch: Run given command when code changes. e.g; make watch run="echo 'hey'"
-watch:
-	@echo "  Watch"
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) yolo -i . -e vendor -e bin -c "$(run)"
-
-restart-server: stop-server start-server
-
 ## compile: Compile the binary.
-compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS)
+compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS)
 	@echo "  Compiling"
-	@-$(MAKE) -s go-compile
+	@-$(MAKE) -s build
 
-## exec: Run given command, wrapped with custom GOPATH. e.g; make exec run="go test ./..."
-exec:
-	@echo "  execute $(GOBIN)"
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) $(run)
-
-## clean: Clean build files. Runs `go clean` internally.
+## clean: Remove dep, vendor, binary(s), and executs go clean
 clean:
 	@echo "  execute go-clean"
-	@-rm $(GOBIN)/$(PROJECTNAME) 2> /dev/null
+	@-rm $(GOBIN)/$(PROJECTNAME)* 2> /dev/null || true
+	@-rm -R vendor Gopkt.* 2> /dev/null || true
 	@-$(MAKE) go-clean
 
-go-compile: go-get api-doc $(K8S) go-build
-
-go-build:
+## build: Build the binary for linux / mac x86 and amd
+build: go-get api-doc build
 	@echo "  >  Building binary..."
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME) $(GOFILES)
-	cp $(GOBIN)/$(PROJECTNAME) .
-	skaffold run -f manifests/skaffold.yaml
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
+# make this conditional on build GOARCH
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS="darwin" GOARCH="amd64" go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-"darwin"-"amd64" $(GOFILES)
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS="darwin" GOARCH="386" go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-"darwin"-"386" $(GOFILES)
+	cp $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(BUILDS)/$(PROJECTNAME)-$(GOOS)-$(GOARCH)
+	cp $(BUILDS)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(PROJECTNAME)
+	cp $(GOBIN)/$(PROJECTNAME)-"darwin"-"amd64" $(BUILDS)/$(PROJECTNAME)-"darwin"-"amd64"
+	cp $(GOBIN)/$(PROJECTNAME)-"darwin"-"386" $(BUILDS)/$(PROJECTNAME)-"darwin"-"386"
 
-go-generate:
-	@echo "  >  Generating dependency files..."
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go generate $(generate)
-	dep status -dot | dot -T png
-	@echo "  >  Generating dependency files..."
+
+## deploy: Deploy image to repository and k8s cluster
+deploy:
+ifeq "$(K8SRUNNING)" "down"
+	@echo "  >  Starting k8s for deployment..."
+	dev/microk8sStart.sh
+endif
+	@echo "  >  Starting k8s is up..."
+	@dev/kube-config.sh
+#       wait for the registry service to be ready	
+	@echo "  >  Wait for registry to come up..."
+	@sleep 20
+	@echo "  >  Build image and deploy..."
+	@skaffold run -f manifests/skaffold.yaml
 
 Gopkg.toml:
 	@echo "  >  initialize dep support..."
@@ -117,7 +102,8 @@ get-deps:
 	@echo "  >  dep ensure..."
 	$(shell (GOPATH=$(GOPATH);dep ensure $?))
 
-go-install:
+## install: Install packages or main
+install:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go install $(GOFILES)
 
 go-clean:
@@ -126,9 +112,12 @@ go-clean:
 
 # TODO: enable sonar scanner once we get API key
 # check: lint sonar-scanner $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
+## check: Start services and execute static code analysis and tests
 check: lint $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
 	@echo "  >  Starting cockroach DB..."
 	docker-compose -f manifests/docker-db-only.yaml up -d
+	@echo "  >  Waiting cockroach DB is ready..."
+	@sleep 5
 	@echo "  >  running to tests..."
 	go test -coverprofile=$(GOCOVERAGE) -v ./...
 	@echo "  >  Stopping cockroach DB..."
@@ -137,31 +126,52 @@ check: lint $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
 sonar-scanner: $(ARTIFACTS)
 	sonarcloud.sh
 
+## show-coverage: Show go code coverage in browser
 show-coverage:
 	go tool cover -html=$(GOCOVERAGE)
 
+## show-test: Show sonarcloud test report
 show-test:
 	xdg-open $(GOTESTREPORT)
 
+## show-devkit: Show documenation for Devkit
 show-devkit:
 	xdg-open http://localhost:5000/microk8sDevKit.html
 
 
-lint: $(GOFILES) $(ARTIFACTS)
-	@echo "  >  running lint..."
+lint: $(GOFILES)
+	@echo -n "  >  running lint..."
 	@echo $?
 	$(GOLINT) $? > $(GOLINTREPORT)
+	@echo "  >  running gosec... > $(GOSECREPORT)"
+	$(shell (export GOPATH=$(GOPATH);gosec -fmt=sonarqube -tests -out $(GOSECREPORT) -exclude-dir=.templates ./...))
+	@echo "  >  running go vet... > $(GOVETREPORT)"
+	$(shell (export GOPATH=$(GOPATH);go vet ./... 2> $(GOVETREPORT)))
 
-$(K8S):
-	$(shell mkdir -p manifests/kubernetes)
-	$(shell cd manifests/kubernetes;kompose convert -f ../docker-compose.yaml)
-
+## fmt: Run gofmt on all code
 fmt: $(GOFILES)
 	@gofmt -l -w $?
 
+## simplify: Run gofmt with simplify option
 simplify: $(GOFILES)
 	@gofmt -s -l -w $?
 
+## k8s-start: Start local microk8s server and update configurations
+k8s-start:
+	@echo "  > dev/microk8sStart.sh"
+	dev/microk8sStart.sh
+
+## k8s-stop: Stop local k8s cluster and delete skaffold deployments
+k8s-stop:
+	skaffold delete -f manifests/skaffold.yaml
+	dev/microk8sStop.sh
+
+## k8s-status: Print the status of the local cluster up or down
+k8s-status:
+	@echo -n "  >  microk8s is "
+	@echo $(K8SRUNNING)
+
+## help: Print possible commands
 help: Makefile
 	@echo
 	@echo " Choose a command run in "$(PROJECTNAME)":"
@@ -177,6 +187,10 @@ $(ARTIFACTS):
 	@echo "  >  Creating artifacts directory"
 	$(shell mkdir -p $(ARTIFACTS))
 
+$(BUILDS):
+	@echo "  >  Creating $(BUILDS) directory"
+	$(shell mkdir -p $(BUILDS))
+
 $(DOCS):
 	@echo "  >  Creating docs directory"
 	$(shell mkdir -p $(DOCS))
@@ -184,6 +198,4 @@ $(DOCS):
 $(LOGS):
 	@echo "  >  Creating logs directory"
 	$(shell mkdir -p $(LOGS))
-
-
 {{end}}

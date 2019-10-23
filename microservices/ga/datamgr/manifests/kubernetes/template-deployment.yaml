@@ -1,0 +1,32 @@
+{{define "template-deployment.yaml"}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    roadctlVersion: alphav1
+    pavedroad: www.pavedroad.io
+  creationTimestamp: null
+  labels:
+    pavedroad.service: {{.Name}}
+  name: {{.Name}}
+spec:
+  replicas: 3
+  strategy: {}
+  selector:
+    matchLabels:
+      pavedroad.service: {{.Name}}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        pavedroad.service: {{.Name}}
+    spec:
+      containers:
+      - image: acme/{{.Name}}:0.0
+        name: {{.Name}}
+        ports:
+        - containerPort: 8081
+        resources: {}
+      restartPolicy: Always
+status: {}
+{{end}}
