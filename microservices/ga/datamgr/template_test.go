@@ -161,24 +161,24 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 	json.Unmarshal(response.Body.Bytes(), &m)
 
 	//Test we can decode the data
-	cs, ok := m["Created"].(string)
+	cs, ok := m["created"].(string)
 	if ok {
 		c, err := time.Parse(time.RFC3339, cs)
 		if err != nil {
 			t.Errorf("Parse failed on parse creataed time Got '%v'", c)
 		}
 	} else {
-		t.Errorf("Expected creataed of string type Got '%v'", reflect.TypeOf(m["Created"]))
+		t.Errorf("Expected creataed of string type Got '%v'", reflect.TypeOf(m["created"]))
 	}
 
-	us, ok := m["Updated"].(string)
+	us, ok := m["updated"].(string)
 	if ok {
 		u, err := time.Parse(time.RFC3339, us)
 		if err != nil {
 			t.Errorf("Parse failed on parse updated time Got '%v'", u)
 		}
 	} else {
-		t.Errorf("Expected updated of string type Got '%v'", reflect.TypeOf(m["Updated"]))
+		t.Errorf("Expected updated of string type Got '%v'", reflect.TypeOf(m["updated"]))
 	}
 }
 
