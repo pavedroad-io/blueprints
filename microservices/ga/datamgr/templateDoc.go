@@ -25,7 +25,7 @@
 //
 //     Schemes: http, https
 //     Host: api.pavedroad.io
-//     BasePath: /api/v1/namespace/pavedroad.io/{{.NameExported}}
+//     BasePath: /api/v1/namespace/pavedroad.io/{{.Name}}
 //     Version: 0.0.1
 //     License: Apache 2
 //     Contact: {{.MaintainerName}}<{{.MaintainerEmail}}> {{.MaintainerWeb}}

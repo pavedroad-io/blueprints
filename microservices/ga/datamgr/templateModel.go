@@ -45,7 +45,7 @@ type listResponse struct {
 // Generated structures with Swagger docs
 {{.SwaggerGeneratedStructs}}
 
-// An {{.NameExported}} response model
+// {{.NameExported}} response model
 //
 // This is used for returning a response with a single {{.Name}} as body
 //
@@ -55,7 +55,7 @@ type {{.NameExported}}Response struct {
 	response string `json:"order"`
 }
 
-// update{{.Name}}{{.NameExported}} in database
+// update{{.NameExported}} in database
 func (t *{{.Name}}) update{{.NameExported}}(db *sql.DB, key string) error {
 	update := `
 	UPDATE {{.Organization}}.{{.Name}}
@@ -79,7 +79,7 @@ func (t *{{.Name}}) update{{.NameExported}}(db *sql.DB, key string) error {
   return nil
 }
 
-// create{{.Name}}{{.NameExported}} in database
+// create{{.NameExported}} in database
 func (t *{{.Name}}) create{{.NameExported}}(db *sql.DB) (string, error) {
   jb, err := json.Marshal(t)
   if err != nil {
@@ -108,7 +108,7 @@ func (t *{{.Name}}) create{{.NameExported}}(db *sql.DB) (string, error) {
 
 }
 
-// list{{.Name}}{{.NameExported}}: return a list of {{.Name}}
+// list{{.NameExported}}: return a list of {{.Name}}
 //
 func (t *{{.Name}}) list{{.NameExported}}(db *sql.DB, start, count int) ([]listResponse, error) {
 /*
@@ -145,7 +145,7 @@ func (t *{{.Name}}) list{{.NameExported}}(db *sql.DB, start, count int) ([]listR
   return ul, nil
 }
 
-// get{{.NameExported}}{{.NameExported}}: return a {{.Name}} based on the key
+// get{{.NameExported}}: return a {{.Name}} based on the key
 //
 func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) error {
     var statement string
@@ -189,7 +189,7 @@ func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) err
   return nil
 }
 
-// delete{{.Name}}{{.NameExported}}: return a {{.Name}} based on UID
+// delete{{.NameExported}}: return a {{.Name}} based on UID
 //
 func (t *{{.Name}}) delete{{.NameExported}}(db *sql.DB, key string) error {
 	statement := fmt.Sprintf("DELETE FROM {{.Organization}}.{{.Name}} WHERE {{.NameExported}}UUID = '%s'", key)

@@ -22,7 +22,14 @@ spec:
         pavedroad.service: {{.Name}}
     spec:
       containers:
-      - image: acme/{{.Name}}:0.0
+      - image: localhost:32000/acme/{{.Name}}:0.0
+        env:
+        - name: HTTP_IP_ADDR
+          value: "0.0.0.0"
+        - name: HTTP_IP_PORT
+          value: "8081"
+        - name: APP_DB_IP
+          value: "roach-ui"
         name: {{.Name}}
         ports:
         - containerPort: 8081
