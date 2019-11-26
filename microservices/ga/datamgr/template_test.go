@@ -23,7 +23,7 @@ const (
 	Updated         string = "updated"
 	Created         string = "created"
 	Active          string = "active"
-  {{.NameExported}}URL string = "/api/v1/namespace/pavedroad.io/{{.NameExported}}/%s"
+  {{.NameExported}}URL string = "/api/v1/namespace/pavedroad.io/{{.Name}}/%s"
 )
 
 var new{{.NameExported}}JSON=`{{.PostJSON}}`
@@ -80,7 +80,7 @@ CREATE INDEX IF NOT EXISTS {{.Name}}Idx ON {{.Organization}}.{{.Name}} USING GIN
 func TestEmptyTable(t *testing.T) {
 	clearTable()
 
-	req, _ := http.NewRequest("GET", "/api/v1/namespace/pavedroad.io/{{.NameExported}}LIST", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/namespace/pavedroad.io/{{.Name}}LIST", nil)
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
@@ -111,7 +111,7 @@ func TestGetWithBadUserUUID(t *testing.T) {
 	clearTable()
 
 	req, _ := http.NewRequest("GET",
-		"/api/v1/namespace/pavedroad.io/{{.NameExported}}/43ae99c9", nil)
+		"/api/v1/namespace/pavedroad.io/{{.Name}}/43ae99c9", nil)
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
@@ -151,7 +151,7 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 
 	payload := []byte(new{{.NameExported}}JSON)
 
-	req, _ := http.NewRequest("POST", "/api/v1/namespace/pavedroad.io/{{.NameExported}}", bytes.NewBuffer(payload))
+	req, _ := http.NewRequest("POST", "/api/v1/namespace/pavedroad.io/{{.Name}}", bytes.NewBuffer(payload))
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusCreated, response.Code)
@@ -161,24 +161,24 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 	json.Unmarshal(response.Body.Bytes(), &m)
 
 	//Test we can decode the data
-	cs, ok := m["created"].(string)
+	cs, ok := m["Created"].(string)
 	if ok {
 		c, err := time.Parse(time.RFC3339, cs)
 		if err != nil {
 			t.Errorf("Parse failed on parse creataed time Got '%v'", c)
 		}
 	} else {
-		t.Errorf("Expected creataed of string type Got '%v'", reflect.TypeOf(m["created"]))
+		t.Errorf("Expected creataed of string type Got '%v'", reflect.TypeOf(m["Created"]))
 	}
 
-	us, ok := m["updated"].(string)
+	us, ok := m["Updated"].(string)
 	if ok {
 		u, err := time.Parse(time.RFC3339, us)
 		if err != nil {
 			t.Errorf("Parse failed on parse updated time Got '%v'", u)
 		}
 	} else {
-		t.Errorf("Expected updated of string type Got '%v'", reflect.TypeOf(m["updated"]))
+		t.Errorf("Expected updated of string type Got '%v'", reflect.TypeOf(m["Updated"]))
 	}
 }
 

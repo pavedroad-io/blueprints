@@ -25,7 +25,7 @@ const (
   // {{.NameExported}}DefaultNamespace Default namespace
   {{.NameExported}}DefaultNamespace string = "pavedroad.io"
   // {{.NameExported}}ResourceType CRD Type per k8s
-  {{.NameExported}}ResourceType string = "{{.NameExported}}"
+  {{.NameExported}}ResourceType string = "{{.Name}}"
   // The email or account login used by 3rd parth provider
   {{.NameExported}}Key string = "/{key}"
 )

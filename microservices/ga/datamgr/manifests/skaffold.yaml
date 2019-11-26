@@ -9,8 +9,6 @@ build:
     context: .
     docker:
       dockerfile: manifests/Dockerfile
-  local:
-    useDockerCLI: true
 deploy:
   kubectl:
     manifests:

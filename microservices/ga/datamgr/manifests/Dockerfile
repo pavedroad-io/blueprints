@@ -18,7 +18,7 @@ ENV pavedroad /pavedroad
 ENV pavedroadbin $pavedroad/$ms
 
 # make working directory, move to it, and copy in prToken ms
-RUN mkdir ${pavedroad}
+RUN mkdir -p ${pavedroad}/logs
 WORKDIR ${pavedroad}
 COPY $ms $pavedroad
 

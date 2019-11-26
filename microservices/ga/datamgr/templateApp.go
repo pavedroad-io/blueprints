@@ -195,7 +195,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 }
 
 {{.GetAllSwaggerDoc}}
-// get{{.NameExported}} swagger:route GET /{{.NameExported}}LIST {{.Name}} list{{.NameExported}}
+// list{{.NameExported}} swagger:route GET /api/v1/namespace/pavedroad.io/{{.Name}}LIST {{.Name}} list{{.Name}}
 //
 // Returns a list of {{.Name}}
 //
@@ -226,7 +226,7 @@ func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *h
 }
 
 {{.GetSwaggerDoc}}
-// get{{.NameExported}} swagger:route GET /{{.NameExported}}/{uuid} {{.Name}} get{{.NameExported}}
+// get{{.NameExported}} swagger:route GET /api/v1/namespace/pavedroad.io/{{.Name}}/{uuid} {{.Name}} get{{.Name}}
 //
 // Returns a {{.Name}} given a key, where key is a UUID
 //
@@ -256,7 +256,7 @@ func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *ht
 }
 
 {{.PostSwaggerDoc}}
-// create{{.NameExported}} swagger:route POST /{{.NameExported}} {{.Name}} create{{.NameExported}}
+// create{{.NameExported}} swagger:route POST /api/v1/namespace/pavedroad.io/{{.Name}} {{.Name}} create{{.Name}}
 //
 // Create a new {{.Name}}
 //
@@ -295,7 +295,7 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
 }
 
 {{.PutSwaggerDoc}}
-// update{{.NameExported}} swagger:route PUT /{{.NameExported}}/{key} {{.Name}} update{{.NameExported}}
+// update{{.NameExported}} swagger:route PUT /api/v1/namespace/pavedroad.io/{{.Name}}/{key} {{.Name}} update{{.Name}}
 //
 // Update a {{.Name}} specified by key, where key is a uuid
 //
@@ -333,7 +333,7 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
 }
 
 {{.DeleteSwaggerDoc}}
-// delete{{.NameExported}} swagger:route DELETE /{{.NameExported}}/{key} {{.Name}} delete{{.NameExported}}
+// delete{{.NameExported}} swagger:route DELETE /api/v1/namespace/pavedroad.io/{{.Name}}/{key} {{.Name}} delete{{.Name}}
 //
 // Update a {{.Name}} specified by key, which is a uuid
 //
