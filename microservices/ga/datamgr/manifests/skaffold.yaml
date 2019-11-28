@@ -9,6 +9,10 @@ build:
     context: .
     docker:
       dockerfile: manifests/Dockerfile
+  - image: localhost:32000/{{.Organization}}/{{.Name}}initdb
+    context: .
+    docker:
+      dockerfile: manifests/InitDbDockerFile
 deploy:
   kubectl:
     manifests:

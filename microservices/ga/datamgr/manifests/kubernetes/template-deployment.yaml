@@ -21,8 +21,14 @@ spec:
       labels:
         pavedroad.service: {{.Name}}
     spec:
+      initContainers:
+      - image: localhost:32000/{{.Organization}}/{{.Name}}initdb:0.0
+        env:
+        - name: COCKROACH_HOST
+          value: "roach-ui"
+        name: filmsdbinit
       containers:
-      - image: localhost:32000/acme/{{.Name}}:0.0
+      - image: localhost:32000/{{.Organization}}/{{.Name}}:0.0
         env:
         - name: HTTP_IP_ADDR
           value: "0.0.0.0"

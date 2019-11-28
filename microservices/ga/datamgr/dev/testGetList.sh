@@ -34,5 +34,3 @@ done
 # Call get
 get
 {{end}}
-
-

@@ -7,7 +7,7 @@ uuid=""
 
 getUUID()
 {
-  uuid=`curl -H "Content-Type: application/json" -s http://$host:$port/api/v1/namespace/pavedroad.io/$serviceLIST/ | jq -r '.UUID'`
+  uuid=`curl -H "Content-Type: application/json" -s http://$host:$port/api/v1/namespace/pavedroad.io/$service"LIST" | jq -r '.[0].uuid'`
 
   if [ $uuid == "" ]
   then

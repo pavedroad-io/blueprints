@@ -2,7 +2,7 @@
 #!/bin/bash
 host=127.0.0.1
 port=8081
-service="films"
+service="{{.Name}}"
 flag=""
 
 post()
@@ -54,7 +54,6 @@ delete()
     ./testDelete.sh
   fi
 }
-
 
 usage()
 {

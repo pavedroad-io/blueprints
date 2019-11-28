@@ -7,7 +7,7 @@ uuid=""
 
 getUUID()
 {
-  uuid=`curl -H "Content-Type: application/json" -s http://$host:$port/api/v1/namespace/pavedroad.io/$serviceLIST/ | jq -r '.UUID'`
+  uuid=`curl -H "Content-Type: application/json" -s http://$host:$port/api/v1/namespace/pavedroad.io/$service"LIST" | jq -r '.[0].uuid'`
 
   if [ $uuid == "" ]
   then
@@ -19,21 +19,7 @@ delete()
 {
 curl -X DELETE \
      -H "Content-Type: application/json" \
-     -v http://$host:$port/api/v1/namespace/pavedroad.io/films/$uuid
-}
-
-usage()
-{
-  echo "usage: testDelete -k |--k8s"
-  echo "    -k locates and issues delete to local k8s cluster"
-  echo "    Otherwise, it will use $host on port $port"
-}
-
-delete()
-{
-curl -X DELETE \
-     -H "Content-Type: application/json" \
-     -v http://$host:$port/api/v1/namespace/pavedroad.io/films/$uuid
+     -v http://$host:$port/api/v1/namespace/pavedroad.io/$service/$uuid
 }
 
 usage()

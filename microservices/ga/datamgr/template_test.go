@@ -161,7 +161,7 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 	json.Unmarshal(response.Body.Bytes(), &m)
 
 	//Test we can decode the data
-	cs, ok := m["Created"].(string)
+	cs, ok := m["created"].(string)
 	if ok {
 		c, err := time.Parse(time.RFC3339, cs)
 		if err != nil {
@@ -171,7 +171,7 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 		t.Errorf("Expected creataed of string type Got '%v'", reflect.TypeOf(m["Created"]))
 	}
 
-	us, ok := m["Updated"].(string)
+	us, ok := m["updated"].(string)
 	if ok {
 		u, err := time.Parse(time.RFC3339, us)
 		if err != nil {

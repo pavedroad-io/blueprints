@@ -138,6 +138,18 @@ can do `make compile` followed by `make check`
 To get an SQL prompt, use:
 	bin/sql.sh
 
+## dev/testXXXXX.sh scripts
+The following scripts work with your local docker images using 
+docker-compose or with the local microk8s cluster.  By default they
+use the local docker image.  To use the microk8s cluster, use the -k
+command line option/flag.
+
+- dev/testAll.sh
+- dev/testPost.sh
+- dev/testPut.sh
+- dev/testGet.sh
+- dev/testGetList.sh
+
 ## make
 Use **make help** to get a list of options
 make help
@@ -159,6 +171,29 @@ make help
     k8s-stop        Stop local k8s cluster and delete skaffold deployments
     k8s-status      Print the status of the local cluster up or down
     help            Print possible commands
+
+## skaffold CI/CD
+Skaffold is integrated into your project.  You can use the following commands:
+
+### development mode
+Monitors source code and when it changes builds and pushs a new image
+
+```bash
+skaffold dev -f manifests/skaffold.yaml
+```
+### run
+Builds and push image once when executed
+
+```bash
+skaffold run -f manifests/skaffold.yaml
+```
+  
+### delete
+Deletes all deployed resources
+
+```bash
+skaffold delete -f manifests/skaffold.yaml
+```
   
 ## Linter(s)
 Three lint applications are integrated to assist in code reviews.
