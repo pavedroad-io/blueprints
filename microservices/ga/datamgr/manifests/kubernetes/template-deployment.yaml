@@ -22,7 +22,6 @@ spec:
         pavedroad.service: {{.Name}}
     spec:
       initContainers:
-        initContainers:
       - image: busybox:1.28
         name: wait-for-cockroach
         command: ['sh', '-c', 'until nslookup roach-ui; do echo waiting for roach-ui; sleep 2; done;']

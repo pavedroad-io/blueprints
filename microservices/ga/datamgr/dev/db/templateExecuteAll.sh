@@ -33,6 +33,7 @@ all()
 
 # 4 Create {{.Organization}}Table 
   $CMD < {{.Name}}CreateTable.sql
+}
 
 usage()
 {

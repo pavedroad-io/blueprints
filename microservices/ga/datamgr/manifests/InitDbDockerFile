@@ -1,6 +1,6 @@
 {{define "InitDbDockerFile"}}
-# Use centos for cockroach compatability
-FROM centos
+# pavedroad image based on centos with cockroachdb installed
+FROM pavedroadio/cockroachdb-client:0.3
 
 LABEL "io.pavedroad.vendor": "{{.Organization}}" \
       "io.pavedroad.init.db": "{{.Name}}db" \
@@ -19,7 +19,6 @@ ENV cmd {{.Name}}ExecuteAll.sh
 # make working directory, move to it, and copy in prToken ms
 RUN mkdir -p pavedroad
 WORKDIR pavedroad
-COPY cockroach /usr/local/bin
 COPY dev/db .
 
 CMD ["/bin/sh", "-c", "./$cmd -k"]
