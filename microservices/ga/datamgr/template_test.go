@@ -168,7 +168,7 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 			t.Errorf("Parse failed on parse creataed time Got '%v'", c)
 		}
 	} else {
-		t.Errorf("Expected creataed of string type Got '%v'", reflect.TypeOf(m["Created"]))
+		t.Errorf("Expected creataed of string type Got '%v'", reflect.TypeOf(m["created"]))
 	}
 
 	us, ok := m["updated"].(string)
@@ -178,7 +178,7 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 			t.Errorf("Parse failed on parse updated time Got '%v'", u)
 		}
 	} else {
-		t.Errorf("Expected updated of string type Got '%v'", reflect.TypeOf(m["Updated"]))
+		t.Errorf("Expected updated of string type Got '%v'", reflect.TypeOf(m["updated"]))
 	}
 }
 
