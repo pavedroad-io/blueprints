@@ -1,4 +1,4 @@
-{{define "templateExecuteAll.sh"}}
+{{define "dev/db/templateExecuteAll.sh"}}
 #!/bin/bash
 
 SQL="cockroach sql"

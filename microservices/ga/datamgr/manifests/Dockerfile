@@ -1,4 +1,4 @@
-{{define "Dockerfile"}}
+{{define "manifests/Dockerfile"}}
 # User golang based off al Alpine
 FROM golang:latest
 

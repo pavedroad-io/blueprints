@@ -1,4 +1,4 @@
-{{define "templateRepositoryClean.sh"}}
+{{define "dev/templateRepositoryClean.sh"}}
 #!/bin/bash
 #
 # remove all images matching a path by their digest

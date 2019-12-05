@@ -1,4 +1,4 @@
-{{define "testPost.sh"}}
+{{define "dev/testPost.sh"}}
 #!/bin/bash
 
 ## set default values

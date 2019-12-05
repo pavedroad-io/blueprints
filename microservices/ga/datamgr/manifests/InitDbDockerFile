@@ -1,4 +1,4 @@
-{{define "InitDbDockerFile"}}
+{{define "manifests/InitDbDockerFile"}}
 # pavedroad image based on centos with cockroachdb installed
 FROM pavedroadio/cockroachdb-client:0.3
 

@@ -1,4 +1,4 @@
-{{define "microk8sStart.sh"}}
+{{define "dev/microk8sStart.sh"}}
 #!/bin/bash
 
 STATUS=`microk8s.status | sed  's/.*\(\bnot running\b\).*/\1/'`

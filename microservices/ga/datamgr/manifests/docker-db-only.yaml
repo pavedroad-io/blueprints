@@ -1,4 +1,4 @@
-{{define "docker-db-only.yaml"}}
+{{define "manifests/docker-db-only.yaml"}}
 version: '3'
 
 services:
