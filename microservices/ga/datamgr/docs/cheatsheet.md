@@ -65,6 +65,7 @@ Can be accessed using their short name or full name.  Multiple resources can be 
 ```bash
 kubectl get po,deploy,svc 
 ```
+
 Naming
 
 | Short Name | Full Name | Short Name | Full Name	|
