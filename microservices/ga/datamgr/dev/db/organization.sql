@@ -1,3 +1,3 @@
-{{define "organization.sql"}}
-CREATE DATABASE IF NOT EXISTS {{.Organization}};
+{{define "dev/db/organization.sql"}}
+CREATE DATABASE IF NOT EXISTS {{.OrgSQLSafe}};
 {{end}}

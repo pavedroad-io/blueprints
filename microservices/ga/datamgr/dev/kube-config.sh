@@ -1,4 +1,4 @@
-{{define "kube-config.sh"}}
+{{define "dev/kube-config.sh"}}
 #!/bin/bash
 
 CMD0="microk8s.config"

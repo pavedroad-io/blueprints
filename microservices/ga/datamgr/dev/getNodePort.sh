@@ -1,3 +1,4 @@
+{{define "dev/getNodePort.sh"}}
 #!/bin/bash
 
 getNodePort()
@@ -21,3 +22,4 @@ fi
 name="$1"
 
 getNodePort
+{{end}}

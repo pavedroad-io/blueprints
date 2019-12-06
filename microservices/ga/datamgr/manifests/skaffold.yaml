@@ -1,4 +1,4 @@
-{{define "skaffold.yaml"}}
+{{define "manifests/skaffold.yaml"}}
 apiVersion: skaffold/v1beta9
 kind: Config
 build:
@@ -14,11 +14,6 @@ build:
     docker:
       dockerfile: manifests/InitDbDockerFile
 deploy:
-  kubectl:
-    manifests:
-    - manifests/kubernetes/{{.Name}}-deployment.yaml
-    - manifests/kubernetes/{{.Name}}-service.yaml
-    - manifests/kubernetes/roach-ui-claim0-persistentvolumeclaim.yaml
-    - manifests/kubernetes/roach-ui-deployment.yaml
-    - manifests/kubernetes/roach-ui-service.yaml
+  kustomize:
+    path: "manifests/kubernetes/dev"
 {{end}}

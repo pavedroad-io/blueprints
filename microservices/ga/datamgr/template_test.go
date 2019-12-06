@@ -58,23 +58,23 @@ func ensureTableExists() {
 }
 
 func clearTable() {
-	a.DB.Exec("DELETE FROM {{.Organization}}.{{.NameExported}}")
+	a.DB.Exec("DELETE FROM {{.OrgSQLSafe}}.{{.NameExported}}")
 }
 
 func clearDB() {
-	a.DB.Exec("DROP DATABASE IF EXISTS {{.Organization}}")
-	a.DB.Exec("CREATE DATABASE {{.Organization}}")
+	a.DB.Exec("DROP DATABASE IF EXISTS {{.OrgSQLSafe}}")
+	a.DB.Exec("CREATE DATABASE {{.OrgSQLSafe}}")
 }
 
 const tableCreationQuery = `
-CREATE TABLE IF NOT EXISTS {{.Organization}}.{{.Name}} (
+CREATE TABLE IF NOT EXISTS {{.OrgSQLSafe}}.{{.Name}} (
     {{.NameExported}}UUID UUID DEFAULT uuid_v4()::UUID PRIMARY KEY,
     {{.Name}} JSONB
 );`
 
 
 const indexCreate = `
-CREATE INDEX IF NOT EXISTS {{.Name}}Idx ON {{.Organization}}.{{.Name}} USING GIN ({{.Name}});`
+CREATE INDEX IF NOT EXISTS {{.Name}}Idx ON {{.OrgSQLSafe}}.{{.Name}} USING GIN ({{.Name}});`
 
 
 func TestEmptyTable(t *testing.T) {
@@ -168,7 +168,7 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 			t.Errorf("Parse failed on parse creataed time Got '%v'", c)
 		}
 	} else {
-		t.Errorf("Expected creataed of string type Got '%v'", reflect.TypeOf(m["created"]))
+		t.Errorf("Expected creataed of string type Got '%v'", reflect.TypeOf(m["Created"]))
 	}
 
 	us, ok := m["updated"].(string)
@@ -178,7 +178,7 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 			t.Errorf("Parse failed on parse updated time Got '%v'", u)
 		}
 	} else {
-		t.Errorf("Expected updated of string type Got '%v'", reflect.TypeOf(m["updated"]))
+		t.Errorf("Expected updated of string type Got '%v'", reflect.TypeOf(m["Updated"]))
 	}
 }
 
@@ -196,7 +196,7 @@ func TestMarshall{{.NameExported}}(t *testing.T) {
 //
 func add{{.NameExported}}(t *{{.Name}}) (string) {
 
-  statement := fmt.Sprintf("INSERT INTO {{.Organization}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.Name}}UUID", new{{.NameExported}}JSON)
+  statement := fmt.Sprintf("INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.Name}}UUID", new{{.NameExported}}JSON)
   rows, er1 := a.DB.Query(statement)
 
 	if er1 != nil {

@@ -1,4 +1,4 @@
-{{define "sql.sh"}}
+{{define "dev/sql.sh"}}
 #!/bin/bash
 
 #. ./dbcmd.sh

@@ -1,5 +1,4 @@
-{{define "Makefile"}}
-#-include .env
+{{define "Makefile"}}#-include .env
 
 VERSION := {{.Version}}
 BUILD := $(shell git rev-parse --short HEAD)
@@ -28,7 +27,7 @@ GOCOVERAGE := $(ARTIFACTS)/coverage.out
 GOLINTREPORT := $(ARTIFACTS)/lint.out
 GOSECREPORT := $(ARTIFACTS)/gosec.out
 GOVETREPORT := $(ARTIFACTS)/govet.out
-GOTESTREPORT := https://sonarcloud.io/dashboard?id={{.Organization}}_{{.Name}}
+GOTESTREPORT := https://sonarcloud.io/dashboard?id={{.SonarPrefix}}{{.Name}}
 
 GIT_TAG := $(shell git describe)
 
@@ -110,10 +109,8 @@ go-clean:
 	@echo "  >  Cleaning build cache"
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go clean
 
-# TODO: enable sonar scanner once we get API key
-# check: lint sonar-scanner $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
 ## check: Start services and execute static code analysis and tests
-check: lint $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
+check: lint sonar-scanner $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
 	@echo "  >  Starting cockroach DB..."
 	docker-compose -f manifests/docker-db-only.yaml up -d
 	@echo "  >  Waiting cockroach DB is ready..."
@@ -197,5 +194,4 @@ $(DOCS):
 
 $(LOGS):
 	@echo "  >  Creating logs directory"
-	$(shell mkdir -p $(LOGS))
-{{end}}
+	$(shell mkdir -p $(LOGS)){{end}}

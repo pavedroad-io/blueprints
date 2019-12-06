@@ -1,4 +1,4 @@
-{{define "docker-compose.yaml"}}
+{{define "manifests/docker-compose.yaml"}}
 version: '3'
 
 services:

@@ -1,2 +1,3 @@
-{{define "templatePutData.json"}}
+{{define "dev/templatePutData.json"}}
+{{.PutJSON}}
 {{end}}
