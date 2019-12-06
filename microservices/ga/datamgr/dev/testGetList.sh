@@ -6,7 +6,7 @@ service="{{.Name}}"
 
 get()
 {
-  curl -v -H "Content-Type: application/json" -s http://$host:$port/api/v1/namespace/pavedroad.io/$service"LIST"/ | jq '.'
+  curl -v -H "Content-Type: application/json" -s http://$host:$port/api/v1/namespace/pavedroad.io/$service"LIST" | jq '.'
 }
 
 usage()

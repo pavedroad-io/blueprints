@@ -1,6 +1,7 @@
 {{define "manifests/kubernetes/dev/db/roach-ui-claim0-persistentvolumeclaim.yaml"}}
 apiVersion: v1
 kind: PersistentVolumeClaim
+metadata:
   name: roach-ui-claim0
   labels:
     pavedroad.service: roach-ui-claim0

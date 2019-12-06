@@ -58,7 +58,7 @@ type {{.NameExported}}Response struct {
 // update{{.NameExported}} in database
 func (t *{{.Name}}) update{{.NameExported}}(db *sql.DB, key string) error {
 	update := `
-	UPDATE {{.Organization}}.{{.Name}}
+	UPDATE {{.OrgSQLSafe}}.{{.Name}}
     SET {{.Name}} = '%s'
   WHERE {{.Name}}UUID = '%s';`
 
@@ -86,7 +86,7 @@ func (t *{{.Name}}) create{{.NameExported}}(db *sql.DB) (string, error) {
     panic(err)
   }
 
-  statement := fmt.Sprintf("INSERT INTO {{.Organization}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.NameExported}}UUID", jb)
+  statement := fmt.Sprintf("INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.NameExported}}UUID", jb)
   rows, er1 := db.Query(statement)
 
   if er1 != nil {
@@ -115,10 +115,10 @@ func (t *{{.Name}}) list{{.NameExported}}(db *sql.DB, start, count int) ([]listR
     qry := `select uuid,
           {{.Name}} ->> 'active' as active,
           {{.Name}} -> 'Metadata' ->> 'name' as name
-          from {{.Organization}}.{{.Name}} LIMIT %d OFFSET %d;`
+          from {{.OrgSQLSafe}}.{{.Name}} LIMIT %d OFFSET %d;`
 */
     qry := `select {{.NameExported}}UUID
-          from {{.Organization}}.{{.Name}} LIMIT %d OFFSET %d;`
+          from {{.OrgSQLSafe}}.{{.Name}} LIMIT %d OFFSET %d;`
   statement := fmt.Sprintf(qry, count, start)
   rows, err := db.Query(statement)
 
@@ -159,7 +159,7 @@ func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) err
     }
     statement = fmt.Sprintf(`
   SELECT {{.NameExported}}UUID, {{.Name}}
-  FROM {{.Organization}}.{{.Name}}
+  FROM {{.OrgSQLSafe}}.{{.Name}}
   WHERE {{.NameExported}}UUID = '%s';`, key)
   }
 
@@ -192,7 +192,7 @@ func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) err
 // delete{{.NameExported}}: return a {{.Name}} based on UID
 //
 func (t *{{.Name}}) delete{{.NameExported}}(db *sql.DB, key string) error {
-	statement := fmt.Sprintf("DELETE FROM {{.Organization}}.{{.Name}} WHERE {{.NameExported}}UUID = '%s'", key)
+	statement := fmt.Sprintf("DELETE FROM {{.OrgSQLSafe}}.{{.Name}} WHERE {{.NameExported}}UUID = '%s'", key)
   result, err := db.Exec(statement)
   c, e := result.RowsAffected()
 

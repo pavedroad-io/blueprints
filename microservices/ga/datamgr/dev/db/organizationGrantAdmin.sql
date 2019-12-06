@@ -1,3 +1,3 @@
 {{define "dev/db/organizationGrantAdmin.sql"}}
-GRANT ALL ON DATABASE {{.Organization}} TO {{.Organization}}Admin;
+GRANT ALL ON DATABASE {{.OrgSQLSafe}} TO {{.OrgSQLSafe}}Admin;
 {{end}}
