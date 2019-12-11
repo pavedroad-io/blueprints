@@ -201,6 +201,8 @@ Three lint applications are integrated to assist in code reviews.
 - Go lint checks for conformance with effective go programming recommendations and Go code review suggestions.
 - Gosec tests your code against go recommended security practices
 - Govet inspects code for constructs that might break.
+- FOSSA license scanner
+- SonarCloud scanner
 
 The location of each lint's output is below along with links to the rules they enforce.
 
@@ -217,4 +219,54 @@ artifacts/gosec.out
 artifacts/govet.out
 [Go vet rules](https://golang.org/cmd/vet/)
 
+### SonarCloud and FOSSA
+docs/service.html
+Badges for both with links to details can be found in the generated
+service.html in the docs directory.
+
+# SonarCloud
+SonarCloud provides free code analysis for open-source projects.  By default,
+the following tools are included:
+
+- quality gate
+- bugs
+- code smells
+- coverage
+- lines of code
+- duplicate lines of code
+- security
+- technical debt
+- vunlnerabilites
+
+
+Support for SonarCloud is pre-integrated in the generated Makefile.
+
+You need to set a valid sonarcloud token before executing make in 
+your .bashrc file:
+
+export SONARCLOUD_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+## sonar-project.properties
+
+Controlls the executing of an analysis run.  Documentation is
+avaiable [here](https://docs.sonarqube.org/latest/analysis/analysis-parameters/).
+The default configuration provides extended support for code coverage and go lint reporting.
+
+
+## Run by hand using
+The sonarcloud.sh is provided for executing an analysis by hand.
+
+```bash
+sonarcloud.sh
+
+```
+# FOSSA
+FOSSA provides free license scanning for open-source projects.   The [fossa-cli](https://github.com/fossas/fossa-cli/) documentation is covers basic usage.  Support for fossa is pre-integrated in the generated Makefile.  You need to set a valid fossa token before executing make in your .bashrc file:
+
+export FOSSA_API_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXX
+## Run by hand using
+
+```bash
+FOSSA_API_KEY=$(FOSSA_API_KEY) fossa analyze
+```
 {{end}}

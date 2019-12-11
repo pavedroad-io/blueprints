@@ -13,6 +13,8 @@ ARTIFACTS := $(PROJDIR)/artifacts
 BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
+GITTEST := .git/HEAD
+FOSSATEST := .fossa.ymml
 
 # Go related variables.
 GOBASE := $(shell cd ../../;pwd)
@@ -41,7 +43,7 @@ LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD) -X=main.GitT
 
 .PHONY: check build compile sonar-scanner
 
-all: compile check
+all: $(GITTEST) $(FOSSATEST) compile check
 
 ## compile: Compile the binary.
 compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS)
@@ -144,6 +146,8 @@ lint: $(GOFILES)
 	$(shell (export GOPATH=$(GOPATH);gosec -fmt=sonarqube -tests -out $(GOSECREPORT) -exclude-dir=.templates ./...))
 	@echo "  >  running go vet... > $(GOVETREPORT)"
 	$(shell (export GOPATH=$(GOPATH);go vet ./... 2> $(GOVETREPORT)))
+	@echo "  >  running FOSSA license scan."
+	@FOSSA_API_KEY=$(FOSSA_API_KEY) fossa analyze
 
 ## fmt: Run gofmt on all code
 fmt: $(GOFILES)
@@ -177,21 +181,27 @@ help: Makefile
 	@echo
 
 $(ASSETS):
-	@echo "  >  Creating assets directory"
 	$(shell mkdir -p $(ASSETS))
 
 $(ARTIFACTS):
-	@echo "  >  Creating artifacts directory"
 	$(shell mkdir -p $(ARTIFACTS))
 
 $(BUILDS):
-	@echo "  >  Creating $(BUILDS) directory"
 	$(shell mkdir -p $(BUILDS))
 
 $(DOCS):
-	@echo "  >  Creating docs directory"
 	$(shell mkdir -p $(DOCS))
 
 $(LOGS):
-	@echo "  >  Creating logs directory"
-	$(shell mkdir -p $(LOGS)){{end}}
+	$(shell mkdir -p $(LOGS))
+
+$(GITTEST):
+	@echo "git init"
+	git init
+	git add README.md
+	git commit -m "initial commit"
+	git tag -a {{.Version}} -m "Initial Commit for version: {{.Version}}"
+
+$(FOSSATEST):
+	fossa init
+{{end}}
