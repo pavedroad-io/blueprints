@@ -1,6 +1,6 @@
 {{define "docs/cheatsheet.md"}}# Kubernetes
 
-## Basic constructs
+# Basic constructs
 
                 daemonsets <---> jobs <---> side cars 
 
@@ -66,21 +66,19 @@ Can be accessed using their short name or full name.  Multiple resources can be 
 kubectl get po,deploy,svc 
 ```
 
-Naming
-
-| Short Name | Full Name | Short Name | Full Name	|
-| ---	| ---	| ---	| ---	|
-|csr  | certificatesigningrequests | cs |componentstatuses|
-| cm  | configmaps  | ds | daemonsets |
-| deploy | deployments  | ep | endpoints|
-| ev | evnets  | hpa | horizontalpodautoscalers|
-| ing | ingresses  | limits | limitranges|
-| no | nodes  | ns | namespaces|
-| pvc | persistentvolumeclaims  | pv | persistentvolumes|
-| pdb | poddisruptionbudgets  | psp | podsecuritypolicies|
-| rs | replicasets  | rc | replicationcontrollers|
-| quota | resourcequotas  | sa | serviceaccounts|
-| svc | services  |||
+|Short Name   	|Full Name   	|Short Name   	| Full Name   	|
+| ---	| ---	| ---	| ---	| ---	|
+|csr  |certificatesigningrequests |cs |componentstatuses|
+|cm  |configmaps  |ds |daemonsets |
+|deploy |deployments  |ep |endpoints|
+|ev |evnets  |hpa |horizontalpodautoscalers|
+|ing |ingresses  |limits |limitranges|
+|no |nodes  |ns |namespaces|
+|pvc |persistentvolumeclaims  |pv |persistentvolumes|
+|pdb |poddisruptionbudgets  |psp |podsecuritypolicies|
+|rs |replicasets  |rc |replicationcontrollers|
+|quota |resourcequotas  |sa |serviceaccounts|
+|svc |services  |||
 
 ## Get information about a resource type using explain
 
@@ -1006,10 +1004,23 @@ $ kubectl get po -o json -A | jq '.items[0:2] | .[].metadata.name'
 "dnsutils-74bdc55779-zbf5r"
 ```
 
-## Dealing with speical 
+## Dealing with speical characters
 Add quotes or brackets
 
 .["foo$"] or ."foo$"
+
+# FOSSA
+FOSSA provides free license scanning for open-source projects.   The [fossa-cli](https://github.com/fossas/fossa-cli/) documentation is covers basic usage.  Support for fossa is pre-integrated in the generated Makefile.  You need to set a valid fossa token before executing make in your .bashrc file:
+
+```bash
+export FOSSA_API_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+## Run by hand using
+
+```bash
+FOSSA_API_KEY=$(FOSSA_API_KEY) fossa analyze
+```
 
 # Project directory structure
 

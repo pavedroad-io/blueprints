@@ -246,6 +246,14 @@ your .bashrc file:
 
 export SONARCLOUD_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+## Getting a token
+Go to https://sonarcloud.io.  Then login with your GitHub account.
+
+Next, go to https://sonarcloud.io/account/security/.
+In the Generate Tokens dialog, enter a name for your token
+and click the "Generate" button.
+
+
 ## sonar-project.properties
 
 Controlls the executing of an analysis run.  Documentation is
@@ -264,9 +272,28 @@ sonarcloud.sh
 FOSSA provides free license scanning for open-source projects.   The [fossa-cli](https://github.com/fossas/fossa-cli/) documentation is covers basic usage.  Support for fossa is pre-integrated in the generated Makefile.  You need to set a valid fossa token before executing make in your .bashrc file:
 
 export FOSSA_API_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXX
+
+## Getting a token
+
+Go to https://app.fossa.com.  Then login with your GitHub account.
+
+Next, go to https://app.fossa.com/account/settings/integrations/api_tokens.  
+Use the "Add another Token" button to create your token.
+
+
 ## Run by hand using
 
 ```bash
 FOSSA_API_KEY=$(FOSSA_API_KEY) fossa analyze
+```
+
+# GitHub token
+
+Go to https://github.com and login.  Then go to, https://github.com/settings/tokens.
+Use the "Generate new token" button to create your new token.
+
+```bash
+# add line to your .bashrc
+export ACCESS_TOKEN=####################
 ```
 {{end}}
