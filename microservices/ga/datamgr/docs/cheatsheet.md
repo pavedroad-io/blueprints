@@ -66,19 +66,21 @@ Can be accessed using their short name or full name.  Multiple resources can be 
 kubectl get po,deploy,svc 
 ```
 
-|Short Name   	|Full Name   	|Short Name   	| Full Name   	|
-| ---	| ---	| ---	| ---	| ---	|
-|csr  |certificatesigningrequests |cs |componentstatuses|
-|cm  |configmaps  |ds |daemonsets |
-|deploy |deployments  |ep |endpoints|
-|ev |evnets  |hpa |horizontalpodautoscalers|
-|ing |ingresses  |limits |limitranges|
-|no |nodes  |ns |namespaces|
-|pvc |persistentvolumeclaims  |pv |persistentvolumes|
-|pdb |poddisruptionbudgets  |psp |podsecuritypolicies|
-|rs |replicasets  |rc |replicationcontrollers|
-|quota |resourcequotas  |sa |serviceaccounts|
-|svc |services  |||
+Naming
+
+| Short Name | Full Name | Short Name | Full Name	|
+| ---	| ---	| ---	| ---	|
+|csr  | certificatesigningrequests | cs |componentstatuses|
+| cm  | configmaps  | ds | daemonsets |
+| deploy | deployments  | ep | endpoints|
+| ev | evnets  | hpa | horizontalpodautoscalers|
+| ing | ingresses  | limits | limitranges|
+| no | nodes  | ns | namespaces|
+| pvc | persistentvolumeclaims  | pv | persistentvolumes|
+| pdb | poddisruptionbudgets  | psp | podsecuritypolicies|
+| rs | replicasets  | rc | replicationcontrollers|
+| quota | resourcequotas  | sa | serviceaccounts|
+| svc | services  |||
 
 ## Get information about a resource type using explain
 
