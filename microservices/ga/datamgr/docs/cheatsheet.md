@@ -22,11 +22,9 @@
 
 - [daemonsets](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) run on every node providing support for applications like monitoring
 
-- [jobs](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/) are a pattern that provides a service to deployments
+- [jobs](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/) are patterns that provides services to deployments
 
-- [side cars](https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/) are a pattern that provides a service to deployments
-
--
+- [side cars](https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/) are patterns that provides services to containers
 
 - [Service](https://kubernetes.io/docs/concepts/services-networking/service/) exposes pods and managed load balancing
 
@@ -36,19 +34,11 @@
 
 - [pods](https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/) Support running stateless conainers
 
--
-
 - [Persistent Volume Claims](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims) Allow a pod to request storage
-
--
 
 - [nodes](https://kubernetes.io/docs/concepts/architecture/nodes/) are the servers workloads are scheduled on 
 
--
-
 - [persistentvolumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims) are statically or dynamically generated storage
-
--
 
 - [master](https://kubernetes.io/docs/concepts/architecture/master-node-communication/) manage workload, nodes, and provide core services like API and discovery
 
@@ -133,7 +123,7 @@ FIELDS:
 ```
 
 # Creating a pod on the fly via yaml
-This examples uses the run command with the --genertor options.  It asks for a type of run-pod/v1 using the container tutum/dnsutils.  The --dry-run option executes without deploying to the k8s cluster and we redirect the output to dnsutils.yaml
+This examples uses the run command with the --generator options.  It asks for a type of run-pod/v1 using the container tutum/dnsutils.  The --dry-run option executes without deploying to the k8s cluster and we redirect the output to dnsutils.yaml
 
 ```bash
 $ kubectl run dnsutils --generator=run-pod/v1 --image=tutum/dnsutils --dry-run -o yaml > dnsutil.yaml
@@ -320,10 +310,10 @@ ubuntu   Ready    <none>   77d   v1.16.3   192.168.150.146   <none>        Ubunt
 ## Build and deploy once
 Use run command with --tail to watch the deployment progress
 
-### Note: You need to run make before executing skaffold run
-### Run will build the docker containers.  That requies a copy
-### of the films microserice in the local directory.  Make
-### will ensure that happens
+### Note: You need to run Make before executing skaffold run.  
+### Run will build the docker containers. Skaffold requies a copy
+### of the film's microserice in the local directory, and the
+### Makefile is provided to streamline the process.
 
 ```bash
 skaffold run -f manifests/skaffold.yaml --tail
@@ -374,7 +364,7 @@ Cleaning up...
 $
 ```
 
-## Get summary information for deployment
+## Get summary information from the microk8s
 Here we ask for status of the pods, deployments, and services.  This does
 not show our backend database, it uses different labels and selectors.
 
@@ -540,7 +530,7 @@ In addtion to api and kind, there aer two major sections build and deploy.
 Build:
 
 Build provides a list of repositories, and a list of artfacts. Each artifact
-points to a docker file and includes the repository server to publish too.
+points to a docker file and includes the repository server to publish to.
 
 It can also include a tagPolicy, if omitted, the git commit hash is used.
 
@@ -571,7 +561,7 @@ deploy:
 
 # Kustomize
 The top level of each enviornment contains a kustomization.yaml.  
-The top kustomization.yaml file also include a list of other locations
+The top kustomization.yaml file also includes a list of other locations
 needed to build this deployment.  Each of those locations can define
 there own kustomization.yaml file.  Those locations can be:
 
@@ -599,10 +589,10 @@ commonAnnotations:
 ```
 
 The db kustomization.yaml defines a list of resources.  These are the manifests
-it will process.  Manifests will not be included, even if the are in the 
-directory, if they are not listed under resources.
+it will process.  Manifests not listed under resources will not be included, 
+even if they are in the same directory.
 
-It then includes a configMapGenerater.  This generator greates a confipmap
+It then includes a configMapGenerator.  This generator creates a configmap
 using the name specfied by name:.  And includes key/value pairs defined in
 the literals section.
 
@@ -619,8 +609,8 @@ configMapGenerator:
   - host-ip=roach-ui
 ```
 
-The films kustomization.yaml is similar only adding additional
-labels and annotations to its resource manifests.
+The films' kustomization.yaml is similar, but additional
+labels and annotations are included in its resources manifest.
 
 manifests/kubernetes/dev/films/kustomization.yaml
 ```bash
@@ -647,7 +637,7 @@ configMapGenerator:
 
 **Configmap names in your kustomization.yaml and your manifests use 
 the same name.  However, when deployed, all references to that
-configmap include a hash.**
+configmap includes a hash.**
 
 ```bash
 containers:
@@ -1010,7 +1000,7 @@ Add quotes or brackets
 .["foo$"] or ."foo$"
 
 # FOSSA
-FOSSA provides free license scanning for open-source projects.   The [fossa-cli](https://github.com/fossas/fossa-cli/) documentation is covers basic usage.  Support for fossa is pre-integrated in the generated Makefile.  You need to set a valid fossa token before executing make in your .bashrc file:
+FOSSA provides free license scanning for open-source projects.   The [fossa-cli](https://github.com/fossas/fossa-cli/) documentation is covers basic usage.  Support for fossa is pre-integrated in the generated Makefile.  You need to set a valid fossa token before executing Make in your .bashrc file:
 
 ```bash
 export FOSSA_API_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXX
