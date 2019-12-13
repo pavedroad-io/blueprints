@@ -294,6 +294,6 @@ Use the "Generate new token" button to create your new token.
 
 ```bash
 # add line to your .bashrc
-export ACCESS_TOKEN=####################
+export GITHUB_ACCESS_TOKEN=####################
 ```
 {{end}}
