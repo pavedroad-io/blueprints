@@ -1,0 +1,20 @@
+{{define "manifests/kubernetes/dev/template/kustomization.yaml"}}
+resources:
+  - {{.Name}}-deployment.yaml
+  - {{.Name}}-service.yaml
+
+commonLabels:
+  pavedroad.service: {{.Name}}
+
+commonAnnotations:
+  pavedroad.roadctl.version: alphav1
+  pavedroad.roadctl.web: www.pavedroad.io
+  pavedroad.roadctl.support: support@pavedroad.io
+
+configMapGenerator:
+- name: {{.Name}}-configmap
+  literals:
+  - database-ip=roach-ui
+  - ip=0.0.0.0
+  - port=8081
+{{end}}
