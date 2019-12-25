@@ -58,12 +58,21 @@ func ensureTableExists() {
 }
 
 func clearTable() {
-	a.DB.Exec("DELETE FROM {{.OrgSQLSafe}}.{{.NameExported}}")
+
+      if _, err := a.DB.Exec("DELETE FROM {{.OrgSQLSafe}}.{{.NameExported}}"); err != nil {
+	       fmt.Println("Table delete :", err)
+      }
 }
 
 func clearDB() {
-	a.DB.Exec("DROP DATABASE IF EXISTS {{.OrgSQLSafe}}")
-	a.DB.Exec("CREATE DATABASE {{.OrgSQLSafe}}")
+
+	 if _, err := a.DB.Exec("DROP DATABASE IF EXISTS {{.OrgSQLSafe}}"); err != nil {
+               fmt.Println("Drop table:", err)
+      }      
+	if _, err := a.DB.Exec("CREATE DATABASE {{.OrgSQLSafe}}");  err != nil {
+               fmt.Println("Create table:", err)
+      }
+
 }
 
 const tableCreationQuery = `
@@ -110,14 +119,21 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 func TestGetWithBadUserUUID(t *testing.T) {
 	clearTable()
 
-	req, _ := http.NewRequest("GET",
+	req, err := http.NewRequest("GET",
 		"/api/v1/namespace/pavedroad.io/{{.Name}}/43ae99c9", nil)
+	if err != nil {
+		fmt.Println("NewRequest:", err)
+        }
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 
 	var m map[string]string
-	json.Unmarshal(response.Body.Bytes(), &m)
+	err = json.Unmarshal(response.Body.Bytes(), &m)
+        if err != nil {
+                fmt.Println("Unmarshal issue:", err)
+        }
+
 	if m["error"] != "400: invalid UUID: 43ae99c9" {
 		t.Errorf("Expected the 'error' key of the response to be set to '400: invalid UUID: 43ae99c9'. Got '%s'", m["error"])
 	}
@@ -131,9 +147,9 @@ func TestGetWrongUUID(t *testing.T) {
 	clearTable()
   nt := New{{.NameExported}}()
   add{{.NameExported}}(nt)
-  badUid := "00000000-d01d-4c09-a4e7-59026d143b89"
+  badUID := "00000000-d01d-4c09-a4e7-59026d143b89"
 
-	statement := fmt.Sprintf({{.NameExported}}URL, badUid)
+	statement := fmt.Sprintf({{.NameExported}}URL, badUID)
 
 	req, _ := http.NewRequest("GET", statement, nil)
 	response := executeRequest(req)
@@ -151,14 +167,20 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 
 	payload := []byte(new{{.NameExported}}JSON)
 
-	req, _ := http.NewRequest("POST", "/api/v1/namespace/pavedroad.io/{{.Name}}", bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", "/api/v1/namespace/pavedroad.io/{{.Name}}", bytes.NewBuffer(payload)) 
+	if err != nil {
+		fmt.Println("NewRequest Post:", err)
+	}
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusCreated, response.Code)
 
 	var m map[string]interface{}
 	//var md map[string]interface{}
-	json.Unmarshal(response.Body.Bytes(), &m)
+	err = json.Unmarshal(response.Body.Bytes(), &m)
+	if err != nil {
+                fmt.Println("Unmarshal issue:", err)
+        }
 
 	//Test we can decode the data
 	cs, ok := m["created"].(string)
@@ -196,8 +218,8 @@ func TestMarshall{{.NameExported}}(t *testing.T) {
 //
 func add{{.NameExported}}(t *{{.Name}}) (string) {
 
-  statement := fmt.Sprintf("INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.Name}}UUID", new{{.NameExported}}JSON)
-  rows, er1 := a.DB.Query(statement)
+  statement := `INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES($1) RETURNING {{.Name}}UUID`
+  rows, er1 := a.DB.Query(statement,new{{.NameExported}}JSON)
 
 	if er1 != nil {
 		log.Printf("Insert failed error %s", er1)
@@ -221,9 +243,12 @@ func add{{.NameExported}}(t *{{.Name}}) (string) {
 // Iterate over the struct setting random values
 // 
 func New{{.NameExported}}() (t *{{.Name}}) {
-	var n {{.Name}}
-  json.Unmarshal([]byte(new{{.NameExported}}JSON), &n) 
-	return &n
+	var N {{.Name}}
+        err := json.Unmarshal([]byte(new{{.NameExported}}JSON), &N)
+	if err != nil {
+                fmt.Println("Unmarshal issue:", err)
+        }
+	return &N
 }
 
 //test getting a {{.Name}}
@@ -249,10 +274,16 @@ func TestUpdate{{.Name}}(t *testing.T) {
 	uid := add{{.NameExported}}(nt)
 
 	statement := fmt.Sprintf({{.NameExported}}URL, uid)
-	req, _ := http.NewRequest("GET", statement, nil)
+	req, err := http.NewRequest("GET", statement, nil)
+	if err != nil {
+		fmt.Println("NewRequest Get:", err)
+	}
 	response := executeRequest(req)
 
-	json.Unmarshal(response.Body.Bytes(), &nt)
+	err = json.Unmarshal(response.Body.Bytes(), &nt)
+	if err != nil {
+                fmt.Println("Unmarshal issue:", err)
+        }
 
 	ut := nt
 
@@ -264,13 +295,20 @@ func TestUpdate{{.Name}}(t *testing.T) {
 		panic(err)
 	}
 
-	req, _ = http.NewRequest("PUT", statement, strings.NewReader(string(jb)))
+	req, err = http.NewRequest("PUT", statement, strings.NewReader(string(jb)))
+	if err != nil {
+		fmt.Println("NewRequest Put:", err)
+	}
 	response = executeRequest(req)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	var m map[string]interface{}
-	json.Unmarshal(response.Body.Bytes(), &m)
+	err = json.Unmarshal(response.Body.Bytes(), &m)
+	if err != nil {
+                fmt.Println("Unmarshal issue:", err)
+        }
+
 
 //	if m["active"] != "eslaf" {
 //		t.Errorf("Expected active to be eslaf. Got %v", m["active"])

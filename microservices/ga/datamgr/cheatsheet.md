@@ -22,9 +22,9 @@
 
 - [daemonsets](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) run on every node providing support for applications like monitoring
 
-- [jobs](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/) are a pattern that provides a service to deployments
+- [jobs](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/) are patterns that provides services to deployments
 
-- [side cars](https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/) are a pattern that provides a service to deployments
+- [side cars](https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/) are patterns that provides utilities to deployments
 
 -
 
@@ -60,7 +60,7 @@
 
 # Resources
 
-Can be accessed using their short name or full name.  Multiple resources can be request depending on the kubernetes service/control being used.
+Can be accessed using their short name or full name.  Multiple resources can be requested depending on the kubernetes service/control being used.
 
 ```bash
 kubectl get po,deploy,svc 
@@ -133,7 +133,7 @@ FIELDS:
 ```
 
 # Creating a pod on the fly via yaml
-This examples uses the run command with the --genertor options.  It asks for a type of run-pod/v1 using the container tutum/dnsutils.  The --dry-run option executes without deploying to the k8s cluster and we redirect the output to dnsutils.yaml
+This examples uses the run command with the --generator options.  It asks for a type of run-pod/v1 using the container tutum/dnsutils.  The --dry-run option executes without deploying to the k8s cluster and we redirect the output to dnsutils.yaml
 
 ```bash
 $ kubectl run dnsutils --generator=run-pod/v1 --image=tutum/dnsutils --dry-run -o yaml > dnsutil.yaml
@@ -540,9 +540,9 @@ In addtion to api and kind, there aer two major sections build and deploy.
 Build:
 
 Build provides a list of repositories, and a list of artfacts. Each artifact
-points to a docker file and includes the repository server to publish too.
+points to a docker file and includes the repository server to publish to.
 
-It can also include a tagPolicy, if omitted, the git commit hash is used.
+It can also includes a tagPolicy, if omitted, the git commit hash is used.
 
 Deploy:
 
@@ -602,7 +602,7 @@ The db kustomization.yaml defines a list of resources.  These are the manifests
 it will process.  Manifests will not be included, even if the are in the 
 directory, if they are not listed under resources.
 
-It then includes a configMapGenerater.  This generator greates a confipmap
+It then includes a configMapGenerater.  This generator generates a configMap
 using the name specfied by name:.  And includes key/value pairs defined in
 the literals section.
 
@@ -619,8 +619,8 @@ configMapGenerator:
   - host-ip=roach-ui
 ```
 
-The films kustomization.yaml is similar only adding additional
-labels and annotations to its resource manifests.
+The films kustomization.yaml is similar. Additional
+labels and annotations are included the resource manifests.
 
 manifests/kubernetes/dev/films/kustomization.yaml
 ```bash

@@ -36,7 +36,7 @@ const (
   NAME
 )
 
-// holds pointers to database and http server
+// {{.NameExported}}App holds pointers to database and http server
 type {{.NameExported}}App struct {
   Router *mux.Router
   DB     *sql.DB
@@ -75,8 +75,11 @@ var httpconf = httpConfig{ip: "127.0.0.1", port: "8082", shutdownTimeout: 15, re
 // shutdownTimeout will be initialized based on the default or HTTP_SHUTDOWN_TIMEOUT
 var shutdowTimeout time.Duration
 
+// GitTag is used for namespace functionality
 var GitTag string
+// Version release
 var Version string
+// Build release
 var Build string
 
 // printVersion

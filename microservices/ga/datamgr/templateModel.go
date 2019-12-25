@@ -9,11 +9,11 @@ package main
 
 import (
 	"database/sql"
-  "encoding/json"
-  "github.com/google/uuid"
+	"encoding/json"
+  	"github.com/google/uuid"
 	"errors"
 	"fmt"
-  "time"
+  	"time"
 	"log"
 )
 
@@ -45,7 +45,7 @@ type listResponse struct {
 // Generated structures with Swagger docs
 {{.SwaggerGeneratedStructs}}
 
-// {{.NameExported}} response model
+// {{.NameExported}}Response model
 //
 // This is used for returning a response with a single {{.Name}} as body
 //
@@ -86,8 +86,12 @@ func (t *{{.Name}}) create{{.NameExported}}(db *sql.DB) (string, error) {
     panic(err)
   }
 
-  statement := fmt.Sprintf("INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.NameExported}}UUID", jb)
-  rows, er1 := db.Query(statement)
+  //statement := fmt.Sprintf("INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.NameExported}}UUID", jb)
+  //rows, er1 := db.Query(statement)
+  //Above format will not pass gosec
+
+  statement := `INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES($1) RETURNING {{.NameExported}}UUID;`
+  rows, er1 := db.Query(statement,jb)
 
   if er1 != nil {
     log.Printf("Insert failed for: %s", t.{{.NameExported}}UUID)
@@ -157,13 +161,27 @@ func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) err
       m := fmt.Sprintf("400: invalid UUID: %s", key)
       return errors.New(m)
     }
+    }
+
+    /*
+ 
     statement = fmt.Sprintf(`
   SELECT {{.NameExported}}UUID, {{.Name}}
   FROM {{.OrgSQLSafe}}.{{.Name}}
   WHERE {{.NameExported}}UUID = '%s';`, key)
-  }
+  
 
   row := db.QueryRow(statement)
+
+  Will cause gosec issues
+  */
+
+  statement = `
+  SELECT {{.NameExported}}UUID, {{.Name}}
+  FROM {{.OrgSQLSafe}}.{{.Name}}
+  WHERE {{.NameExported}}UUID = $1;`
+
+  row := db.QueryRow(statement,key)
 
   // Fill in mapper
   var jb []byte
@@ -192,8 +210,15 @@ func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) err
 // delete{{.NameExported}}: return a {{.Name}} based on UID
 //
 func (t *{{.Name}}) delete{{.NameExported}}(db *sql.DB, key string) error {
+/*
 	statement := fmt.Sprintf("DELETE FROM {{.OrgSQLSafe}}.{{.Name}} WHERE {{.NameExported}}UUID = '%s'", key)
   result, err := db.Exec(statement)
+
+  This format will cause gosec issues
+  */
+
+  statement := `DELETE FROM {{.OrgSQLSafe}}.{{.Name}} WHERE {{.NameExported}}UUID = $1;`
+  result, err := db.Exec(statement,key)
   c, e := result.RowsAffected()
 
   if e == nil && c == 0 {

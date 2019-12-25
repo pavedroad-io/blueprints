@@ -90,8 +90,8 @@ project:
 tables:
 - columns:
   - {constraints: '', mapped-name: id, modifiers: '', name: id, type: string}
-  - {constraints: '', mapped-name: updated, modifiers: '', name: updated, type: string}
-  - {constraints: '', mapped-name: created, modifiers: '', name: created, type: string}
+  - {constraints: '', mapped-name: updated, modifiers: '', name: updated, type: time}
+  - {constraints: '', mapped-name: created, modifiers: '', name: created, type: time}
   parent-tables: ''
   table-name: users
   table-type: jsonb

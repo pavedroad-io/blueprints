@@ -49,7 +49,8 @@ func (a *{{.NameExported}}App) Initialize() {
   a.initializeRoutes()
 }
 
-// Start the server
+// Run starts the server
+//
 func (a *{{.NameExported}}App) Run(addr string) {
 
   log.Println("Listing at: " + addr)
@@ -76,7 +77,9 @@ func (a *{{.NameExported}}App) Run(addr string) {
 
   // Doesn't block if no connections, but will otherwise wait
   // until the timeout deadline.
-  srv.Shutdown(ctx)
+  if  err := srv.Shutdown(ctx); err != http.ErrServerClosed {
+	  log.Printf("HTTP server shut down: %v", err)
+  }
   log.Println("shutting down")
   os.Exit(0)
 }
@@ -363,7 +366,10 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
   w.Header().Set("Content-Type", "application/json")
   w.WriteHeader(code)
-  w.Write(response)
+  _, err := w.Write(response)
+  if err != nil {
+	  log.Printf("Response errror: %s", err)
+  }
 }
 
 func logRequest(handler http.Handler) http.Handler {
@@ -375,7 +381,7 @@ func logRequest(handler http.Handler) http.Handler {
 
 func openLogFile(logfile string) {
   if logfile != "" {
-    lf, err := os.OpenFile(logfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+    lf, err := os.OpenFile(logfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 
     if err != nil {
       log.Fatal("OpenLogfile: os.OpenFile:", err)
