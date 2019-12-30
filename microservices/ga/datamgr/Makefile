@@ -43,7 +43,7 @@ LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD) -X=main.GitT
 
 .PHONY: check build compile sonar-scanner
 
-all: $(GITTEST) $(FOSSATEST) compile check
+all: $(GITTEST) $(FOSSATEST) compile check sonar-scanner
 
 ## compile: Compile the binary.
 compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS)
@@ -112,7 +112,7 @@ go-clean:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go clean
 
 ## check: Start services and execute static code analysis and tests
-check: lint sonar-scanner $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
+check: lint $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
 	@echo "  >  Starting cockroach DB..."
 	docker-compose -f manifests/docker-db-only.yaml up -d
 	@echo "  >  Waiting cockroach DB is ready..."
