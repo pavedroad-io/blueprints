@@ -7,17 +7,17 @@ package main
 
 import (
   "context"
-  "database/sql"
   "encoding/json"
   "fmt"
-  "github.com/gorilla/mux"
-  _ "github.com/lib/pq"
   "io/ioutil"
   "log"
   "net/http"
   "os"
   "strconv"
   "time"
+
+  "github.com/gorilla/mux"
+  _ "github.com/lib/pq"
 )
 
 // Initialize setups database connection object and the http server
@@ -27,23 +27,12 @@ func (a *{{.NameExported}}App) Initialize() {
   // Override defaults
   a.initializeEnvironment()
 
-  // Build connection strings
-  connectionString := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s host=%s port=%s",
-    dbconf.username,
-    dbconf.password,
-    dbconf.database,
-    dbconf.sslMode,
-    dbconf.ip,
-    dbconf.port)
+	// Start the Dispatcher
+  a.Dispatcher.Init(5, 5, &a.Scheduler)
+  go a.Dispatcher.Run()
 
+	// Start rest end points
   httpconf.listenString = fmt.Sprintf("%s:%s", httpconf.ip, httpconf.port)
-
-  var err error
-  a.DB, err = sql.Open(dbconf.dbDriver, connectionString)
-  if err != nil {
-    log.Fatal(err)
-  }
-
   a.Router = mux.NewRouter()
   a.initializeRoutes()
 }
@@ -83,41 +72,6 @@ func (a *{{.NameExported}}App) Run(addr string) {
 // Get for ennvironment variable overrides
 func (a *{{.NameExported}}App) initializeEnvironment() {
   var envVar = ""
-
-  //look for environment variables overrides
-  envVar = os.Getenv("APP_DB_USERNAME")
-  if envVar != "" {
-    dbconf.username = envVar
-  }
-
-  envVar = os.Getenv("APP_DB_PASSWORD")
-  if envVar != "" {
-    dbconf.password = envVar
-  }
-
-  envVar = os.Getenv("APP_DB_NAME")
-  if envVar != "" {
-    dbconf.database = envVar
-  }
-  envVar = os.Getenv("APP_DB_SSL_MODE")
-  if envVar != "" {
-    dbconf.sslMode = envVar
-  }
-
-  envVar = os.Getenv("APP_DB_SQL_DRIVER")
-  if envVar != "" {
-    dbconf.dbDriver = envVar
-  }
-
-  envVar = os.Getenv("APP_DB_IP")
-  if envVar != "" {
-    dbconf.ip = envVar
-  }
-
-   envVar = os.Getenv("APP_DB_PORT")
-  if envVar != "" {
-    dbconf.port = envVar
-  }
 
   envVar = os.Getenv("HTTP_IP_ADDR")
   if envVar != "" {
@@ -175,93 +129,93 @@ func (a *{{.NameExported}}App) initializeEnvironment() {
 func (a *{{.NameExported}}App) initializeRoutes() {
 
   uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorJobsEndPoint + "LIST"
   a.Router.HandleFunc(uri, a.listJobs).Methods("GET")
 
-  uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+  uri = {{.NameExported}}APIVersion + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorSchedulerEndPoint + "LIST"
-  a.Router.HandleFunc(uri, a.listJobs).Methods("GET")
+  a.Router.HandleFunc(uri, a.listSchedule).Methods("GET")
 
-  uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+  uri = {{.NameExported}}APIVersion + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorJobsEndPoint + EventCollectorKey
   a.Router.HandleFunc(uri, a.getJob).Methods("GET")
 
-  uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+  uri = {{.NameExported}}APIVersion + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorSchedulerEndPoint + EventCollectorKey
   a.Router.HandleFunc(uri, a.getSchedule).Methods("GET")
 
-  uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+  uri = {{.NameExported}}APIVersion + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorLivenessEndPoint
   a.Router.HandleFunc(uri, a.getLiveness).Methods("GET")
 
-  uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+  uri = {{.NameExported}}APIVersion + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorReadinessEndPoint
-  a.Router.HandleFunc(uri, a.getReady).Methods("GET")
+  a.Router.HandleFunc(uri, a.getReadiness).Methods("GET")
 
-  uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+  uri = {{.NameExported}}APIVersion + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorMetricsEndPoint
   a.Router.HandleFunc(uri, a.getMetrics).Methods("GET")
 
-  uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+  uri = {{.NameExported}}APIVersion + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorJobsEndPoint + EventCollectorKey
   a.Router.HandleFunc(uri, a.updateJob).Methods("PUT")
 
-  uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+  uri = {{.NameExported}}APIVersion + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorJobsEndPoint + EventCollectorKey
   a.Router.HandleFunc(uri, a.deleteJob).Methods("DELETE")
 
-  uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+  uri = {{.NameExported}}APIVersion + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorJobsEndPoint
   a.Router.HandleFunc(uri, a.createJob).Methods("POST")
 
-  uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+  uri = {{.NameExported}}APIVersion + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorSchedulerEndPoint + EventCollectorKey
   a.Router.HandleFunc(uri, a.updateSchedule).Methods("PUT")
 
-  uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+  uri = {{.NameExported}}APIVersion + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorSchedulerEndPoint + EventCollectorKey
   a.Router.HandleFunc(uri, a.deleteSchedule).Methods("DELETE")
 
-  uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID +
-				"/{namespace}/" +
-    		{{.Name}} + "/" +
+  uri = {{.NameExported}}APIVersion + "/" +
+				{{.NameExported}}NamespaceID + "/" +
+				{{.NameExported}}DefaultNamespace + "/" +
+    		{{.NameExported}}ResourceType + "/" +
 				EventCollectorSchedulerEndPoint
   a.Router.HandleFunc(uri, a.createSchedule).Methods("POST")
 
@@ -269,16 +223,16 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 }
 
 {{.GetAllSwaggerDoc}}
-// listJobs swagger:route GET /api/v1/namespace/{{.Namespace]]/{{.Name}}/EventCollectorJobsEndPointLIST jobs listjobs
+// listJobs swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/EventCollectorJobsEndPointLIST jobs listjobs
 //
 // Returns a list of Jobs
 //
 // Responses:
 //    default: genericError
-//        200: JobsList
+//        200: jobsList
 
 func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) {
-  {{.Name}} := {{.Name}}{}
+  //{{.Name}} := {{.Name}}{}
 
   count, _ := strconv.Atoi(r.FormValue("count"))
   start, _ := strconv.Atoi(r.FormValue("start"))
@@ -291,7 +245,7 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
   }
 
   // Pre-processing hook
-  a.listJobsPreHook(w, r, count, start)
+  listJobsPreHook(w, r, count, start)
 
 	/*
 	New logic here
@@ -303,22 +257,22 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
 	*/
 
 	// Post-processing hook
-  a.listJobsPostHook(w, r)
+  listJobsPostHook(w, r)
 
-  respondWithJSON(w, http.StatusOK, mappings)
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.GetAllSwaggerDoc}}
-// listSchedules swagger:route GET /api/v1/namespace/{{.Namespace]]/{{.Name}}/EventCollectorSchedulerEndPointLIST schedules listschedule
+// listSchedule swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/EventCollectorSchedulerEndPointLIST schedules listschedule
 //
 // Returns a list of schedules
 //
 // Responses:
 //    default: genericError
-//        200: JobsList
+//        200: scheduleList
 
-func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) {
-  {{.Name}} := {{.Name}}{}
+func (a *{{.NameExported}}App) listSchedule(w http.ResponseWriter, r *http.Request) {
+  //{{.Name}} := {{.Name}}{}
 
   count, _ := strconv.Atoi(r.FormValue("count"))
   start, _ := strconv.Atoi(r.FormValue("start"))
@@ -331,7 +285,7 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
   }
 
   // Pre-processing hook
-  a.listSchedulePreHook(w, r, count, start)
+  listSchedulePreHook(w, r, count, start)
 
 	/*
 	New logic here
@@ -343,27 +297,27 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
 	*/
 
 	// Post-processing hook
-  a.listSchedulePostHook(w, r)
+  listSchedulePostHook(w, r)
 
-  respondWithJSON(w, http.StatusOK, mappings)
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.GetSwaggerDoc}}
-// getJob swagger:route GET /api/v1/namespace/{{.Namespace]]/{{.Name}}/jobs/{key} job getjob
+// getJob swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/jobs/{key} job getjob
 //
 // Returns a job given a key, where key is a UUID
 //
 // Responses:
 //    default: genericError
-//        200: JobResponse
+//        200: jobResponse
 
 func (a *{{.NameExported}}App) getJob(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
-  {{.Name}} := {{.Name}}{}
+  //{{.Name}} := {{.Name}}{}
 	key := vars["key"]
 
 	// Pre-processing hook
-  a.getJobPreHook(w, r, key)
+  getJobPreHook(w, r, key)
 
 	/*
 	New logic here
@@ -382,27 +336,27 @@ func (a *{{.NameExported}}App) getJob(w http.ResponseWriter, r *http.Request) {
 	*/
 
   // Pre-processing hook
-  a.getJobPostHook(w, r, key)
+  getJobPostHook(w, r, key)
 
   respondWithJSON(w, http.StatusOK, {{.Name}})
 }
 
 {{.GetSwaggerDoc}}
-// getSchedule swagger:route GET /api/v1/namespace/{{.Namespace]]/{{.Name}}/schedule/{key} schedule getschedule
+// getSchedule swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/schedule/{key} schedule getschedule
 //
 // Returns a schedule given a key, where key is a UUID
 //
 // Responses:
 //    default: genericError
-//        200: ScheduleResponse
+//        200: scheduleResponse
 
 func (a *{{.NameExported}}App) getSchedule(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
-  {{.Name}} := {{.Name}}{}
+  //{{.Name}} := {{.Name}}{}
 	key := vars["key"]
 
 	// Pre-processing hook
-  a.getSchedulePreHook(w, r, key)
+  getSchedulePreHook(w, r, key)
 
 	/*
 	New logic here
@@ -421,27 +375,107 @@ func (a *{{.NameExported}}App) getSchedule(w http.ResponseWriter, r *http.Reques
 	*/
 
   // Pre-processing hook
-  a.getSchedulePostHook(w, r, key)
+  getSchedulePostHook(w, r, key)
+
+  respondWithJSON(w, http.StatusOK, "{}")
+}
+
+{{.GetSwaggerDoc}}
+// getLiveness swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.Liveness}} {{.Liveness}} get{{.Liveness}}
+//
+// A HTTP response status code between 200-400 indicates the pod is alive.
+// Any other status code will cause kubelet to restart the pod.
+//
+// Responses:
+//    default: genericError
+//        200: livenessResponse
+
+func (a *{{.NameExported}}App) getLiveness(w http.ResponseWriter, r *http.Request) {
+
+	// Pre-processing hook
+  getLivenessPreHook(w, r)
+
+	/*
+	New logic here
+	*/
+
+  // Pre-processing hook
+  getLivenessPostHook(w, r)
+
+  respondWithJSON(w, http.StatusOK, {{.Name}})
+}
+
+{{.GetSwaggerDoc}}
+// getReadiness swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.Readiness}} {{.Readiness}} get{{.Readiness}}
+//
+// Indicates the pod is ready to start taking traffic.
+// Should return a 200 after all pod initialization has completed.
+//
+// Responses:
+//    default: genericError
+//        200: readinessResponse
+
+func (a *{{.NameExported}}App) getReadiness(w http.ResponseWriter, r *http.Request) {
+
+	// Pre-processing hook
+  getReadinessPreHook(w, r)
+
+	/*
+	New logic here
+	*/
+
+  // Pre-processing hook
+  getReadinessPostHook(w, r)
+
+  respondWithJSON(w, http.StatusOK, {{.Name}})
+}
+
+{{.GetSwaggerDoc}}
+// getMetrics swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.Metrics}} {{.Metrics}} getMetrics
+//
+// Returns metrics for {{.Name}} service
+// Metrics should include:
+//   - Scheduler
+//   - Dispatcher
+//   - Workers
+//   - Jobs
+//
+// Responses:
+//    default: genericError
+//        200: readinessResponse
+
+func (a *{{.NameExported}}App) getMetrics(w http.ResponseWriter, r *http.Request) {
+
+	// Pre-processing hook
+  getMetricsPreHook(w, r)
+
+	/*
+	New logic here
+	*/
+
+  // Pre-processing hook
+  getMetricsPostHook(w, r)
 
   respondWithJSON(w, http.StatusOK, {{.Name}})
 }
 
 {{.PostSwaggerDoc}}
-// create{{.NameExported}} swagger:route POST /api/v1/namespace/pavedroad.io/{{.Name}} {{.Name}} create{{.Name}}
+// createJob swagger:route POST /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}JobsEndPoint {{.NameExported}}JobsEndPoint createJob
 //
-// Create a new {{.Name}}
+// Create a new Job
 //
 // Responses:
 //    default: genericError
-//        201: {{.Name}}Response
+//        201: jobResponse
 //        400: genericError
-func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
-  // New map structure
-  {{.Name}} := {{.Name}}{}
+func (a *{{.NameExported}}App) createJob(w http.ResponseWriter, r *http.Request) {
+  // New job structure
+  //{{.Name}} := {{.Name}}{}
 
   // Pre-processing hook
-  a.create{{.NameExported}}PreHook(w, r)
+  createJobPreHook(w, r)
 
+	/*
   htmlData, err := ioutil.ReadAll(r.Body)
   if err != nil {
     log.Println(err)
@@ -465,31 +499,33 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
     return
   }
 
+	*/
  // Post-processing hook
-  a.create{{.NameExported}}PostHook(w, r)
+  createJobPostHook(w, r)
 
   respondWithJSON(w, http.StatusCreated, {{.Name}})
 }
 
 {{.PutSwaggerDoc}}
-// update{{.NameExported}} swagger:route PUT /api/v1/namespace/pavedroad.io/{{.Name}}/{key} {{.Name}} update{{.Name}}
+// updateJob swagger:route PUT /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}JobsEndPoint/{key} {{.NameExported}}SchedulerEndPoint updateJob
 //
-// Update a {{.Name}} specified by key, where key is a uuid
+// Update a {{.NameExported}}JobsEndPoint specified by key, where key is a uuid
 //
 // Responses:
 //    default: genericError
-//        201: {{.Name}}Response
+//        201: jobResponse
 //        400: genericError
-func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
-  {{.Name}} := {{.Name}}{}
+func (a *{{.NameExported}}App) updateJob(w http.ResponseWriter, r *http.Request) {
+	// {{.Name}} := {{.Name}}{}
 
   // Read URI variables
   vars := mux.Vars(r)
   key := vars["key"]
 
   // Pre-processing hook
-  a.update{{.NameExported}}PreHook(w, r, key)
+  updateJobPreHook(w, r, key)
 
+	/*
   htmlData, err := ioutil.ReadAll(r.Body)
   if err != nil {
     log.Println(err)
@@ -509,38 +545,166 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
     respondWithError(w, http.StatusBadRequest, "Invalid request payload")
     return
   }
+	*/
 
   // Post-processing hook
-  a.update{{.NameExported}}PostHook(w, r, key)
+  updateJobPostHook(w, r, key)
 
   respondWithJSON(w, http.StatusOK, {{.Name}})
 }
 
 {{.DeleteSwaggerDoc}}
-// delete{{.NameExported}} swagger:route DELETE /api/v1/namespace/pavedroad.io/{{.Name}}/{key} {{.Name}} delete{{.Name}}
+// deleteJob swagger:route DELETE /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}JobsEndPoint/{key} {{.NameExported}}JobsEndPoint deleteJobs
 //
-// Update a {{.Name}} specified by key, which is a uuid
+// Update a job specified by key, which is a uuid
 //
 // Responses:
 //    default: genericError
-//        200: {{.Name}}Response
+//        200: jobResponse
 //        400: genericError
-func (a *{{.NameExported}}App) delete{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
-  {{.Name}} := {{.Name}}{}
+func (a *{{.NameExported}}App) deleteJob(w http.ResponseWriter, r *http.Request) {
+  //{{.Name}} := {{.Name}}{}
   vars := mux.Vars(r)
 	key := vars["key"]
 
   // Pre-processing hook
-  a.delete{{.NameExported}}PreHook(w, r, key)
+  deleteJobPreHook(w, r, key)
 
+	/*
   err := {{.Name}}.delete{{.NameExported}}(a.DB, key)
   if err != nil {
     respondWithError(w, http.StatusNotFound, err.Error())
     return
   }
+	*/
 
   // Post-processing hook
-  a.delete{{.NameExported}}PostHook(w, r, key)
+  deleteJobPostHook(w, r, key)
+
+  respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+}
+
+{{.PostSwaggerDoc}}
+// createSchedule swagger:route POST /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}SchedulerEndPoint {{.NameExported}}SchedulerEndPoint createSchedule
+//
+// Create a new scheduler
+//
+// Responses:
+//    default: genericError
+//        201: schedulerResponse
+//        400: genericError
+func (a *{{.NameExported}}App) createSchedule(w http.ResponseWriter, r *http.Request) {
+  // New scheduler structure
+  //{{.Name}} := {{.Name}}{}
+
+  // Pre-processing hook
+  createSchedulePreHook(w, r)
+
+	/*
+  htmlData, err := ioutil.ReadAll(r.Body)
+  if err != nil {
+    log.Println(err)
+    os.Exit(1)
+  }
+
+  err = json.Unmarshal(htmlData, &{{.Name}})
+  if err != nil {
+    log.Println(err)
+    os.Exit(1)
+  }
+
+  ct := time.Now().UTC()
+  {{.Name}}.Created = ct
+  {{.Name}}.Updated = ct
+
+  // Save into backend storage
+  // returns the UUID if needed
+  if _, err := {{.Name}}.create{{.NameExported}}(a.DB); err != nil {
+    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+    return
+  }
+
+	*/
+ // Post-processing hook
+  createSchedulePostHook(w, r)
+
+  respondWithJSON(w, http.StatusCreated, {{.Name}})
+}
+
+{{.PutSwaggerDoc}}
+// updateSchedle swagger:route PUT /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}SchedulerEndPoint/{key} {{.NameExported}}SchedulerEndPoint updateSchedule
+//
+// Update a {{.NameExported}}SchedulerEndPoint specified by key, where key is a uuid
+//
+// Responses:
+//    default: genericError
+//        200: schedulerResponse
+//        400: genericError
+func (a *{{.NameExported}}App) updateSchedule(w http.ResponseWriter, r *http.Request) {
+	// {{.Name}} := {{.Name}}{}
+
+  // Read URI variables
+  vars := mux.Vars(r)
+  key := vars["key"]
+
+  // Pre-processing hook
+  updateSchedulePreHook(w, r, key)
+
+	/*
+  htmlData, err := ioutil.ReadAll(r.Body)
+  if err != nil {
+    log.Println(err)
+    return
+  }
+
+  err = json.Unmarshal(htmlData, &{{.Name}})
+  if err != nil {
+    log.Println(err)
+    return
+  }
+
+  ct := time.Now().UTC()
+  {{.Name}}.Updated = ct
+
+  if err := {{.Name}}.update{{.NameExported}}(a.DB, {{.Name}}.{{.NameExported}}UUID); err != nil {
+    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+    return
+  }
+	*/
+
+  // Post-processing hook
+  updateSchedulePostHook(w, r, key)
+
+  respondWithJSON(w, http.StatusOK, {{.Name}})
+}
+
+{{.DeleteSwaggerDoc}}
+// deleteSchedule swagger:route DELETE /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}SchedulerEndPoint/{key} {{.NameExported}}SchedulerEndPoint deleteSchudler
+//
+// Delete a job specified by key, which is a uuid
+//
+// Responses:
+//    default: genericError
+//        200: schedulerResponse
+//        400: genericError
+func (a *{{.NameExported}}App) deleteSchedule(w http.ResponseWriter, r *http.Request) {
+  //{{.Name}} := {{.Name}}{}
+  vars := mux.Vars(r)
+	key := vars["key"]
+
+  // Pre-processing hook
+  deleteSchedulePreHook(w, r, key)
+
+	/*
+  err := {{.Name}}.delete{{.NameExported}}(a.DB, key)
+  if err != nil {
+    respondWithError(w, http.StatusNotFound, err.Error())
+    return
+  }
+	*/
+
+  // Post-processing hook
+  deleteSchedulePostHook(w, r, key)
 
   respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
@@ -573,11 +737,4 @@ func openLogFile(logfile string) {
     }
     log.SetOutput(lf)
   }
-}
-
-/*
-func dump{{.NameExported}}(m {{.NameExported}}) {
-  fmt.Println("Dump {{.Name}}")
-  {{.DumpStructs}}
-}
-*/{{end}}
+}{{end}}

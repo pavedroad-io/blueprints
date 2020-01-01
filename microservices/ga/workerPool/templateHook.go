@@ -1,70 +1,162 @@
-{{define "templateHook.go"}}{{.PavedroadInfo}}
-
-// {{.ProjectInfo}}
-
-// {{.Name}}Hooks.go
-//   Allows users to add their own business logic
-//   This file will not be over written if a template is
-//   regenerated.  If a function signature is changed,
-//   you can update this file by running: $ go fix
-
+{{{define "templateHook.go"}}
 package main
 
 import (
-  "net/http"
+	"net/http"
 )
 
-// list{{.NameExported}}PreHook
+// listJobsPreHook
 //
-func (a *{{.NameExported}}App) list{{.NameExported}}PreHook(w http.ResponseWriter, r *http.Request, count, start int) {
-  return
+func listJobsPreHook(w http.ResponseWriter, r *http.Request, count, start int) {
+	return
 }
 
-// list{{.NameExported}}PostHook
+// listJobsPostHook
 //
-func (a *{{.NameExported}}App) list{{.NameExported}}PostHook(w http.ResponseWriter, r *http.Request) {
-  return
+func listJobsPostHook(w http.ResponseWriter, r *http.Request) {
+	return
 }
 
-// get{{.NameExported}}PreHook
+// listSchedulePreHook
 //
-func (a *{{.NameExported}}App) get{{.NameExported}}PreHook(w http.ResponseWriter, r *http.Request, key string) {
-  return
+func listSchedulePreHook(w http.ResponseWriter, r *http.Request, count, start int) {
+	return
 }
 
-// get{{.NameExported}}PostHook
+// listSchedulePostHook
 //
-func (a *{{.NameExported}}App) get{{.NameExported}}PostHook(w http.ResponseWriter, r *http.Request, key string) {
-  return
+func listSchedulePostHook(w http.ResponseWriter, r *http.Request) {
+	return
 }
 
-// create{{.NameExported}}PreHook
+// getJobPreHook
 //
-func (a *{{.NameExported}}App) create{{.NameExported}}PreHook(w http.ResponseWriter, r *http.Request) {
-  return
+func getJobPreHook(w http.ResponseWriter, r *http.Request, key string) {
+	return
 }
 
-// create{{.NameExported}}PostHook
+// getJobPostHook
 //
-func (a *{{.NameExported}}App) create{{.NameExported}}PostHook(w http.ResponseWriter, r *http.Request) {
-  return
+func getJobPostHook(w http.ResponseWriter, r *http.Request, key string) {
+	return
 }
 
-// update{{.NameExported}}PreHook
-func (a *{{.NameExported}}App) update{{.NameExported}}PreHook(w http.ResponseWriter, r *http.Request, key string) {
-  return
+// getSchedulePreHook
+//
+func getSchedulePreHook(w http.ResponseWriter, r *http.Request, key string) {
+	return
 }
 
-// update{{.NameExported}}PostHook
-func (a *{{.NameExported}}App) update{{.NameExported}}PostHook(w http.ResponseWriter, r *http.Request, key string) {
-  return
+// getSchedulePostHook
+//
+func getSchedulePostHook(w http.ResponseWriter, r *http.Request, key string) {
+	return
 }
 
-// delete{{.NameExported}}PreHook
-func (a *{{.NameExported}}App) delete{{.NameExported}}PreHook(w http.ResponseWriter, r *http.Request, key string) {
-  return
+// getLivenessPreHook
+//
+func getLivenessPreHook(w http.ResponseWriter, r *http.Request) {
+	return
 }
-// delete{{.NameExported}}PostHook
-func (a *{{.NameExported}}App) delete{{.NameExported}}PostHook(w http.ResponseWriter, r *http.Request, key string) {
-  return
+
+// getLivenessPostHook
+//
+func getLivenessPostHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// getReadinessPreHook
+//
+func getReadinessPreHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// getReadinessPostHook
+//
+func getReadinessPostHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// getMetricsPreHook
+//
+func getMetricsPreHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// getMetricsPostHook
+//
+func getMetricsPostHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// createJobPreHook
+//
+func createJobPreHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// createJobPostHook
+//
+func createJobPostHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// updateJobPreHook
+//
+func updateJobPreHook(w http.ResponseWriter, r *http.Request, key string) {
+	return
+}
+
+// updateJobPostHook
+//
+func updateJobPostHook(w http.ResponseWriter, r *http.Request, key string) {
+	return
+}
+
+// deleteJobPreHook
+//
+func deleteJobPreHook(w http.ResponseWriter, r *http.Request, key string) {
+	return
+}
+
+// deleteJobPostHook
+//
+func deleteJobPostHook(w http.ResponseWriter, r *http.Request, key string) {
+	return
+}
+
+// createSchedulePreHook
+//
+func createSchedulePreHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// createSchedulePostHook
+//
+func createSchedulePostHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// updateSchedulePreHook
+//
+func updateSchedulePreHook(w http.ResponseWriter, r *http.Request, key string) {
+	return
+}
+
+// updateSchedulePostHook
+//
+func updateSchedulePostHook(w http.ResponseWriter, r *http.Request, key string) {
+	return
+}
+
+// deleteSchedulePreHook
+//
+func deleteSchedulePreHook(w http.ResponseWriter, r *http.Request, key string) {
+	return
+}
+
+// deleteSchedulePostHook
+//
+func deleteSchedulePostHook(w http.ResponseWriter, r *http.Request, key string) {
+	return
 }{{end}}
