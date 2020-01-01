@@ -50,6 +50,9 @@ const (
 // holds pointers to database and http server
 type {{.NameExported}}App struct {
   Router *mux.Router
+	Dispatcher dispatcher
+	//TODO: read from roadctl
+  Scheduler  httpScheduler
 }
 
 // HTTP server configuration
