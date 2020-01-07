@@ -9,7 +9,6 @@ import (
   "context"
   "encoding/json"
   "fmt"
-  "io/ioutil"
   "log"
   "net/http"
   "os"
@@ -184,8 +183,6 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				EventCollectorReadinessEndPoint
   a.Router.HandleFunc(uri, a.getReadiness).Methods("GET")
 	fmt.Println(uri)
-=======
->>>>>>> 504f67b912e8d1d156ab545dd8aa1cc66e1b984c
 
   uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
@@ -362,7 +359,7 @@ func (a *{{.NameExported}}App) getJob(w http.ResponseWriter, r *http.Request) {
   // Pre-processing hook
   getJobPostHook(w, r, key)
 
-  respondWithJSON(w, http.StatusOK, {{.Name}})
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.GetSwaggerDoc}}
@@ -426,7 +423,7 @@ func (a *{{.NameExported}}App) getLiveness(w http.ResponseWriter, r *http.Reques
   // Pre-processing hook
   getLivenessPostHook(w, r)
 
-  respondWithJSON(w, http.StatusOK, {{.Name}})
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.GetSwaggerDoc}}
@@ -451,7 +448,7 @@ func (a *{{.NameExported}}App) getReadiness(w http.ResponseWriter, r *http.Reque
   // Pre-processing hook
   getReadinessPostHook(w, r)
 
-  respondWithJSON(w, http.StatusOK, {{.Name}})
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.GetSwaggerDoc}}
@@ -469,49 +466,23 @@ func (a *{{.NameExported}}App) getReadiness(w http.ResponseWriter, r *http.Reque
 //        200: readinessResponse
 
 func (a *{{.NameExported}}App) getMetrics(w http.ResponseWriter, r *http.Request) {
+  var combinedJSON string = "{"
 
-	// Pre-processing hook
+  // Pre-processing hook
   getMetricsPreHook(w, r)
 
-	/*
-	New logic here
-	*/
-
-  // Pre-processing hook
-  getMetricsPostHook(w, r)
-
-  respondWithJSON(w, http.StatusOK, {{.Name}})
-}
-
-{{.DeleteSwaggerDoc}}
-// deleteJob swagger:route DELETE /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}JobsEndPoint/{key} {{.NameExported}}JobsEndPoint deleteJobs
-//
-// Update a job specified by key, which is a uuid
-//
-// Responses:
-//    default: genericError
-//        200: jobResponse
-//        400: genericError
-func (a *{{.NameExported}}App) deleteJob(w http.ResponseWriter, r *http.Request) {
-  //{{.Name}} := {{.Name}}{}
-  vars := mux.Vars(r)
-	key := vars["key"]
-
-  // Pre-processing hook
-  deleteJobPreHook(w, r, key)
-
-	/*
-  err := {{.Name}}.delete{{.NameExported}}(a.DB, key)
-  if err != nil {
-    respondWithError(w, http.StatusNotFound, err.Error())
-    return
+  sm := a.Scheduler.Metrics()
+  if sm != nil {
+    combinedJSON += `"scheduler":`
+    combinedJSON += string(sm)
   }
-	*/
+
+  combinedJSON += "}"
 
   // Post-processing hook
-  deleteJobPostHook(w, r, key)
+  getMetricsPostHook(w, r)
 
-  respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+  respondWithByte(w, http.StatusOK, []byte(combinedJSON))
 }
 
 {{.PostSwaggerDoc}}
@@ -558,7 +529,7 @@ func (a *{{.NameExported}}App) createJob(w http.ResponseWriter, r *http.Request)
  // Post-processing hook
   createJobPostHook(w, r)
 
-  respondWithJSON(w, http.StatusCreated, {{.Name}})
+  respondWithJSON(w, http.StatusCreated, "{}")
 }
 
 {{.PutSwaggerDoc}}
@@ -605,7 +576,7 @@ func (a *{{.NameExported}}App) updateJob(w http.ResponseWriter, r *http.Request)
   // Post-processing hook
   updateJobPostHook(w, r, key)
 
-  respondWithJSON(w, http.StatusOK, {{.Name}})
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.DeleteSwaggerDoc}}
@@ -683,7 +654,7 @@ func (a *{{.NameExported}}App) createSchedule(w http.ResponseWriter, r *http.Req
  // Post-processing hook
   createSchedulePostHook(w, r)
 
-  respondWithJSON(w, http.StatusCreated, {{.Name}})
+  respondWithJSON(w, http.StatusCreated, "{}")
 }
 
 {{.PutSwaggerDoc}}
@@ -730,7 +701,7 @@ func (a *{{.NameExported}}App) updateSchedule(w http.ResponseWriter, r *http.Req
   // Post-processing hook
   updateSchedulePostHook(w, r, key)
 
-  respondWithJSON(w, http.StatusOK, {{.Name}})
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.DeleteSwaggerDoc}}
@@ -768,6 +739,14 @@ func respondWithError(w http.ResponseWriter, code int, message string) {
   respondWithJSON(w, code, map[string]string{"error": message})
 }
 
+// respondWithByte not need to Marshal the JSON
+func respondWithByte(w http.ResponseWriter, code int, payload []byte) {
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(code)
+  w.Write(payload)
+}
+
+// respondWithJSON will Marshal the payload
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
   response, _ := json.Marshal(payload)
 
