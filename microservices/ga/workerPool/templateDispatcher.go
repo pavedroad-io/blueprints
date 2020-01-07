@@ -26,13 +26,21 @@ func (w *worker) Run() error {
 	for {
 		select {
 		case currentJob := <-w.jobChan:
-			//TODO: write this back to dispatcher channel
-			_, _ = currentJob.Run()
+			r, e := currentJob.Run()
+
+      if e != nil {
+        // TODO: what do we want to do with an error?
+        fmt.Println(e)
+      }
+      w.responseChan <- r
 			w.lastJob = currentJob
 
 		case done := <-w.done:
-			w.wg.Done()
-			return nil
+			if done {
+        w.wg.Done()
+        return nil
+      }
+
 		case <-w.interrup:
 			w.wg.Done()
 			return nil
@@ -76,7 +84,7 @@ func (d *dispatcher) Init(numWorkers, chanCapacity int, s Scheduler) {
 	d.schedulerCapacity = chanCapacity
 
 	// Job channels
-	d.schedulerChan = make(chan Job, d.schedulerCapacity)
+	d.schedulerJobChan = make(chan Job, d.schedulerCapacity)
 	d.workerJobChan = make(chan Job, d.desiredWorkers)
 	d.workerJobResponse = make(chan Result, d.desiredWorkers)
 
@@ -133,7 +141,7 @@ func (d *dispatcher) Shutdown() error {
 
 func (d *dispatcher) createWorkerPool() error {
 	for i := 0; i < d.desiredWorkers; i++ {
-		newWorker := worker{wg: &d.wg,
+		newWorker := worker{wg: d.wg,
 			jobChan:     d.workerJobChan,
 			responseChan: d.workerJobResponse,
 			interrup:    d.workerInterrup,

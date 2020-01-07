@@ -9,7 +9,6 @@ import (
   "context"
   "encoding/json"
   "fmt"
-  "io/ioutil"
   "log"
   "net/http"
   "os"
@@ -184,8 +183,6 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				EventCollectorReadinessEndPoint
   a.Router.HandleFunc(uri, a.getReadiness).Methods("GET")
 	fmt.Println(uri)
-=======
->>>>>>> 504f67b912e8d1d156ab545dd8aa1cc66e1b984c
 
   uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
@@ -362,7 +359,7 @@ func (a *{{.NameExported}}App) getJob(w http.ResponseWriter, r *http.Request) {
   // Pre-processing hook
   getJobPostHook(w, r, key)
 
-  respondWithJSON(w, http.StatusOK, {{.Name}})
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.GetSwaggerDoc}}
@@ -426,7 +423,7 @@ func (a *{{.NameExported}}App) getLiveness(w http.ResponseWriter, r *http.Reques
   // Pre-processing hook
   getLivenessPostHook(w, r)
 
-  respondWithJSON(w, http.StatusOK, {{.Name}})
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.GetSwaggerDoc}}
@@ -451,7 +448,7 @@ func (a *{{.NameExported}}App) getReadiness(w http.ResponseWriter, r *http.Reque
   // Pre-processing hook
   getReadinessPostHook(w, r)
 
-  respondWithJSON(w, http.StatusOK, {{.Name}})
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.GetSwaggerDoc}}
@@ -480,38 +477,7 @@ func (a *{{.NameExported}}App) getMetrics(w http.ResponseWriter, r *http.Request
   // Pre-processing hook
   getMetricsPostHook(w, r)
 
-  respondWithJSON(w, http.StatusOK, {{.Name}})
-}
-
-{{.DeleteSwaggerDoc}}
-// deleteJob swagger:route DELETE /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}JobsEndPoint/{key} {{.NameExported}}JobsEndPoint deleteJobs
-//
-// Update a job specified by key, which is a uuid
-//
-// Responses:
-//    default: genericError
-//        200: jobResponse
-//        400: genericError
-func (a *{{.NameExported}}App) deleteJob(w http.ResponseWriter, r *http.Request) {
-  //{{.Name}} := {{.Name}}{}
-  vars := mux.Vars(r)
-	key := vars["key"]
-
-  // Pre-processing hook
-  deleteJobPreHook(w, r, key)
-
-	/*
-  err := {{.Name}}.delete{{.NameExported}}(a.DB, key)
-  if err != nil {
-    respondWithError(w, http.StatusNotFound, err.Error())
-    return
-  }
-	*/
-
-  // Post-processing hook
-  deleteJobPostHook(w, r, key)
-
-  respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.PostSwaggerDoc}}
@@ -558,7 +524,7 @@ func (a *{{.NameExported}}App) createJob(w http.ResponseWriter, r *http.Request)
  // Post-processing hook
   createJobPostHook(w, r)
 
-  respondWithJSON(w, http.StatusCreated, {{.Name}})
+  respondWithJSON(w, http.StatusCreated, "{}")
 }
 
 {{.PutSwaggerDoc}}
@@ -605,7 +571,7 @@ func (a *{{.NameExported}}App) updateJob(w http.ResponseWriter, r *http.Request)
   // Post-processing hook
   updateJobPostHook(w, r, key)
 
-  respondWithJSON(w, http.StatusOK, {{.Name}})
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.DeleteSwaggerDoc}}
@@ -683,7 +649,7 @@ func (a *{{.NameExported}}App) createSchedule(w http.ResponseWriter, r *http.Req
  // Post-processing hook
   createSchedulePostHook(w, r)
 
-  respondWithJSON(w, http.StatusCreated, {{.Name}})
+  respondWithJSON(w, http.StatusCreated, "{}")
 }
 
 {{.PutSwaggerDoc}}
@@ -730,7 +696,7 @@ func (a *{{.NameExported}}App) updateSchedule(w http.ResponseWriter, r *http.Req
   // Post-processing hook
   updateSchedulePostHook(w, r, key)
 
-  respondWithJSON(w, http.StatusOK, {{.Name}})
+  respondWithJSON(w, http.StatusOK, "{}")
 }
 
 {{.DeleteSwaggerDoc}}

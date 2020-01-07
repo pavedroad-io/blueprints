@@ -23,15 +23,22 @@ type httpJob struct {
 	id      uuid.UUID
 	jobType string
 	client  *http.Client
+	clientTimeout int
 	// FIX to errors or custom errors
 	jobErrors []string
 	jobURL    *url.URL
+  Stats     httpStats
+}
+
+type httpStats struct {
+  RequestTimedOut bool
+  RequestTime     time.Duration
 }
 
 func (j *httpJob) GetJob(ID string) (jblob []byte, err error) {
 	jblob, err = json.Marshal(j)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	return jblob, nil
@@ -78,6 +85,8 @@ func (j *httpJob) Init() error {
 	// Set job type
 	j.jobType = HTTPJobType
 
+  j.Stats.RequestTimedOut = false
+
 	// Set http client options
   if j.clientTimeout == 0 {
     j.clientTimeout = ClientTimeout
@@ -88,20 +97,25 @@ func (j *httpJob) Init() error {
 	return nil
 }
 
-func (j *httpWorker) New(in *chan Job, out *chan Result) error {
+func (j *httpJob) New(in *chan Job, out *chan Result) error {
 
 	return nil
 }
 
-func (j *httpWorker) Run() (result Result, err error) {
+func (j *httpJob) Run() (result Result, err error) {
 	  req, err := http.NewRequest("GET", j.jobURL.String(), nil)
   if err != nil {
     fmt.Println(err)
     return nil, err
   }
 
+  start := time.Now()
   resp, err := j.client.Do(req)
+  end := time.Now()
+  j.Stats.RequestTime = end.Sub(start)
+
   if err != nil {
+    j.Stats.RequestTimedOut = true
     fmt.Println(err)
     return nil, err
   }
@@ -111,30 +125,55 @@ func (j *httpWorker) Run() (result Result, err error) {
     fmt.Println(err)
     return nil, err
   }
-  fmt.Printf("HTTP Status: %v for %s\n", resp.StatusCode, req.URL.String())
+  //fmt.Printf("HTTP Status: %v for %s\n", resp.StatusCode, req.URL.String())
 
+	md := j.buildMetadata(resp)
   jrsp := &httpResult{job: j,
-    metaData: nil,
+    metaData: md,
     payload:  payload}
 
   return jrsp, nil
 }
 
-func (j *httpWorker) Pause() (status string, err error) {
+// buildMetadata returns a map of strings with an http.Response encoded
+func (j *httpJob) buildMetadata(resp *http.Response) map[string]string {
+  md := make(map[string]string)
+  md["StatusCode"] = string(resp.StatusCode)
+  md["Proto"] = resp.Proto
+
+  for n, v := range resp.Header {
+    var hv string
+    for _, s := range v {
+      hv = hv + s + " "
+    }
+    md[n] = hv
+  }
+
+  md["RemoteAddr"] = resp.Request.RemoteAddr
+  md["Method"] = resp.Request.Method
+
+  return md
+}
+
+func (j *httpJob) Pause() (status string, err error) {
 	return "paused", nil
 }
 
-func (j *httpWorker) Shutdown() error {
+func (j *httpJob) Shutdown() error {
 	return nil
 
 }
 
-func (j *httpWorker) Errors() []error {
+func (j *httpJob) Errors() []error {
 	return nil
 
 }
 
-func (j *httpWorker) Metrics() []byte {
+func (j *httpJob) Metrics() []byte {
+	jblob, err := json.Marshal(j.Stats)
+  if err != nil {
+    return []byte("Marshal metrics failed")
+  }
 
-	return nil
+  return jblob
 }{{end}}

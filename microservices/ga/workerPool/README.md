@@ -1,7 +1,147 @@
 {{define "README.md"}}
 # Working with your new {{.NameExported}} microservice
 
-## git
+This microservice implements the go worker pool pattern.  It consists of three
+major components: the scheduler, a dispatcher, and a pool of workers. 
+
+The scheduler connects to the dispatcher via four go channels.  A Job channel
+forwards Jobs to the dispatcher, and a Results channel reads replies.  Both 
+of these channels execute as sperate goroutines.  A Done channel reads a 
+boolean true and supports graceful shutdowns initiated by the application.
+An interrupt channel supports graceful or forceful shutdowns undertaken by
+the host operating system.
+
+The dispatcher connects to the works using the same paradigm but with four
+independent channels. Each worker executes as its own goroutine.
+
+```bash
+                                       +-----------+
+                                  +<-->| Worker(1) |
+ +-------------+    +-------------|    +-----------+
+ |             |    |             +
+ | Scheduler   +<-->| Dispatcher  |    +-----------+
+ |             |    |             +    |           |
+ +-------------+    +-------------+<-->| Worker(2) |
+                                  |    +-----------+
+                                  |
+                                  |    +-----------+
+                                  +<-->| Worker(n) |
+                                       +-----------+
+```
+
+## Go interfaces
+
+A go interface act a lot like an object-oriented class with no variables.
+It defines the methods that a Go type must implement for the defined 
+interface type.   In the example below, a Go type must fulfill each of the
+function signatures to be considered Scheduler.
+
+```go
+type Scheduler interface {
+  // Data methods
+  GetSchedule() (Scheduler, error)
+  UpdateSchedule() (Scheduler, error)
+  CreateSchedule() (Scheduler, error)
+  DeleteSchedule() (Scheduler, error)
+
+  // Execution methods
+  Init() error
+  SetChannels(chan Job, chan Result, chan bool, chan os.Signal)
+  Shutdown() error
+  //Status()
+
+  // Status methods
+  Metrics() []byte
+}
+```
+
+The httpScheduler.go provides an example implementation of the scheduler
+interface.
+
+This template provides the following abstractions via Go interfaces:
+
+--
+
+| Abstraction | Description |
+| ----------- | ----------- |
+| Job         | A task executed by a worker |
+| Result      | Is the result of a Job |
+| Scheduler   | A custom scheduler that sends Jobs and reads Results (optional) |
+| Metric      | Custom metrics for a scheduler or worker |
+
+## HTTP worker pool example
+
+This example implements a simpler scheduler that takes a list of URLs and
+forwards them to the dispatcher every N seconds.  It defines an httpJob
+type that implements the Job interface.  It includes a Go context.  A 
+context allows the scheduler to send additional information, set execution 
+deadlines, or cancel the request.  **Including a Go context in your Job 
+is highly recommended.**
+
+```go
+type httpJob struct {
+  ctx           context.Context
+  id            uuid.UUID
+  JobType       string
+  client        *http.Client
+  clientTimeout int
+  // FIX to errors or custom errors
+  jobErrors []string
+  jobURL    *url.URL
+}
+```
+
+## Files
+
+Generated files are prefixed with the name you define for your microservice.  For example, if you name your microservice "eventCollector," as in this example, your generated files will start with that name.
+
+--
+
+| Name | Description |
+| ---- | ----------- |
+| eventCollectorApp.go | Rest API endpoint handlers and manager for dispatcher and the scheduler |
+| eventCollectorDispatcher.go | Manages worker pool |
+| eventCollectorDoc.go | Used to generate swagger documentation |
+| eventCollectorHook.go | Provides pre/post hooks for customizing application |
+| eventCollectorJob.go | Job interface definition |
+| eventCollectorMain.go | Main entry point for starting application |
+| eventCollectorMetric.go | Metric collector interface definition |
+| eventCollectorResult.go | Reult inteface definition |
+| eventCollectorScheduler.go | Scheduler interface definition |
+| ---- | ----------- |
+| httpJob.go | Sample Job implementation for an HTTP task |
+| httpResult.go | Sample Result implementation for an HTTP task |
+| httpScheduler.go | Simple scheduler example for HTTP tasks |
+
+--
+
+## Rest API
+
+Rest APIs follow the kubernetes convention.  You define the API version
+and namespace in your definitions file.
+
+```bash
+/api/version/namespace/name/resource
+```
+
+This template generates the following endpoints:
+
+```bash
+/api/version/namespace/name/microservice-name/liveness
+/api/version/namespace/name/microservice-name/readiness
+/api/version/namespace/name/microservice-name/metrics
+/api/version/namespace/name/microservice-name/jobs
+/api/version/namespace/name/microservice-name/scheduler
+```
+
+The liveness and readiness endpoints provide hooks for customizing
+Kubernetes Pod lifecycle events.  The metrics endpoint provides an 
+aggregated response for any Metric interfaces defined plus the standard
+metrics for the dispatcher.  The jobs and scheduler endpoints support 
+modifying the jobs currently defined or changing the schedule of the 
+scheduler.
+
+# Git
 The build system requires git source code management.  If the directory you choose to generate your service is not under git control, do the following after executing your template.
     git init
     vi .gitignore
@@ -114,8 +254,9 @@ A sample definitions is available to help you get started
 
 ### Create your microservice
     roadctl create templates --template datamgr --definition myservice.yaml
+
 ### Build and test
-Executing make will compilte and test your service.  Optionally, you
+Executing make will compile and test your service.  Optionally, you
 can do `make compile` followed by `make check`
     make
 
@@ -127,28 +268,11 @@ can do `make compile` followed by `make check`
 | assets | Generate assets such as images |
 | builds | Executables for supported platforms, Mac/Linux x86/amd64 |
 | dev | Generated helper scripts and sample data |
-| dev/db | Generated SQL statments |
 | docs | Generated documentation |
 | logs | Logs generated by the microservice |
 | manifests | Docker and docker-composes manifest |
 | mainfests/kubernetes | Kubernetes manifests for deploying this microservice |
 | vendor | Vendor dependencies |
-
-## SQL
-To get an SQL prompt, use:
-	bin/sql.sh
-
-## dev/testXXXXX.sh scripts
-The following scripts work with your local docker images using 
-docker-compose or with the local microk8s cluster.  By default they
-use the local docker image.  To use the microk8s cluster, use the -k
-command line option/flag.
-
-- dev/testAll.sh
-- dev/testPost.sh
-- dev/testPut.sh
-- dev/testGet.sh
-- dev/testGetList.sh
 
 ## make
 Use **make help** to get a list of options
