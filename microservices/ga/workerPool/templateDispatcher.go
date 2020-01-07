@@ -1,9 +1,17 @@
 {{define "templateDispatcher.go"}}package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"sync"
+	"time"
+)
+
+// Map counters to JSON friendly names
+const (
+  dispatcherJobsSent        = "jobs_sent"
+  dispatcherResultsReceived = "results_received"
 )
 
 // worker is a go worker pool pattern
@@ -71,6 +79,61 @@ type dispatcher struct {
 	workerJobResponse chan Result
 	workerDone        chan bool
 	workerInterrup    chan os.Signal
+
+	// Metrics counters
+  metrics dispatcherMetrics
+}
+
+type dispatcherMetrics struct {
+  StartTime time.Time      `json:"start_time"`
+  UpTime    time.Duration  `json:"up_time"`
+  Counters  map[string]int `json:"counters"`
+  mux       sync.Mutex     `json:"mux"`
+}
+
+func (d *dispatcher) MetricToJSON() ([]byte, error) {
+  d.metrics.mux.Lock()
+  defer d.metrics.mux.Unlock()
+  jb, e := json.Marshal(d.metrics)
+  if e != nil {
+    fmt.Println(e)
+    return nil, e
+  }
+  return jb, nil
+}
+
+func (d *dispatcher) MetricSetStartTime() {
+  d.metrics.mux.Lock()
+  d.metrics.StartTime = time.Now()
+  ct := time.Now()
+  d.metrics.UpTime = ct.Sub(d.metrics.StartTime)
+  d.metrics.mux.Unlock()
+}
+
+func (d *dispatcher) MetricUpdateUpTime() (uptime time.Duration) {
+  d.metrics.mux.Lock()
+  ct := time.Now()
+  d.metrics.UpTime = ct.Sub(d.metrics.StartTime)
+  d.metrics.mux.Unlock()
+  return d.metrics.UpTime
+}
+
+func (d *dispatcher) MetricInc(key string) {
+  d.metrics.mux.Lock()
+  d.metrics.Counters[key]++
+  d.metrics.mux.Unlock()
+}
+
+func (d *dispatcher) MetricSet(key string, value int) {
+  d.metrics.mux.Lock()
+  d.metrics.Counters[key] = value
+  d.metrics.mux.Unlock()
+}
+
+func (d *dispatcher) MetricValue(key string) int {
+  d.metrics.mux.Lock()
+  defer d.metrics.mux.Unlock()
+  return d.metrics.Counters[key]
 }
 
 // Init sets size of work and scheduler channels and then creates them
@@ -80,6 +143,7 @@ type dispatcher struct {
 //   Inter channels handle OS interrups
 func (d *dispatcher) Init(numWorkers, chanCapacity int, s Scheduler) {
 	fmt.Printf("Initialize dispacther with %v workers and channel capacity of %v\n", numWorkers, chanCapacity)
+	d.metrics.Counters = make(map[string]int)
 	d.desiredWorkers = numWorkers
 	d.schedulerCapacity = chanCapacity
 
@@ -107,6 +171,8 @@ func (d *dispatcher) Init(numWorkers, chanCapacity int, s Scheduler) {
     d.schedulerDone,
     d.schedulerInterrup)
 
+	d.MetricSetStartTime()
+
 	return
 }
 
@@ -123,7 +189,8 @@ func (d dispatcher) Forwarder() {
   for {
     select {
     case currentJob := <-d.schedulerJobChan:
-      fmt.Println(currentJob.ID())
+      //fmt.Println(currentJob.ID())
+			d.MetricInc(dispatcherJobsSent)
       d.workerJobChan <- currentJob
     }
   }
@@ -133,6 +200,7 @@ func (d dispatcher) Responder() {
   for {
     select {
 		case currentJobResponse := <-d.workerJobResponse:
+			d.MetricInc(dispatcherResultsReceived)
       d.schedulerResponseChan <- currentJobResponse
     }
   }

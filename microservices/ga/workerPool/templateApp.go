@@ -477,6 +477,13 @@ func (a *{{.NameExported}}App) getMetrics(w http.ResponseWriter, r *http.Request
     combinedJSON += string(sm)
   }
 
+  a.Dispatcher.MetricUpdateUpTime()
+  dm, _ := a.Dispatcher.MetricToJSON()
+  if dm != nil {
+    combinedJSON += `,"dispatcher":`
+    combinedJSON += string(dm)
+  }
+
   combinedJSON += "}"
 
   // Post-processing hook

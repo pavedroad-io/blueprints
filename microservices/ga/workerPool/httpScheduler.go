@@ -53,9 +53,9 @@ func (s *httpScheduler) MetricToJSON() ([]byte, error) {
   return jb, nil
 }
 
-func (s *httpScheduler) MetricSetStartTime(t time.Time) {
+func (s *httpScheduler) MetricSetStartTime() {
   s.metrics.mux.Lock()
-  s.metrics.StartTime = t
+  s.metrics.StartTime = time.Now()
   s.metrics.mux.Unlock()
 }
 
@@ -155,8 +155,7 @@ func (s *httpScheduler) Run() error {
 }
 
 func (s *httpScheduler) RunScheduler() error {
-  fmt.Println("Running scheduler")
-	s.MetricSetStartTime(time.Now())
+	s.MetricSetStartTime()
   for {
 		s.MetricInc(schedulerIterations)
     for _, j := range s.jobList {
@@ -166,6 +165,7 @@ func (s *httpScheduler) RunScheduler() error {
       s.MetricSet(currentJobChannelUtilization, len(s.schedulerJobChan))
       s.MetricSet(jobListSize, len(s.jobList))
     }
+		s.MetricUpdateUpTime()
     time.Sleep(time.Duration(s.sendIntervalSeconds) * time.Second)
   }
 
