@@ -268,19 +268,16 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
   // Pre-processing hook
   listJobsPreHook(w, r, count, start)
 
-	/*
-	New logic here
-  mappings, err := {{.Name}}.list{{.NameExported}}(a.DB, start, count)
-  if err != nil {
-    respondWithError(w, http.StatusInternalServerError, err.Error())
-    return
-  }
-	*/
+	 jl, e := a.Scheduler.GetScheduledJobs()
 
-	// Post-processing hook
+  if e != nil {
+    respondWithError(w, http.StatusInternalServerError, e.Error())
+  }
+
+  // Post-processing hook
   listJobsPostHook(w, r)
 
-  respondWithJSON(w, http.StatusOK, "{}")
+  respondWithByte(w, http.StatusOK, jl)
 }
 
 {{.GetAllSwaggerDoc}}

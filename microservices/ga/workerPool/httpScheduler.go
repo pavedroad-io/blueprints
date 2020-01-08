@@ -11,35 +11,35 @@ import (
 )
 
 const (
-  schedulerIterations = iota
-  jobsSent
-  jobListSize
-  resultsRecieved
-  currentJobChannelUtilization
-  currentJobChannelCapacit
-  currentResultChannelUtilization
-  currentResultChannelCapacit
-  numberOfJobTimedOut
-  averageJobProcessingTime
+  schedulerIterations             = "scheduler_iterations"
+  jobsSent                        = "jobs_sent"
+  jobListSize                     = "job_list_size"
+  resultsReceived                 = "results_received"
+  currentJobChannelUtilization    = "current_job_channel_utilization"
+  currentJobChannelCapacity       = "current_job_channel_capacity"
+  currentResultChannelUtilization = "current_result_channel_utilization"
+  currentResultChannelCapacit     = "current_result_channel_capacity"
+  numberOfJobTimedOut             = "number_of_jobs_sent"
+  averageJobProcessingTime        = "average_job_processing_time"
 )
 
 type httpScheduler struct {
-	jobList             []*httpJob
-  sendIntervalSeconds int
+	jobList             	[]*httpJob
+  sendIntervalSeconds 	int
   schedulerJobChan      chan Job       // Channel to read jobs from
   schedulerResponseChan chan Result    // Channel to write repose to
   schedulerDone         chan bool      // Shudown initiated by applicatoin
-  schedulerInterrup     chan os.Signal // Shutdown initiated by OS
+  schedulerInterrupt    chan os.Signal // Shutdown initiated by OS
 	metrics               httpSchedulerMetrics
 }
 
 // httpSchedulerMetrics hold metrics about the Scheduler, Jobs, and Results
 // We export attributes we want included in the JSON output
 type httpSchedulerMetrics struct {
-  StartTime time.Time     `json:"start_time"`
-  UpTime    time.Duration `json:"up_time"`
-  Counters  map[int]int   `json:"counters"`
-  mux       sync.Mutex    `json:"mux"`
+  StartTime time.Time   	  `json:"start_time"`
+  UpTime    time.Duration	 	`json:"up_time"`
+  Counters  map[string]int  `json:"counters"`
+  mux       sync.Mutex   		 `json:"mux"`
 }
 
 func (s *httpScheduler) MetricToJSON() ([]byte, error) {
@@ -67,25 +67,34 @@ func (s *httpScheduler) MetricUpdateUpTime() (uptime time.Duration) {
   return s.metrics.UpTime
 }
 
-func (s *httpScheduler) MetricInc(key int) {
+func (s *httpScheduler) MetricInc(key string) {
   s.metrics.mux.Lock()
   s.metrics.Counters[key]++
   s.metrics.mux.Unlock()
 }
 
-func (s *httpScheduler) MetricSet(key, value int) {
+func (s *httpScheduler) MetricSet(key string, value int) {
   s.metrics.mux.Lock()
-  s.metrics.Counters[key]++
+  s.metrics.Counters[key] = value
   s.metrics.mux.Unlock()
 }
 
-func (s *httpScheduler) MetricValue(key int) int {
+
+func (s *httpScheduler) MetricValue(key string) int {
   s.metrics.mux.Lock()
   defer s.metrics.mux.Unlock()
   return s.metrics.Counters[key]
 }
 
 // Required methods
+// Object methods
+func (s *httpScheduler) GetScheduledJobs() ([]byte, error) {
+  jb, e := json.Marshal(s.jobList)
+  if e != nil {
+    return nil, e
+  }
+  return jb, nil
+}
 
 // Object methods
 func (s *httpScheduler) GetSchedule() (Scheduler, error) {
@@ -114,7 +123,7 @@ func (s *httpScheduler) SetChannels(j chan Job, r chan Result, b chan bool, i ch
   s.schedulerJobChan = j
   s.schedulerResponseChan = r
   s.schedulerDone = b
-  s.schedulerInterrup = i
+  s.schedulerInterrupt = i
 
   return
 }
@@ -127,7 +136,7 @@ func (s *httpScheduler) Init() error {
     "https://swapi.co/api/people/2/",
     "https://swapi.co/api/people/3/"}
 
-  s.metrics.Counters = make(map[int]int)
+  s.metrics.Counters = make(map[string]int)
   s.sendIntervalSeconds = 10
 
   for _, u := range urlList {
@@ -137,7 +146,7 @@ func (s *httpScheduler) Init() error {
       fmt.Println(err)
       os.Exit(-1)
     }
-    newJob.jobURL = pu
+    newJob.JobURL = pu
 
 		// Set type and ID and http.Client
     newJob.Init()
@@ -161,7 +170,7 @@ func (s *httpScheduler) RunScheduler() error {
     for _, j := range s.jobList {
       s.schedulerJobChan <- j
 		  s.MetricInc(jobsSent)
-      s.MetricSet(currentJobChannelCapacit, cap(s.schedulerJobChan))
+      s.MetricSet(currentJobChannelCapacity, cap(s.schedulerJobChan))
       s.MetricSet(currentJobChannelUtilization, len(s.schedulerJobChan))
       s.MetricSet(jobListSize, len(s.jobList))
     }
@@ -176,6 +185,7 @@ func (s *httpScheduler) RunScheduler() error {
 func (s *httpScheduler) ComputeAverageResponseTime(jt []int, newTime int) ([]int, int) {
   currentLength := len(jt)
   desiredLength := currentLength - 9
+	// TODO: make 10 configurable
   if currentLength >= 10 {
     jt = jt[desiredLength:currentLength]
   }
@@ -191,12 +201,12 @@ func (s *httpScheduler) ComputeAverageResponseTime(jt []int, newTime int) ([]int
 }
 
 func (s *httpScheduler) RunResultsReader() error {
-	  jobTimes := make([]int, 0, 10)
+  jobTimes := make([]int, 0, 10)
   fmt.Println("Reading job results")
   for {
     select {
     case currentResult := <-s.schedulerResponseChan:
-      s.MetricInc(resultsRecieved)
+      s.MetricInc(resultsReceived)
       s.MetricSet(currentResultChannelCapacit, cap(s.schedulerJobChan))
       s.MetricSet(currentResultChannelUtilization, len(s.schedulerJobChan))
       fmt.Printf("Processing response for job ID %v\n", currentResult.Job().ID())
@@ -215,7 +225,7 @@ func (s *httpScheduler) RunResultsReader() error {
         fmt.Println("Bad response on scheduler Done channel")
       }
 
-    case <-s.schedulerInterrup:
+    case <-s.schedulerInterrupt:
       return nil
     }
   }

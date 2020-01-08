@@ -1,6 +1,5 @@
-{{define "dev/testGetMetrics.sh"}}
-#!/bin/bash
-# curl -v http://127.0.0.1:8081/api/v1/namespace/mirantis/eventCollector/metrics
+{{define "dev/testGetJobList.sh"}}#!/bin/bash
+# /api/v1/namespace/mirantis/eventCollector/jobsLIST
 
 host=127.0.0.1
 port=8081
@@ -10,7 +9,7 @@ namespace="{{.Namespace}}"
 get()
 {
 curl -H "Content-Type: application/json" \
-     -v http://$host:$port/api/v1/namespace/$namespace/$service/metrics | jq '.'
+     -v http://$host:$port/api/v1/namespace/$namespace/$service/jobsLIST | jq '.'
 }
 
 usage()
@@ -37,6 +36,6 @@ while [ "$1" != "" ]; do
   esac
 done
 
-# Call get
+# Get UUID and call get
 get
 {{end}}

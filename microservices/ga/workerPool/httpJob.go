@@ -13,21 +13,22 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO: catch connection timeout to avoid traceback
 const (
 	HTTPJobType string = "httpJob"
-	ClientTimeout int    = 5
+	ClientTimeout int  = 30
 )
 
 type httpJob struct {
-	ctx		  context.Context
-	id      uuid.UUID
-	jobType string
-	client  *http.Client
-	clientTimeout int
-	// FIX to errors or custom errors
-	jobErrors []string
-	jobURL    *url.URL
-  Stats     httpStats
+  ctx           context.Context `json:"ctx"`
+  JobID         uuid.UUID       `json:"job_id"`
+  JobType       string          `json:"job_type"`
+  client        *http.Client    `json:"client"`
+  ClientTimeout int             `json:"client_timeout"`
+  // FIX to errors or custom errors
+  jobErrors []string  `json:"job_errors"`
+  JobURL    *url.URL  `json:"job_url"`
+  Stats     httpStats `json:"stats"`
 }
 
 type httpStats struct {
@@ -70,7 +71,7 @@ func (j *httpJob) DeleteJob(ID string) error {
 
 // Process methods
 func (j *httpJob) ID() string {
-	return j.id.String()
+	return j.JobID.String()
 }
 
 func (j *httpJob) Type() string {
@@ -80,19 +81,19 @@ func (j *httpJob) Type() string {
 func (j *httpJob) Init() error {
 
 	// Generate UUID
-	j.id = uuid.New()
+	j.JobID = uuid.New()
 
 	// Set job type
-	j.jobType = HTTPJobType
+	j.JobType = HTTPJobType
 
   j.Stats.RequestTimedOut = false
 
 	// Set http client options
-  if j.clientTimeout == 0 {
-    j.clientTimeout = ClientTimeout
+  if j.ClientTimeout == 0 {
+    j.ClientTimeout = ClientTimeout
   }
 
-  j.client = &http.Client{Timeout: time.Duration(j.clientTimeout) * time.Second}
+  j.client = &http.Client{Timeout: time.Duration(j.ClientTimeout) * time.Second}
 
 	return nil
 }
@@ -103,7 +104,7 @@ func (j *httpJob) New(in *chan Job, out *chan Result) error {
 }
 
 func (j *httpJob) Run() (result Result, err error) {
-	  req, err := http.NewRequest("GET", j.jobURL.String(), nil)
+	  req, err := http.NewRequest("GET", j.JobURL.String(), nil)
   if err != nil {
     fmt.Println(err)
     return nil, err

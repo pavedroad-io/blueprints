@@ -95,7 +95,7 @@ func newJob(testURL string) httpJob {
 		fmt.Println(err)
 		os.Exit(-1)
 	}
-	newJob.jobURL = pu
+	newJob.JobURL = pu
 
 	// Set type and ID and http.Client
 	newJob.Init()

@@ -63,11 +63,9 @@ type dispatcher struct {
 	scheduler             *Scheduler      // Pointer to the scheduler
 	schedulerCapacity     int             // buffer size of channel
 	schedulerJobChan      chan Job        // Channel to read jobs from
-	// TODO: Change name to schedulerResultChan
-	schedulerResponseChan chan Result     // Channel to write result to
+	schedulerResultChan chan Result     // Channel to write result to
 	schedulerDone         chan bool       // Shudown initiated by applicatoin
-	// TODO: Fix interrupt spelling
-	schedulerInterrup     chan os.Signal // Shutdown initiated by OS
+	schedulerInterrupt     chan os.Signal // Shutdown initiated by OS
 
 	// Workers config
 	wg             sync.WaitGroup
@@ -150,7 +148,7 @@ func (d *dispatcher) Init(numWorkers, chanCapacity int, s Scheduler) {
 	// Job channels
 	// Scheduler
 	d.schedulerJobChan = make(chan Job, d.schedulerCapacity)
-	d.schedulerResponseChan = make(chan Result, d.schedulerCapacity)
+	d.schedulerResultChan = make(chan Result, d.schedulerCapacity)
 
 	// Worker
 	d.workerJobChan = make(chan Job, d.desiredWorkers)
@@ -161,15 +159,15 @@ func (d *dispatcher) Init(numWorkers, chanCapacity int, s Scheduler) {
 	d.workerDone = make(chan bool)
 
 	// Interrupt channels
-	d.schedulerInterrup = make(chan os.Signal)
+	d.schedulerInterrupt = make(chan os.Signal)
 	d.workerInterrup = make(chan os.Signal)
 
   // Set scheduler internal channels
 	s.SetChannels(
     d.schedulerJobChan,
-    d.schedulerResponseChan,
+    d.schedulerResultChan,
     d.schedulerDone,
-    d.schedulerInterrup)
+    d.schedulerInterrupt)
 
 	d.MetricSetStartTime()
 
@@ -201,7 +199,7 @@ func (d dispatcher) Responder() {
     select {
 		case currentJobResponse := <-d.workerJobResponse:
 			d.MetricInc(dispatcherResultsReceived)
-      d.schedulerResponseChan <- currentJobResponse
+      d.schedulerResultChan <- currentJobResponse
     }
   }
 }
