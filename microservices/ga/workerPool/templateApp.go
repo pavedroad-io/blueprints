@@ -331,32 +331,21 @@ func (a *{{.NameExported}}App) listSchedule(w http.ResponseWriter, r *http.Reque
 
 func (a *{{.NameExported}}App) getJob(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
-  //{{.Name}} := {{.Name}}{}
 	key := vars["key"]
 
 	// Pre-processing hook
   getJobPreHook(w, r, key)
+	  status, jb, e := a.Scheduler.GetScheduleJob(key)
 
-	/*
-	New logic here
-  err := {{.Name}}.get{{.NameExported}}(a.DB, key, UUID)
-
-  if err != nil {
-    errmsg := err.Error()
-    errno :=  errmsg[0:3]
-    if errno == "400" {
-      respondWithError(w, http.StatusBadRequest, err.Error())
-    } else {
-      respondWithError(w, http.StatusNotFound, err.Error())
-    }
-    return
+  if e != nil {
+    // TODO: log for internal errors
+    fmt.Println(e)
   }
-	*/
 
   // Pre-processing hook
   getJobPostHook(w, r, key)
 
-  respondWithJSON(w, http.StatusOK, "{}")
+	respondWithByte(w, status, jb)
 }
 
 {{.GetSwaggerDoc}}
@@ -499,41 +488,29 @@ func (a *{{.NameExported}}App) getMetrics(w http.ResponseWriter, r *http.Request
 //        201: jobResponse
 //        400: genericError
 func (a *{{.NameExported}}App) createJob(w http.ResponseWriter, r *http.Request) {
-  // New job structure
-  //{{.Name}} := {{.Name}}{}
 
   // Pre-processing hook
   createJobPreHook(w, r)
 
-	/*
-  htmlData, err := ioutil.ReadAll(r.Body)
-  if err != nil {
-    log.Println(err)
-    os.Exit(1)
-  }
-
-  err = json.Unmarshal(htmlData, &{{.Name}})
-  if err != nil {
-    log.Println(err)
-    os.Exit(1)
-  }
-
-  ct := time.Now().UTC()
-  {{.Name}}.Created = ct
-  {{.Name}}.Updated = ct
-
-  // Save into backend storage
-  // returns the UUID if needed
-  if _, err := {{.Name}}.create{{.NameExported}}(a.DB); err != nil {
-    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	  payload, e := ioutil.ReadAll(r.Body)
+  if e != nil {
+    msg := fmt.Sprintf("{\"error\": \"ioutil.ReadAll failed\", \"Error\": \"%v\"}", e.Error())
+    respondWithByte(w, http.StatusBadRequest, []byte(msg))
     return
   }
 
-	*/
- // Post-processing hook
+  status, respBody, e := a.Scheduler.CreateScheduleJob(payload)
+
+  if e != nil {
+    msg := fmt.Sprintf("{\"error\": \"CreateScheduleJob failed\", \"Error\": \"%v\"}", e.Error())
+    respondWithByte(w, status, []byte(msg))
+    return
+  }
+
+  // Post-processing hook
   createJobPostHook(w, r)
 
-  respondWithJSON(w, http.StatusCreated, "{}")
+  respondWithByte(w, status, respBody)
 }
 
 {{.PutSwaggerDoc}}
@@ -543,44 +520,35 @@ func (a *{{.NameExported}}App) createJob(w http.ResponseWriter, r *http.Request)
 //
 // Responses:
 //    default: genericError
-//        201: jobResponse
+//        200: jobResponse
 //        400: genericError
+//        404: genericError
 func (a *{{.NameExported}}App) updateJob(w http.ResponseWriter, r *http.Request) {
-	// {{.Name}} := {{.Name}}{}
-
-  // Read URI variables
+	  // Read URI variables
   vars := mux.Vars(r)
   key := vars["key"]
 
   // Pre-processing hook
   updateJobPreHook(w, r, key)
 
-	/*
-  htmlData, err := ioutil.ReadAll(r.Body)
-  if err != nil {
-    log.Println(err)
+  payload, e := ioutil.ReadAll(r.Body)
+  if e != nil {
+    msg := fmt.Sprintf("{\"error\": \"ioutil.ReadAll failed\", \"Error\": \"%v\"}", e.Error())
+    respondWithByte(w, http.StatusBadRequest, []byte(msg))
     return
   }
 
-  err = json.Unmarshal(htmlData, &{{.Name}})
-  if err != nil {
-    log.Println(err)
-    return
-  }
+  status, respBody, e := a.Scheduler.UpdateScheduleJob(payload)
 
-  ct := time.Now().UTC()
-  {{.Name}}.Updated = ct
-
-  if err := {{.Name}}.update{{.NameExported}}(a.DB, {{.Name}}.{{.NameExported}}UUID); err != nil {
-    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-    return
+  if e != nil {
+    // TODO: log this
+    fmt.Printf("UpdateScheduleJob error: %v status %v", e.Error(), status)
   }
-	*/
 
   // Post-processing hook
   updateJobPostHook(w, r, key)
 
-  respondWithJSON(w, http.StatusOK, "{}")
+  respondWithByte(w, status, respBody)
 }
 
 {{.DeleteSwaggerDoc}}
@@ -593,25 +561,23 @@ func (a *{{.NameExported}}App) updateJob(w http.ResponseWriter, r *http.Request)
 //        200: jobResponse
 //        400: genericError
 func (a *{{.NameExported}}App) deleteJob(w http.ResponseWriter, r *http.Request) {
-  //{{.Name}} := {{.Name}}{}
   vars := mux.Vars(r)
-	key := vars["key"]
+  key := vars["key"]
 
   // Pre-processing hook
   deleteJobPreHook(w, r, key)
 
-	/*
-  err := {{.Name}}.delete{{.NameExported}}(a.DB, key)
-  if err != nil {
-    respondWithError(w, http.StatusNotFound, err.Error())
-    return
+  status, respBody, e := a.Scheduler.DeleteScheduleJob(key)
+
+  if e != nil {
+    // TODO: log this
+    fmt.Printf("DeleteScheduleJob error: %v status %v", e.Error(), status)
   }
-	*/
 
   // Post-processing hook
   deleteJobPostHook(w, r, key)
 
-  respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+  respondWithByte(w, status, respBody)
 }
 
 {{.PostSwaggerDoc}}

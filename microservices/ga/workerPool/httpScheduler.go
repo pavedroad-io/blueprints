@@ -31,6 +31,7 @@ type httpScheduler struct {
   schedulerDone         chan bool      // Shudown initiated by applicatoin
   schedulerInterrupt    chan os.Signal // Shutdown initiated by OS
 	metrics               httpSchedulerMetrics
+	mux                   sync.Mutex
 }
 
 // httpSchedulerMetrics hold metrics about the Scheduler, Jobs, and Results
@@ -86,14 +87,169 @@ func (s *httpScheduler) MetricValue(key string) int {
   return s.metrics.Counters[key]
 }
 
+// UpdateJobList to a new list safely
+func (s *httpScheduler) UpdateJobList(newJobList []*httpJob) {
+  s.mux.Lock()
+  s.jobList = newJobList
+  s.mux.Unlock()
+}
+
+type listScheduleResponse struct {
+  ID   string `json:"id"`
+  URL  string `json:"url"`
+  Type string `json:"type"`
+}
+
 // Required methods
+//
 // Object methods
+// GetScheduledJobs returns a list of job IDs and URL
 func (s *httpScheduler) GetScheduledJobs() ([]byte, error) {
-  jb, e := json.Marshal(s.jobList)
+  var response []listScheduleResponse
+
+  for _, v := range s.jobList {
+    var newRow = listScheduleResponse{}
+    newRow.ID = v.JobID.String()
+    newRow.URL = v.JobURL.String()
+    newRow.Type = v.JobType
+    response = append(response, newRow)
+  }
+
+  jb, e := json.Marshal(response)
   if e != nil {
     return nil, e
   }
   return jb, nil
+}
+
+// GetScheduleJob returns a single job matching the UUID provided
+func (s *httpScheduler) GetScheduleJob(UUID string) (httpStatusCode int, jsonBlob []byte, err error) {
+  var newRow = listScheduleResponse{}
+
+  for _, v := range s.jobList {
+    if v.ID() == UUID {
+      newRow.ID = v.ID()
+      newRow.URL = v.JobURL.String()
+      newRow.Type = v.JobType
+      break
+    }
+  }
+
+  // Not found response
+  if newRow.ID == "" {
+    msg := fmt.Sprintf("{\"error\": \"Not found\", \"UUID\": %v}", UUID)
+    return http.StatusNotFound, []byte(msg), nil
+  }
+
+  jb, e := json.Marshal(newRow)
+  if e != nil {
+    msg := fmt.Sprintf("{\"error\": \"json.Marshal failed\", \"Error\": \"%v\"}", e.Error())
+    return http.StatusInternalServerError, []byte(msg), e
+  }
+
+  return http.StatusOK, jb, nil
+}
+
+// UpdateScheduleJob decodes json data into a job and updates the jobID
+// Returns httpStatusCode, JSON body, and error code
+func (s *httpScheduler) UpdateScheduleJob(jsonBlob []byte) (httpStatusCode int, jsonb []byte, err error) {
+  var updateData = listScheduleResponse{}
+  var oldJobID, newJobID string
+  var newJobList []*httpJob
+  foundJob := false
+
+  e := json.Unmarshal(jsonBlob, &updateData)
+
+  if e != nil {
+    fmt.Println("Unmarshal failed", e.Error())
+    msg := fmt.Sprintf("{\"error\": \"json.Unmarshal failed\", \"Error\": \"%v\"}", e.Error())
+    return http.StatusBadRequest, []byte(msg), e
+  }
+
+  for _, v := range s.jobList {
+    if v.ID() == updateData.ID {
+      newJob := httpJob{}
+      pu, err := url.Parse(updateData.URL)
+      if err != nil {
+        fmt.Println(err)
+        os.Exit(-1)
+      }
+      newJob.JobURL = pu
+      newJob.Init()
+      newJobList = append(newJobList, &newJob)
+      oldJobID = v.ID()
+      newJobID = newJob.ID()
+      foundJob = true
+      continue
+    }
+    newJobList = append(newJobList, v)
+  }
+  // Handle 404 for Job not found
+  if !foundJob {
+    msg := fmt.Sprintf("{\"error\": \"Not found\", \"UUID\": %v}", updateData.ID)
+    return http.StatusNotFound, []byte(msg), nil
+  }
+
+  // Update job list and return
+  s.UpdateJobList(newJobList)
+
+  msg := fmt.Sprintf("{\"success\": \"Old job %v replaced by new job %v\"}",
+    oldJobID, newJobID)
+  return http.StatusOK, []byte(msg), nil
+}
+
+// CreateScheduleJob decodes json data into a job and inserts into jobList
+// Returns httpStatusCode, JSON body, and error code
+func (s *httpScheduler) CreateScheduleJob(jsonBlob []byte) (httpStatusCode int, jsonb []byte, err error) {
+  var newJobType = listScheduleResponse{}
+
+  e := json.Unmarshal(jsonBlob, &newJobType)
+
+  if e != nil {
+    fmt.Println("Unmarshal failed", e.Error())
+    msg := fmt.Sprintf("{\"error\": \"json.Unmarshal failed\", \"Error\": \"%v\"}", e.Error())
+    return http.StatusBadRequest, []byte(msg), e
+  }
+
+  newJob := httpJob{}
+  pu, err := url.Parse(newJobType.URL)
+  if err != nil {
+    fmt.Println(err)
+    os.Exit(-1)
+  }
+  newJob.JobURL = pu
+  newJob.Init()
+  s.jobList = append(s.jobList, &newJob)
+
+  msg := fmt.Sprintf("{\"success\": \"new job %v added\"}", newJob.ID())
+  return http.StatusCreated, []byte(msg), nil
+}
+
+// DeleteScheduleJob delete the job with ID == uuid
+// Returns httpStatusCode, JSON body, and error code
+func (s *httpScheduler) DeleteScheduleJob(uuid string) (httpStatusCode int, jsonb []byte, err error) {
+  var newJobList []*httpJob
+  var foundJob = false
+
+  for _, v := range s.jobList {
+    if v.ID() == uuid {
+      foundJob = true
+      continue
+    }
+    newJobList = append(newJobList, v)
+  }
+
+  // Handle 404 for Job not found
+  if !foundJob {
+    msg := fmt.Sprintf("{\"error\": \"Not found\", \"UUID\": %v}", uuid)
+    return http.StatusNotFound, []byte(msg), nil
+  }
+
+  // Update job list and return
+  s.UpdateJobList(newJobList)
+
+  msg := fmt.Sprintf("{\"success\": \"Job %v deleted\"}", uuid)
+  return http.StatusOK, []byte(msg), nil
 }
 
 // Object methods

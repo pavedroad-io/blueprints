@@ -1,20 +1,31 @@
-{{define "dev/testGetJobList.sh"}}#!/bin/bash
-# /api/v1/namespace/mirantis/eventCollector/jobsLIST
+{{define "dev/testDeleteJob"}}#!/bin/bash
 
 host=127.0.0.1
 port=8081
 service="{{.Name}}"
 namespace="{{.Namespace}}"
+uuid=""
 
-get()
+getUUID()
+{
+  uuid=`curl -H "Content-Type: application/json" -s http://$host:$port/api/v1/namespace/$namespace/$service/jobs"LIST" | jq -r '.[0].id'`
+  if [ "$uuid" == "" ]
+  then
+    echo "UUID lookup failed"
+    exit
+  fi
+}
+
+delete()
 {
 curl -H "Content-Type: application/json" \
-     -v http://$host:$port/api/v1/namespace/$namespace/$service/jobsLIST | jq '.'
+     -X DELETE \
+     -v http://$host:$port/api/v1/namespace/$namespace/$service/jobs/$uuid | jq '.'
 }
 
 usage()
 {
-  echo "usage: testGet -k |--k8s"
+  echo "usage: testDeleteJob -k |--k8s"
   echo "    -k locates ands posts to local k8s cluster"
   echo "    Otherwise, it will post to $host on port $port"
 }
@@ -37,4 +48,5 @@ while [ "$1" != "" ]; do
 done
 
 # Get UUID and call get
-get{{end}}
+getUUID
+delete{{end}}

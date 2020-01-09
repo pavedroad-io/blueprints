@@ -1,20 +1,23 @@
-{{define "dev/testGetJobList.sh"}}#!/bin/bash
-# /api/v1/namespace/mirantis/eventCollector/jobsLIST
+{{define "dev/testPostJob"}}#!/bin/bash
 
 host=127.0.0.1
 port=8081
 service="{{.Name}}"
 namespace="{{.Namespace}}"
+uuid=""
+newurl="https://cat-fact.herokuapp.com/facts"
 
-get()
+post()
 {
 curl -H "Content-Type: application/json" \
-     -v http://$host:$port/api/v1/namespace/$namespace/$service/jobsLIST | jq '.'
+     -X POST \
+     -d "$postdata" \
+     http://$host:$port/api/v1/namespace/$namespace/$service/jobs | jq '.'
 }
 
 usage()
 {
-  echo "usage: testGet -k |--k8s"
+  echo "usage: testPostJob -k |--k8s"
   echo "    -k locates ands posts to local k8s cluster"
   echo "    Otherwise, it will post to $host on port $port"
 }
@@ -37,4 +40,5 @@ while [ "$1" != "" ]; do
 done
 
 # Get UUID and call get
-get{{end}}
+postdata="{\"id\": \"$uuid\", \"url\": \"$newurl\", \"type\": \"httpJob\"}"
+post{{end}}

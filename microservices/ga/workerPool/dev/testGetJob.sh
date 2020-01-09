@@ -1,15 +1,26 @@
-{{define "dev/testGetJobList.sh"}}#!/bin/bash
-# /api/v1/namespace/mirantis/eventCollector/jobsLIST
+{{define "dev/testGetJob.sh"}}#!/bin/bash
 
 host=127.0.0.1
 port=8081
 service="{{.Name}}"
 namespace="{{.Namespace}}"
+uuid=""
+
+getUUID()
+{
+  uuid=`curl -H "Content-Type: application/json" -s http://$host:$port/api/v1/namespace/$namespace/$service/jobs"LIST" | jq -r '.[0].id'`
+  if [ $uuid == "" ]
+  then
+    echo "UUID lookup failed"
+    exit
+  fi
+}
 
 get()
 {
+  echo $uuid
 curl -H "Content-Type: application/json" \
-     -v http://$host:$port/api/v1/namespace/$namespace/$service/jobsLIST | jq '.'
+     -v http://$host:$port/api/v1/namespace/$namespace/$service/jobs/$uuid | jq '.'
 }
 
 usage()
@@ -37,4 +48,5 @@ while [ "$1" != "" ]; do
 done
 
 # Get UUID and call get
+getUUID
 get{{end}}
