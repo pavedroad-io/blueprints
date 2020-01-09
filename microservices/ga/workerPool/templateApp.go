@@ -331,32 +331,21 @@ func (a *{{.NameExported}}App) listSchedule(w http.ResponseWriter, r *http.Reque
 
 func (a *{{.NameExported}}App) getJob(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
-  //{{.Name}} := {{.Name}}{}
 	key := vars["key"]
 
 	// Pre-processing hook
   getJobPreHook(w, r, key)
+	  status, jb, e := a.Scheduler.GetScheduleJob(key)
 
-	/*
-	New logic here
-  err := {{.Name}}.get{{.NameExported}}(a.DB, key, UUID)
-
-  if err != nil {
-    errmsg := err.Error()
-    errno :=  errmsg[0:3]
-    if errno == "400" {
-      respondWithError(w, http.StatusBadRequest, err.Error())
-    } else {
-      respondWithError(w, http.StatusNotFound, err.Error())
-    }
-    return
+  if e != nil {
+    // TODO: log for internal errors
+    fmt.Println(e)
   }
-	*/
 
   // Pre-processing hook
   getJobPostHook(w, r, key)
 
-  respondWithJSON(w, http.StatusOK, "{}")
+	respondWithByte(w, status, jb)
 }
 
 {{.GetSwaggerDoc}}

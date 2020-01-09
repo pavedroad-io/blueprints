@@ -6,10 +6,18 @@ import "os"
 // Schedule
 type Scheduler interface {
 	// Data methods
+	// For schedulers
 	GetSchedule() (Scheduler, error)
 	UpdateSchedule() (Scheduler, error)
 	CreateSchedule() (Scheduler, error)
 	DeleteSchedule() (Scheduler, error)
+
+	 // For jobs
+  GetScheduledJobs() ([]byte, error)
+  GetScheduleJob(UUID string) (httpStatusCode int, jsonBlob []byte, err error)
+  //CreateScheduleJob(jb []byte)(error)
+  //UpddateScheduleJob(jb []byte)(error)
+  //DeleteScheduleJob(UUID string)(error)
 
 	// Execution methods
 	Init() error

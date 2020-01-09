@@ -86,14 +86,60 @@ func (s *httpScheduler) MetricValue(key string) int {
   return s.metrics.Counters[key]
 }
 
+type listScheduleResponse struct {
+  ID   string `json:"id"`
+  URL  string `json:"url"`
+  Type string `json:"type"`
+}
+
 // Required methods
+//
 // Object methods
+// GetScheduledJobs returns a list of job IDs and URL
 func (s *httpScheduler) GetScheduledJobs() ([]byte, error) {
-  jb, e := json.Marshal(s.jobList)
+  var response []listScheduleResponse
+
+  for _, v := range s.jobList {
+    var newRow = listScheduleResponse{}
+    newRow.ID = v.JobID.String()
+    newRow.URL = v.JobURL.String()
+    newRow.Type = v.JobType
+    response = append(response, newRow)
+  }
+
+  jb, e := json.Marshal(response)
   if e != nil {
     return nil, e
   }
   return jb, nil
+}
+
+// GetScheduleJob returns a single job matching the UUID provided
+func (s *httpScheduler) GetScheduleJob(UUID string) (httpStatusCode int, jsonBlob []byte, err error) {
+  var newRow = listScheduleResponse{}
+
+  for _, v := range s.jobList {
+    if v.ID() == UUID {
+      newRow.ID = v.ID()
+      newRow.URL = v.JobURL.String()
+      newRow.Type = v.JobType
+      break
+    }
+  }
+
+  // Not found response
+  if newRow.ID == "" {
+    msg := fmt.Sprintf("{\"error\": \"Not found\", \"UUID\": %v}", UUID)
+    return http.StatusNotFound, []byte(msg), nil
+  }
+
+  jb, e := json.Marshal(newRow)
+  if e != nil {
+    msg := fmt.Sprintf("{\"error\": \"json.Marshal failed\", \"Error\": \"%v\"}", e.Error())
+    return http.StatusInternalServerError, []byte(msg), e
+  }
+
+  return http.StatusOK, jb, nil
 }
 
 // Object methods
