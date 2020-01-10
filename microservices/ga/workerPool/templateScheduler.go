@@ -19,7 +19,6 @@ type Scheduler interface {
   CreateScheduleJob(jsonBlob []byte) (httpStatusCode int, jsonb []byte, err error)
   DeleteScheduleJob(UUID string) (httpStatusCode int, jsonb []byte, err error)
 
-
 	// Execution methods
 	Init() error
 	SetChannels(chan Job, chan Result, chan bool, chan os.Signal)
