@@ -45,14 +45,28 @@ const (
   // {{.NameExported}}SchedulerEndPoint
   {{.NameExported}}SchedulerEndPoint string = "scheduler"
 
+	// EventCollectorSchedulerEndPoint
+	EventCollectorSchedulerEndPoint string = "scheduler"
 )
 
 // holds pointers to database and http server
 type {{.NameExported}}App struct {
+	// Router http request router, gorilla mux for this app
   Router *mux.Router
+
+	// Dispatcher manages jobs for workers
 	Dispatcher dispatcher
+	// Scheduler creates and forwards jobs to dispatcher
 	//TODO: read from roadctl
   Scheduler  httpScheduler
+
+	// Live http server is start
+	Live bool
+
+	// Ready once dispatcher has complete initialization
+	Ready bool
+
+	httpInterruptChan chan os.Signal
 }
 
 // HTTP server configuration

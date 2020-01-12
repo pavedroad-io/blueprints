@@ -162,7 +162,6 @@ func (j *httpJob) Pause() (status string, err error) {
 
 func (j *httpJob) Shutdown() error {
 	return nil
-
 }
 
 func (j *httpJob) Errors() []error {

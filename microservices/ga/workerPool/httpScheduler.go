@@ -2,393 +2,452 @@
 package main
 
 import (
-  "encoding/json"
-  "fmt"
-  "net/url"
-  "os"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
+	"os"
 	"sync"
-  "time"
+	"time"
 )
 
+// Type of Schedulers
 const (
-  schedulerIterations             = "scheduler_iterations"
-  jobsSent                        = "jobs_sent"
-  jobListSize                     = "job_list_size"
-  resultsReceived                 = "results_received"
-  currentJobChannelUtilization    = "current_job_channel_utilization"
-  currentJobChannelCapacity       = "current_job_channel_capacity"
-  currentResultChannelUtilization = "current_result_channel_utilization"
-  currentResultChannelCapacit     = "current_result_channel_capacity"
-  numberOfJobTimedOut             = "number_of_jobs_sent"
-  averageJobProcessingTime        = "average_job_processing_time"
+	constantIntervaleScheduler = "Constant interval scheduler"
+)
+
+// Defaults
+const (
+	defaultConstantInterval = 10
+	maximumInt							= 9223372036854775807
+)
+
+// Metrics constants
+const (
+	schedulerIterations							= "scheduler_iterations"
+	jobsSent												= "jobs_sent"
+	jobListSize											= "job_list_size"
+	resultsReceived									= "results_received"
+	currentJobChannelUtilization		= "current_job_channel_utilization"
+	currentJobChannelCapacity				= "current_job_channel_capacity"
+	currentResultChannelUtilization = "current_result_channel_utilization"
+	currentResultChannelCapacit			= "current_result_channel_capacity"
+	numberOfJobTimedOut							= "number_of_jobs_sent"
+	averageJobProcessingTime				= "average_job_processing_time"
 )
 
 type httpScheduler struct {
-	jobList             	[]*httpJob
-  sendIntervalSeconds 	int
-  schedulerJobChan      chan Job       // Channel to read jobs from
-  schedulerResponseChan chan Result    // Channel to write repose to
-  schedulerDone         chan bool      // Shudown initiated by applicatoin
-  schedulerInterrupt    chan os.Signal // Shutdown initiated by OS
-	metrics               httpSchedulerMetrics
-	mux                   sync.Mutex
+	jobList								[]*httpJob
+	schedulerJobChan			chan Job			 // Channel to read jobs from
+	schedulerResponseChan chan Result		 // Channel to write repose to
+	schedulerDone					chan bool			 // Shudown initiated by applicatoin
+	schedulerInterrupt		chan os.Signal // Shutdown initiated by OS
+	metrics								httpSchedulerMetrics
+	mux										sync.Mutex
+	schedule							httpSchedule
+}
+
+// httpSchedule holds the type	of scheduler and it's configuration
+type httpSchedule struct {
+	ScheduleType				string `json:"schedule_type"`
+	SendIntervalSeconds int64  `json:"send_interval_seconds"`
 }
 
 // httpSchedulerMetrics hold metrics about the Scheduler, Jobs, and Results
 // We export attributes we want included in the JSON output
 type httpSchedulerMetrics struct {
-  StartTime time.Time   	  `json:"start_time"`
-  UpTime    time.Duration	 	`json:"up_time"`
-  Counters  map[string]int  `json:"counters"`
-  mux       sync.Mutex   		 `json:"mux"`
+	StartTime time.Time				`json:"start_time"`
+	UpTime		time.Duration		`json:"up_time"`
+	Counters	map[string]int	`json:"counters"`
+	mux				sync.Mutex			 `json:"mux"`
 }
 
 func (s *httpScheduler) MetricToJSON() ([]byte, error) {
-  s.metrics.mux.Lock()
-  defer s.metrics.mux.Unlock()
-  jb, e := json.Marshal(s.metrics)
-  if e != nil {
-    fmt.Println(e)
-    return nil, e
-  }
-  return jb, nil
+	s.metrics.mux.Lock()
+	defer s.metrics.mux.Unlock()
+	jb, e := json.Marshal(s.metrics)
+	if e != nil {
+		fmt.Println(e)
+		return nil, e
+	}
+	return jb, nil
 }
 
 func (s *httpScheduler) MetricSetStartTime() {
-  s.metrics.mux.Lock()
-  s.metrics.StartTime = time.Now()
-  s.metrics.mux.Unlock()
+	s.metrics.mux.Lock()
+	s.metrics.StartTime = time.Now()
+	s.metrics.mux.Unlock()
 }
 
 func (s *httpScheduler) MetricUpdateUpTime() (uptime time.Duration) {
-  s.metrics.mux.Lock()
-  ct := time.Now()
-  s.metrics.UpTime = ct.Sub(s.metrics.StartTime)
-  s.metrics.mux.Unlock()
-  return s.metrics.UpTime
+	s.metrics.mux.Lock()
+	ct := time.Now()
+	s.metrics.UpTime = ct.Sub(s.metrics.StartTime)
+	s.metrics.mux.Unlock()
+	return s.metrics.UpTime
 }
 
 func (s *httpScheduler) MetricInc(key string) {
-  s.metrics.mux.Lock()
-  s.metrics.Counters[key]++
-  s.metrics.mux.Unlock()
+	s.metrics.mux.Lock()
+	s.metrics.Counters[key]++
+	s.metrics.mux.Unlock()
 }
 
 func (s *httpScheduler) MetricSet(key string, value int) {
-  s.metrics.mux.Lock()
-  s.metrics.Counters[key] = value
-  s.metrics.mux.Unlock()
+	s.metrics.mux.Lock()
+	s.metrics.Counters[key] = value
+	s.metrics.mux.Unlock()
 }
 
-
 func (s *httpScheduler) MetricValue(key string) int {
-  s.metrics.mux.Lock()
-  defer s.metrics.mux.Unlock()
-  return s.metrics.Counters[key]
+	s.metrics.mux.Lock()
+	defer s.metrics.mux.Unlock()
+	return s.metrics.Counters[key]
 }
 
 // UpdateJobList to a new list safely
 func (s *httpScheduler) UpdateJobList(newJobList []*httpJob) {
-  s.mux.Lock()
-  s.jobList = newJobList
-  s.mux.Unlock()
+	s.mux.Lock()
+	s.jobList = newJobList
+	s.mux.Unlock()
 }
 
 type listScheduleResponse struct {
-  ID   string `json:"id"`
-  URL  string `json:"url"`
-  Type string `json:"type"`
+	ID	 string `json:"id"`
+	URL  string `json:"url"`
+	Type string `json:"type"`
 }
 
-// Required methods
+// Required object methods for interface
 //
-// Object methods
 // GetScheduledJobs returns a list of job IDs and URL
 func (s *httpScheduler) GetScheduledJobs() ([]byte, error) {
-  var response []listScheduleResponse
+	var response []listScheduleResponse
 
-  for _, v := range s.jobList {
-    var newRow = listScheduleResponse{}
-    newRow.ID = v.JobID.String()
-    newRow.URL = v.JobURL.String()
-    newRow.Type = v.JobType
-    response = append(response, newRow)
-  }
+	for _, v := range s.jobList {
+		var newRow = listScheduleResponse{}
+		newRow.ID = v.JobID.String()
+		newRow.URL = v.JobURL.String()
+		newRow.Type = v.JobType
+		response = append(response, newRow)
+	}
 
-  jb, e := json.Marshal(response)
-  if e != nil {
-    return nil, e
-  }
-  return jb, nil
+	jb, e := json.Marshal(response)
+	if e != nil {
+		return nil, e
+	}
+	return jb, nil
 }
 
 // GetScheduleJob returns a single job matching the UUID provided
 func (s *httpScheduler) GetScheduleJob(UUID string) (httpStatusCode int, jsonBlob []byte, err error) {
-  var newRow = listScheduleResponse{}
+	var newRow = listScheduleResponse{}
 
-  for _, v := range s.jobList {
-    if v.ID() == UUID {
-      newRow.ID = v.ID()
-      newRow.URL = v.JobURL.String()
-      newRow.Type = v.JobType
-      break
-    }
-  }
+	for _, v := range s.jobList {
+		if v.ID() == UUID {
+			newRow.ID = v.ID()
+			newRow.URL = v.JobURL.String()
+			newRow.Type = v.JobType
+			break
+		}
+	}
 
-  // Not found response
-  if newRow.ID == "" {
-    msg := fmt.Sprintf("{\"error\": \"Not found\", \"UUID\": %v}", UUID)
-    return http.StatusNotFound, []byte(msg), nil
-  }
+	// Not found response
+	if newRow.ID == "" {
+		msg := fmt.Sprintf("{\"error\": \"Not found\", \"UUID\": %v}", UUID)
+		return http.StatusNotFound, []byte(msg), nil
+	}
 
-  jb, e := json.Marshal(newRow)
-  if e != nil {
-    msg := fmt.Sprintf("{\"error\": \"json.Marshal failed\", \"Error\": \"%v\"}", e.Error())
-    return http.StatusInternalServerError, []byte(msg), e
-  }
+	jb, e := json.Marshal(newRow)
+	if e != nil {
+		msg := fmt.Sprintf("{\"error\": \"json.Marshal failed\", \"Error\": \"%v\"}", e.Error())
+		return http.StatusInternalServerError, []byte(msg), e
+	}
 
-  return http.StatusOK, jb, nil
+	return http.StatusOK, jb, nil
 }
 
 // UpdateScheduleJob decodes json data into a job and updates the jobID
 // Returns httpStatusCode, JSON body, and error code
 func (s *httpScheduler) UpdateScheduleJob(jsonBlob []byte) (httpStatusCode int, jsonb []byte, err error) {
-  var updateData = listScheduleResponse{}
-  var oldJobID, newJobID string
-  var newJobList []*httpJob
-  foundJob := false
+	var updateData = listScheduleResponse{}
+	var oldJobID, newJobID string
+	var newJobList []*httpJob
+	foundJob := false
 
-  e := json.Unmarshal(jsonBlob, &updateData)
+	e := json.Unmarshal(jsonBlob, &updateData)
 
-  if e != nil {
-    fmt.Println("Unmarshal failed", e.Error())
-    msg := fmt.Sprintf("{\"error\": \"json.Unmarshal failed\", \"Error\": \"%v\"}", e.Error())
-    return http.StatusBadRequest, []byte(msg), e
-  }
+	if e != nil {
+		fmt.Println("Unmarshal failed", e.Error())
+		msg := fmt.Sprintf("{\"error\": \"json.Unmarshal failed\", \"Error\": \"%v\"}", e.Error())
+		return http.StatusBadRequest, []byte(msg), e
+	}
 
-  for _, v := range s.jobList {
-    if v.ID() == updateData.ID {
-      newJob := httpJob{}
-      pu, err := url.Parse(updateData.URL)
-      if err != nil {
-        fmt.Println(err)
-        os.Exit(-1)
-      }
-      newJob.JobURL = pu
-      newJob.Init()
-      newJobList = append(newJobList, &newJob)
-      oldJobID = v.ID()
-      newJobID = newJob.ID()
-      foundJob = true
-      continue
-    }
-    newJobList = append(newJobList, v)
-  }
-  // Handle 404 for Job not found
-  if !foundJob {
-    msg := fmt.Sprintf("{\"error\": \"Not found\", \"UUID\": %v}", updateData.ID)
-    return http.StatusNotFound, []byte(msg), nil
-  }
+	for _, v := range s.jobList {
+		if v.ID() == updateData.ID {
+			newJob := httpJob{}
+			pu, err := url.Parse(updateData.URL)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(-1)
+			}
+			newJob.JobURL = pu
+			newJob.Init()
+			newJobList = append(newJobList, &newJob)
+			oldJobID = v.ID()
+			newJobID = newJob.ID()
+			foundJob = true
+			continue
+		}
+		newJobList = append(newJobList, v)
+	}
+	
+	// Handle 404 for Job not found
+	if !foundJob {
+		msg := fmt.Sprintf("{\"error\": \"Not found\", \"UUID\": %v}", updateData.ID)
+		return http.StatusNotFound, []byte(msg), nil
+	}
 
-  // Update job list and return
-  s.UpdateJobList(newJobList)
+	// Update job list and return
+	s.UpdateJobList(newJobList)
 
-  msg := fmt.Sprintf("{\"success\": \"Old job %v replaced by new job %v\"}",
-    oldJobID, newJobID)
-  return http.StatusOK, []byte(msg), nil
+	msg := fmt.Sprintf("{\"success\": \"Old job %v replaced by new job %v\"}",
+		oldJobID, newJobID)
+	return http.StatusOK, []byte(msg), nil
 }
 
 // CreateScheduleJob decodes json data into a job and inserts into jobList
 // Returns httpStatusCode, JSON body, and error code
 func (s *httpScheduler) CreateScheduleJob(jsonBlob []byte) (httpStatusCode int, jsonb []byte, err error) {
-  var newJobType = listScheduleResponse{}
+	var newJobType = listScheduleResponse{}
 
-  e := json.Unmarshal(jsonBlob, &newJobType)
+	e := json.Unmarshal(jsonBlob, &newJobType)
 
-  if e != nil {
-    fmt.Println("Unmarshal failed", e.Error())
-    msg := fmt.Sprintf("{\"error\": \"json.Unmarshal failed\", \"Error\": \"%v\"}", e.Error())
-    return http.StatusBadRequest, []byte(msg), e
-  }
+	if e != nil {
+		fmt.Println("Unmarshal failed", e.Error())
+		msg := fmt.Sprintf("{\"error\": \"json.Unmarshal failed\", \"Error\": \"%v\"}", e.Error())
+		return http.StatusBadRequest, []byte(msg), e
+	}
 
-  newJob := httpJob{}
-  pu, err := url.Parse(newJobType.URL)
-  if err != nil {
-    fmt.Println(err)
-    os.Exit(-1)
-  }
-  newJob.JobURL = pu
-  newJob.Init()
-  s.jobList = append(s.jobList, &newJob)
+	newJob := httpJob{}
+	pu, err := url.Parse(newJobType.URL)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
+	}
+	newJob.JobURL = pu
+	newJob.Init()
+	s.jobList = append(s.jobList, &newJob)
 
-  msg := fmt.Sprintf("{\"success\": \"new job %v added\"}", newJob.ID())
-  return http.StatusCreated, []byte(msg), nil
+	msg := fmt.Sprintf("{\"success\": \"new job %v added\"}", newJob.ID())
+	return http.StatusCreated, []byte(msg), nil
 }
 
 // DeleteScheduleJob delete the job with ID == uuid
 // Returns httpStatusCode, JSON body, and error code
 func (s *httpScheduler) DeleteScheduleJob(uuid string) (httpStatusCode int, jsonb []byte, err error) {
-  var newJobList []*httpJob
-  var foundJob = false
+	var newJobList []*httpJob
+	var foundJob = false
 
-  for _, v := range s.jobList {
-    if v.ID() == uuid {
-      foundJob = true
-      continue
-    }
-    newJobList = append(newJobList, v)
-  }
+	for _, v := range s.jobList {
+		if v.ID() == uuid {
+			foundJob = true
+			continue
+		}
+		newJobList = append(newJobList, v)
+	}
 
-  // Handle 404 for Job not found
-  if !foundJob {
-    msg := fmt.Sprintf("{\"error\": \"Not found\", \"UUID\": %v}", uuid)
-    return http.StatusNotFound, []byte(msg), nil
-  }
+	// Handle 404 for Job not found
+	if !foundJob {
+		msg := fmt.Sprintf("{\"error\": \"Not found\", \"UUID\": %v}", uuid)
+		return http.StatusNotFound, []byte(msg), nil
+	}
 
-  // Update job list and return
-  s.UpdateJobList(newJobList)
+	// Update job list and return
+	s.UpdateJobList(newJobList)
 
-  msg := fmt.Sprintf("{\"success\": \"Job %v deleted\"}", uuid)
-  return http.StatusOK, []byte(msg), nil
+	msg := fmt.Sprintf("{\"success\": \"Job %v deleted\"}", uuid)
+	return http.StatusOK, []byte(msg), nil
 }
 
-// Object methods
-func (s *httpScheduler) GetSchedule() (Scheduler, error) {
+// Object methods for schedules
+func (s *httpScheduler) GetSchedule() (httpStatusCode int, jsonBlob []byte, err error) {
 
-	return nil, nil
+	jb, e := json.Marshal(s.schedule)
+	if e != nil {
+		msg := fmt.Sprintf("{\"json.Marsha failed\": \"%v\"}", e)
+		return http.StatusInternalServerError, []byte(msg), e
+	}
+
+	return http.StatusOK, jb, nil
 }
 
-func (s *httpScheduler) UpdateSchedule() (Scheduler, error) {
+func (s *httpScheduler) UpdateSchedule(jsonBlob []byte) (httpStatusCode int, jsonb []byte, err error) {
 
-	return nil, nil
+	us := httpSchedule{}
+	e := json.Unmarshal(jsonBlob, &us)
+	if e != nil {
+		msg := fmt.Sprintf("{\"json.Unmarshal failed\": \"%v\"}", e)
+		return http.StatusInternalServerError, []byte(msg), e
+	}
+
+	// TODO: Should we lock the schedule struct?
+	s.schedule.SendIntervalSeconds = us.SendIntervalSeconds
+
+	msg := fmt.Sprintf("{\"Status\": \"Success\", \"New interval seconds\": %v}",
+		s.schedule.SendIntervalSeconds)
+
+	return http.StatusOK, []byte(msg), nil 
 }
 
-func (s *httpScheduler) CreateSchedule() (Scheduler, error) {
+// CreateSchedule replace current schdule objec
+func (s *httpScheduler) CreateSchedule(jsonBlob []byte) (httpStatusCode int, jsonb []byte, err error) {
 
-	return nil, nil
+	us := httpSchedule{}
+	e := json.Unmarshal(jsonBlob, &us)
+	if e != nil {
+		msg := fmt.Sprintf("{\"json.Unmarshal failed\": \"%v\"}", e)
+		return http.StatusInternalServerError, []byte(msg), e
+	}
+
+	// TODO: lock the schedule struct?
+	s.schedule.ScheduleType = us.ScheduleType
+	s.schedule.SendIntervalSeconds = us.SendIntervalSeconds
+
+	msg := fmt.Sprintf("{\"Status\": \"Success\", \"New interval seconds\": %v}",
+		s.schedule.SendIntervalSeconds)
+	return http.StatusOK, []byte(msg), nil
 }
 
-func (s *httpScheduler) DeleteSchedule() (Scheduler, error) {
+func (s *httpScheduler) DeleteSchedule() (httpStatusCode int, jsonb []byte, err error) {
 
-	return nil, nil
+	s.schedulerDone <- true
+	msg := fmt.Sprintf("{\"Status\": \"Success scheduler stopped\"}")
+	return http.StatusOK, []byte(msg), nil
 }
 
 // SetChannels initializes channels the dispatcher has created inside
 // of the scheduler
 func (s *httpScheduler) SetChannels(j chan Job, r chan Result, b chan bool, i chan os.Signal) {
-  s.schedulerJobChan = j
-  s.schedulerResponseChan = r
-  s.schedulerDone = b
-  s.schedulerInterrupt = i
+	s.schedulerJobChan = j
+	s.schedulerResponseChan = r
+	s.schedulerDone = b
+	s.schedulerInterrupt = i
 
-  return
+	return
 }
 
 // Process methods
 func (s *httpScheduler) Init() error {
-  urlList := []string{
-    "https://api.chucknorris.io/jokes/random",
-    "https://swapi.co/api/people/1/",
-    "https://swapi.co/api/people/2/",
-    "https://swapi.co/api/people/3/"}
+	urlList := []string{
+		"https://api.chucknorris.io/jokes/random",
+		"https://swapi.co/api/people/1/",
+		"https://swapi.co/api/people/2/",
+		"https://swapi.co/api/people/3/"}
 
-  s.metrics.Counters = make(map[string]int)
-  s.sendIntervalSeconds = 10
+	s.metrics.Counters = make(map[string]int)
 
-  for _, u := range urlList {
-    newJob := httpJob{}
-    pu, err := url.Parse(u)
-    if err != nil {
-      fmt.Println(err)
-      os.Exit(-1)
-    }
-    newJob.JobURL = pu
+	s.schedule.SendIntervalSeconds = defaultConstantInterval
+	s.schedule.ScheduleType = constantIntervaleScheduler
+
+	for _, u := range urlList {
+		newJob := httpJob{}
+		pu, err := url.Parse(u)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(-1)
+		}
+		newJob.JobURL = pu
 
 		// Set type and ID and http.Client
-    newJob.Init()
-    s.jobList = append(s.jobList, &newJob)
-  }
+		newJob.Init()
+		s.jobList = append(s.jobList, &newJob)
+	}
 
 	return nil
 }
 
 func (s *httpScheduler) Run() error {
-  go s.RunScheduler()
-  go s.RunResultsReader()
+	go s.RunScheduler()
+	go s.RunResultsReader()
 
-  return nil
+	return nil
 }
 
 func (s *httpScheduler) RunScheduler() error {
 	s.MetricSetStartTime()
-  for {
+	for {
 		s.MetricInc(schedulerIterations)
-    for _, j := range s.jobList {
-      s.schedulerJobChan <- j
-		  s.MetricInc(jobsSent)
-      s.MetricSet(currentJobChannelCapacity, cap(s.schedulerJobChan))
-      s.MetricSet(currentJobChannelUtilization, len(s.schedulerJobChan))
-      s.MetricSet(jobListSize, len(s.jobList))
-    }
+		for _, j := range s.jobList {
+			s.schedulerJobChan <- j
+			s.MetricInc(jobsSent)
+			s.MetricSet(currentJobChannelCapacity, cap(s.schedulerJobChan))
+			s.MetricSet(currentJobChannelUtilization, len(s.schedulerJobChan))
+			s.MetricSet(jobListSize, len(s.jobList))
+		}
 		s.MetricUpdateUpTime()
-    time.Sleep(time.Duration(s.sendIntervalSeconds) * time.Second)
-  }
+		select {
+		case <-s.schedulerDone:
+			return nil
+		default:
+			time.Sleep(time.Duration(s.schedule.SendIntervalSeconds) * time.Second)
+		}
+	}
 
-  return nil
+	return nil
 }
 
 // ComputeAverageResponseTime Keep track of the last N responses
 func (s *httpScheduler) ComputeAverageResponseTime(jt []int, newTime int) ([]int, int) {
-  currentLength := len(jt)
-  desiredLength := currentLength - 9
+	currentLength := len(jt)
+	desiredLength := currentLength - 9
 	// TODO: make 10 configurable
-  if currentLength >= 10 {
-    jt = jt[desiredLength:currentLength]
-  }
-  jt = append(jt, newTime)
-  currentLength = len(jt)
+	if currentLength >= 10 {
+		jt = jt[desiredLength:currentLength]
+	}
+	jt = append(jt, newTime)
+	currentLength = len(jt)
 
-  var totalTime int = 0
-  for _, t := range jt {
-    totalTime += t
-  }
+	var totalTime int = 0
+	for _, t := range jt {
+		totalTime += t
+	}
 
-  return jt, totalTime / currentLength
+	return jt, totalTime / currentLength
 }
 
 func (s *httpScheduler) RunResultsReader() error {
-  jobTimes := make([]int, 0, 10)
-  fmt.Println("Reading job results")
-  for {
-    select {
-    case currentResult := <-s.schedulerResponseChan:
-      s.MetricInc(resultsReceived)
-      s.MetricSet(currentResultChannelCapacit, cap(s.schedulerJobChan))
-      s.MetricSet(currentResultChannelUtilization, len(s.schedulerJobChan))
-      fmt.Printf("Processing response for job ID %v\n", currentResult.Job().ID())
-      j := currentResult.Job()
-      if j.(*httpJob).Stats.RequestTimedOut {
-        s.MetricInc(numberOfJobTimedOut)
-      }
-      jt, avg := s.ComputeAverageResponseTime(jobTimes, int(j.(*httpJob).Stats.RequestTime))
-      s.MetricSet(averageJobProcessingTime, avg)
-      jobTimes = jt
+	jobTimes := make([]int, 0, 10)
+	fmt.Println("Reading job results")
+	for {
+		select {
+		case currentResult := <-s.schedulerResponseChan:
+			s.MetricInc(resultsReceived)
+			s.MetricSet(currentResultChannelCapacit, cap(s.schedulerJobChan))
+			s.MetricSet(currentResultChannelUtilization, len(s.schedulerJobChan))
+			fmt.Printf("Processing response for job ID %v\n", currentResult.Job().ID())
+			j := currentResult.Job()
+			if j.(*httpJob).Stats.RequestTimedOut {
+				s.MetricInc(numberOfJobTimedOut)
+			}
+			jt, avg := s.ComputeAverageResponseTime(jobTimes, int(j.(*httpJob).Stats.RequestTime))
+			s.MetricSet(averageJobProcessingTime, avg)
+			jobTimes = jt
 
-    case done := <-s.schedulerDone:
-      if done {
-        return nil
-      } else {
-        fmt.Println("Bad response on scheduler Done channel")
-      }
+		case done := <-s.schedulerDone:
+			if done {
+				return nil
+			} else {
+				fmt.Println("Bad response on scheduler Done channel")
+			}
 
-    case <-s.schedulerInterrupt:
-      return nil
-    }
-  }
+		case <-s.schedulerInterrupt:
+			return nil
+		}
+	}
 
-  return nil
+	return nil
 }
-
 
 func (s *httpScheduler) Pause() []byte {
 
@@ -401,10 +460,11 @@ func (s *httpScheduler) Shutdown() error {
 }
 
 // Status methods
+// DeleteSchedule stops go scheduler goroutine
 func (s *httpScheduler) Metrics() []byte {
-  jb, e := s.MetricToJSON()
-  if e != nil {
-    return nil
-  }
-  return jb
+	jb, e := s.MetricToJSON()
+	if e != nil {
+		return nil
+	}
+	return jb
 }{{end}}

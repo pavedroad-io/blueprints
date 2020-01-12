@@ -59,21 +59,9 @@ func getLivenessPreHook(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// getLivenessPostHook
-//
-func getLivenessPostHook(w http.ResponseWriter, r *http.Request) {
-	return
-}
-
 // getReadinessPreHook
 //
 func getReadinessPreHook(w http.ResponseWriter, r *http.Request) {
-	return
-}
-
-// getReadinessPostHook
-//
-func getReadinessPostHook(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
@@ -87,6 +75,30 @@ func getMetricsPreHook(w http.ResponseWriter, r *http.Request) {
 //
 func getMetricsPostHook(w http.ResponseWriter, r *http.Request) {
 	return
+}
+
+// getManagementPreHook
+//
+func getManagementPreHook(w http.ResponseWriter, r *http.Request) {
+  return
+}
+
+// getManagementPostHook
+//
+func getManagementPostHook(w http.ResponseWriter, r *http.Request) {
+  return
+}
+
+// putManagementPreHook
+//
+func putManagementPreHook(w http.ResponseWriter, r *http.Request) {
+  return
+}
+
+// putManagementPostHook
+//
+func putManagementPostHook(w http.ResponseWriter, r *http.Request) {
+  return
 }
 
 // createJobPreHook

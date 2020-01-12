@@ -2,9 +2,12 @@
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -13,6 +16,70 @@ const (
   dispatcherJobsSent        = "jobs_sent"
   dispatcherResultsReceived = "results_received"
 )
+
+// Defaults for dispatcher and workers
+const (
+	NUMBEROFWORKERS     int = 5
+	SIZEOFJOBCHANNEL    int = 5
+	SIZEOFRESULTCHANNEL int = 5
+	GRACEFULLSHUTDOWN   int = 30
+	HARDSHUTDOWN        int = 0
+)
+
+// Management API
+const (
+	gracefulShutdownSeconds string = "graceful_shutdown_seconds"
+	hardShutdownSeconds     string = "hard_shutdown_seconds"
+	numberOfWorkers         string = "number_of_workers"
+	schedulerChannelSize    string = "scheduler_channel_size"
+	resultChannelSize       string = "result_channel_size"
+)
+
+// managementGetResponse List of valaible command and field options
+//
+// swagger:response managementGetResponse
+type managementGetResponse struct {
+	// The error message
+	// in: body
+
+	// Commands is a list of valide commands that can be executed
+	Commands []mgtCommand `json:"commands"`
+	// Fields is a list of fields that can be changed
+	Fields []string `json:"fields"`
+}
+
+// mgtCommand List of valaible command and field options
+//
+type mgtCommand struct {
+	// Name of the command
+	Name string `json:"name"`
+
+	// Go data type
+	DataType string `json:"data_type"`
+
+	// Go data type
+	CommandType string `json:"command_type"`
+
+	// Description of what this command does
+	Description string `json:"description"`
+}
+
+// managementRequest user request to execute a management command
+//
+// swagger:response managementRequest
+type managementRequest struct {
+	// The error message
+	// in: body
+
+	// Commands is a list of valide commands that can be executed
+	Command string `json:"command"`
+
+	// Field to set
+	Field string `json:"field"`
+
+	// Value for field
+	Value int `json:"field_value"`
+}
 
 // worker is a go worker pool pattern
 type worker struct {
@@ -66,11 +133,13 @@ type dispatcher struct {
 	schedulerResultChan chan Result     // Channel to write result to
 	schedulerDone         chan bool       // Shudown initiated by applicatoin
 	schedulerInterrupt     chan os.Signal // Shutdown initiated by OS
+	schedulerInterrupt  chan os.Signal // Shutdown initiated by OS
 
 	// Workers config
 	wg             sync.WaitGroup
 	desiredWorkers int
 	currentWorkers int
+	workers        []*worker
 
 	// Worker Channels
 	workerJobChan     chan Job
@@ -78,8 +147,16 @@ type dispatcher struct {
 	workerDone        chan bool
 	workerInterrup    chan os.Signal
 
+	// Management response
+	managementOptions managementGetResponse
+
 	// Metrics counters
   metrics dispatcherMetrics
+
+	// Shutdown options
+	gracefulShutdown int //Seconds to wait
+	hardShutdown     int
+	mux              sync.Mutex
 }
 
 type dispatcherMetrics struct {
@@ -140,7 +217,23 @@ func (d *dispatcher) MetricValue(key string) int {
 //   logic
 //   Inter channels handle OS interrups
 func (d *dispatcher) Init(numWorkers, chanCapacity int, s Scheduler) {
-	fmt.Printf("Initialize dispacther with %v workers and channel capacity of %v\n", numWorkers, chanCapacity)
+	d.gracefulShutdown = GRACEFULLSHUTDOWN
+	d.hardShutdown = HARDSHUTDOWN
+
+	if numWorkers == 0 {
+		d.desiredWorkers = NUMBEROFWORKERS
+	} else {
+		d.desiredWorkers = numWorkers
+	}
+
+	if chanCapacity == 0 {
+		d.schedulerCapacity = SIZEOFJOBCHANNEL
+		d.resultsCapacity = SIZEOFRESULTCHANNEL
+	} else {
+		d.schedulerCapacity = chanCapacity
+		d.resultsCapacity = chanCapacity
+	}
+
 	d.metrics.Counters = make(map[string]int)
 	d.desiredWorkers = numWorkers
 	d.schedulerCapacity = chanCapacity
@@ -169,9 +262,63 @@ func (d *dispatcher) Init(numWorkers, chanCapacity int, s Scheduler) {
     d.schedulerDone,
     d.schedulerInterrupt)
 
+	d.managementInit()
 	d.MetricSetStartTime()
 
 	return
+}
+
+// managementInit() setup management commands and fields
+func (d *dispatcher) managementInit() {
+
+	newCMD := mgtCommand{Name: "set", DataType: "int", CommandType: "config",
+		Description: "Sets the value of a configurable field, see fields below"}
+	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+
+	newCMD = mgtCommand{Name: "stop_scheduler", DataType: "string",
+		CommandType: "command",
+		Description: "Stops the scheduler from send new jobs"}
+	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+
+	newCMD = mgtCommand{Name: "start_scheduler", DataType: "string",
+		CommandType: "command",
+		Description: "Starts the scheduler running again.  If running has no affect"}
+	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+
+	newCMD = mgtCommand{Name: "stop_workers", DataType: "string",
+		CommandType: "command",
+		Description: "Shutdown the worker pool letting jobs inflight complete"}
+	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+
+	newCMD = mgtCommand{Name: "start_workers", DataType: "string",
+		CommandType: "command",
+		Description: "Starts the worker pool if stopped"}
+	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+
+	newCMD = mgtCommand{Name: "shutdown", DataType: "string",
+		CommandType: "command",
+		Description: "Graceful shutdown"}
+	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+
+	newCMD = mgtCommand{Name: "shutdown_now", DataType: "string",
+		CommandType: "command",
+		Description: "Hard shutdown with SIGKILL"}
+	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+
+	d.managementOptions.Fields = append(d.managementOptions.Fields,
+		gracefulShutdownSeconds,
+		hardShutdownSeconds,
+		numberOfWorkers,
+		schedulerChannelSize,
+		resultChannelSize)
+
+	/* TODO: add hooks to allows Job and Scheduler to extend management API
+	d.managementOptions.Commands = append(d.managementOption.Command, s.AddSchedulerCommands())
+	d.managementOptions.Fields = append(d.managementOption.Fields, s.AddSchedulerFields())
+
+	d.managementOptions.Commands = append(d.managementOption.Command, s.AddJobCommands())
+	d.managementOptions.Fields = append(d.managementOption.Fields, s.AddJobFields())
+	*/
 }
 
 func (d dispatcher) Run() error {
@@ -187,7 +334,6 @@ func (d dispatcher) Forwarder() {
   for {
     select {
     case currentJob := <-d.schedulerJobChan:
-      //fmt.Println(currentJob.ID())
 			d.MetricInc(dispatcherJobsSent)
       d.workerJobChan <- currentJob
     }
@@ -208,6 +354,117 @@ func (d *dispatcher) Shutdown() error {
 	return nil
 }
 
+// SetConfigVariable
+func (d *dispatcher) SetConfigVariable(name string, value int) (msg []byte, err error) {
+	var rmsg string
+
+	switch name {
+	case gracefulShutdownSeconds:
+		d.mux.Lock()
+		old := d.gracefulShutdown
+		d.gracefulShutdown = value
+		d.mux.Unlock()
+		rmsg = fmt.Sprintf("{\"Status\": \"%s changed from %d to %d\"}",
+			name, old, value)
+		return []byte(rmsg), nil
+
+	case hardShutdownSeconds:
+		d.mux.Lock()
+		old := d.hardShutdown
+		d.hardShutdown = value
+		d.mux.Unlock()
+		rmsg = fmt.Sprintf("{\"Status\": \"%s changed from %d to %d\"}",
+			name, old, value)
+		return []byte(rmsg), nil
+
+	case numberOfWorkers:
+		d.mux.Lock()
+		old := d.desiredWorkers
+		d.desiredWorkers = value
+		d.mux.Unlock()
+
+		//TODO: grow or srinkt as necessary
+		rmsg = fmt.Sprintf("{\"Status\": \"%s changed from %d to %d\"}",
+			name, old, value)
+		return []byte(rmsg), nil
+
+	case schedulerChannelSize:
+		rmsg = fmt.Sprintf("{\"Status\": \"%s not implemented\"}", name)
+		e := errors.New("not implemented")
+		return []byte(rmsg), e
+
+	case resultChannelSize:
+		rmsg = fmt.Sprintf("{\"Status\": \"%s not implemented\"}", name)
+		e := errors.New("not implemented")
+		return []byte(rmsg), e
+	default:
+		rmsg = fmt.Sprintf("{\"Status\": \"%s unknown\"}", name)
+		e := errors.New("unknown set field")
+		return []byte(rmsg), e
+	}
+
+}
+
+func (d *dispatcher) ProcessManagementRequest(r managementRequest) (httpStatusCode int, jsonb []byte, err error) {
+
+	switch r.Command {
+	case "set":
+		msg, e := d.SetConfigVariable(r.Field, r.Value)
+
+		if e != nil {
+			return http.StatusBadRequest, []byte(msg), nil
+		} else {
+			return http.StatusOK, []byte(msg), nil
+		}
+
+	case "stop_scheduler":
+		d.schedulerDone <- true
+		msg := fmt.Sprintf("{\"Status\": \"Scheduler stop initiated\"}")
+		return http.StatusOK, []byte(msg), nil
+
+	case "start_scheduler":
+		// TODO: this will require changes to the scheduler interface
+		msg := fmt.Sprintf("{\"Status\": \"Scheduler start initiated\"}")
+		return http.StatusOK, []byte(msg), nil
+
+	case "stop_workers":
+		d.workerDone <- true
+		msg := fmt.Sprintf("{\"Status\": \"Worker stop initiated\"}")
+		return http.StatusOK, []byte(msg), nil
+
+	case "start_workers":
+		// TODO: make sure it isn't running first
+		d.createWorkerPool()
+		msg := fmt.Sprintf("{\"Status\": \"Worker stop initiated\"}")
+		return http.StatusOK, []byte(msg), nil
+
+		//TODO: move this logic into Shutdown() method
+	case "shutdown":
+		// Let the scheduler clean up if special logic is needed
+		// d.scheduler.Shutdown()
+		d.schedulerDone <- true
+		d.workerDone <- true
+		msg := fmt.Sprintf("{\"Status\": \"Shutdown complete\"}")
+		return http.StatusOK, []byte(msg), nil
+
+	case "shutdown_now":
+		d.schedulerInterrupt <- syscall.SIGINT
+		// TODO: fix this spelling
+		d.workerInterrup <- syscall.SIGINT
+		msg := fmt.Sprintf("{\"Status\": \"shutdown_now complete\"}")
+		return http.StatusOK, []byte(msg), nil
+
+	default:
+		msg := fmt.Sprintf("{\"Status\": \"Command: %s not implemeted\"}",
+			r.Command)
+		return http.StatusOK, []byte(msg), nil
+	}
+
+	return 0, nil, nil
+}
+
+// TODO: keep a list of points to workes so we can call Shutdown()
+//       Errors(), etc
 func (d *dispatcher) createWorkerPool() error {
 	for i := 0; i < d.desiredWorkers; i++ {
 		newWorker := worker{wg: d.wg,
@@ -217,6 +474,7 @@ func (d *dispatcher) createWorkerPool() error {
 			done:        d.workerDone}
 
 		d.wg.Add(1)
+		d.workers = append(d.workers, &newWorker)
 		go newWorker.Run()
 	}
 	return nil
