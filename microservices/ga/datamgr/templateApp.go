@@ -88,7 +88,9 @@ func (a *{{.NameExported}}App) Run(addr string) {
 func (a *{{.NameExported}}App) initializeEnvironment() {
   var envVar = ""
 
-  //look for environment variables overrides
+  //Look for environment variables overrides
+  //You should set the evironment variables as needed
+  //Defaults are hard coded in the Main package
   envVar = os.Getenv("APP_DB_USERNAME")
   if envVar != "" {
     dbconf.username = envVar

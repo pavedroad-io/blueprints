@@ -1,4 +1,11 @@
 {{define "Makefile"}}#-include .env
+#Note: GOPATH is only used to resolve go calls.
+#Utlities like gosec should be called with $(GOBIN)/
+#Note: Microservice executble name should match name
+#in your definitions.yaml file. If the build PWD is
+#deferent, your name will not match so you 
+#would need rename the executable before you can  deploy
+#your microservice.
 
 VERSION := {{.Version}}
 BUILD := $(shell git rev-parse --short HEAD)
@@ -22,7 +29,8 @@ GOPATH := $(GOBASE)
 export GOPATH = $(GOBASE)
 GOBIN := $(GOBASE)/bin
 GOFILES := $(wildcard *.go)
-GOLINT := $(shell which golint)
+#GOLINT := $(shell which golint)
+GOLINT := $(GOBIN)/golint
 GOARCH := $(shell go env GOARCH)
 GOOS := $(shell go env GOOS)
 GOCOVERAGE := $(ARTIFACTS)/coverage.out
@@ -77,7 +85,7 @@ ifeq "$(K8SRUNNING)" "down"
 	dev/microk8sStart.sh
 endif
 	@echo "  >  Starting k8s is up..."
-	@dev/kube-config.sh
+	dev/kube-config.sh
 #       wait for the registry service to be ready	
 	@echo "  >  Wait for registry to come up..."
 	@sleep 20
@@ -94,7 +102,7 @@ go-get: Gopkg.toml get-deps $(ASSETS)
 
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
-	$(shell (export GOPATH=$(GOPATH);swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
+	$(shell (export GOPATH=$(GOPATH);$(GOBIN)swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"
@@ -144,7 +152,7 @@ lint: $(GOFILES)
 	@echo $?
 	$(GOLINT) $? > $(GOLINTREPORT)
 	@echo "  >  running gosec... > $(GOSECREPORT)"
-	$(shell (export GOPATH=$(GOPATH);gosec -fmt=sonarqube -tests -out $(GOSECREPORT) -exclude-dir=.templates ./...))
+	$(shell (export GOPATH=$(GOPATH);$(GOBIN)/gosec -fmt=sonarqube -tests -out $(GOSECREPORT) -exclude-dir=.templates ./...))
 	@echo "  >  running go vet... > $(GOVETREPORT)"
 	$(shell (export GOPATH=$(GOPATH);go vet ./... 2> $(GOVETREPORT)))
 	@echo "  >  running FOSSA license scan."

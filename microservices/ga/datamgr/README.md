@@ -10,6 +10,11 @@ The build system requires git source code management.  If the directory you choo
     git add *
     git commit
 
+To utlize the sonar-scanner test functionality and its continuous integrations
+features, you will also need a remote repository on github. See sonarcloud.io for information on establishing your client accout, and follow their 'Analayze from your CI' information to install the required scanner. 
+
+Note that you should modify the YAML,sonarcloud.sh and sonar-project.propertiesfiles in your project directory to reflect your new sonar-scanner requirements outlined in their installation instructions. Minor adjustments related to sonar-scanner might also be required in the Makefile (GOTESTREPORT and PATH). 
+
 ### Versioning information
 The make file sets three versioning variables; VERSION, BUILD, and GIT_TAG.  These are passed go the go compiler and printed when the -v flag is passed on the command line.  Output is formated as JSON.
 

@@ -92,6 +92,9 @@ func printVersion() {
 // main entry point for server
 func main() {
 
+	//See the golang flag package for expanding the CLI interface
+	//to your {{.NameExported}} microservice.
+
 	versionFlag := flag.Bool("v", false, "Print version information")
         flag.Parse()
 
