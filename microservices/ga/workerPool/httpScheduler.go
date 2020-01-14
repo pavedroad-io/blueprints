@@ -300,7 +300,7 @@ func (s *httpScheduler) UpdateSchedule(jsonBlob []byte) (httpStatusCode int, jso
 	return http.StatusOK, []byte(msg), nil 
 }
 
-// CreateSchedule replace current schdule objec
+// CreateSchedule replace current schedule objec
 func (s *httpScheduler) CreateSchedule(jsonBlob []byte) (httpStatusCode int, jsonb []byte, err error) {
 
 	us := httpSchedule{}

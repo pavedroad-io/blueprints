@@ -414,6 +414,14 @@ func (a *{{.NameExported}}App) getLiveness(w http.ResponseWriter, r *http.Reques
 		respondWithError(w, http.StatusServiceUnavailable, "{\"Live\": false}")
 	}
 
+	/*
+	New logic here
+	*/
+
+	// Pre-processing hook
+	getLivenessPostHook(w, r)
+>>>>>>> f295aeb5e221c78778ff998f57211df7a1004c8d
+
 	respondWithJSON(w, http.StatusOK, "{}")
 }
 
