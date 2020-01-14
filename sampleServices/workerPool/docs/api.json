@@ -1,0 +1,371 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "Copyright 2019 pavedroad maintainers\n\nLicensed under the Apache License Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\nlimitations under the License.\n\nMicroservice for managing a pool of workers\n\nA scheduler go routine writes jobs to be performed to\na dispatcher.  The dispatcher manages and forwards jobs\nto a number N number of workers using a buffered channel.\n\nWorkers read the jobs, perform the tasks, and log the \nresults. The log code, logs to one or more configured\ndestinations.  This can include local filesystem, stdout,\nor a Kafka topic.\n\nJobs, Scheduler, are both defined as interfaces enabling\nthem to be customized to specific tasks.",
+    "title": "Copyright (c) PavedRoad. All rights reserved.\nLicensed under the Apache2. See LICENSE file in the project root for full license information.",
+    "termsOfService": "there are no TOS at this moment, use at your own risk we take no responsibility",
+    "contact": {
+      "name": "Andriy Levchenko",
+      "url": "https://perfectial.com/",
+      "email": "andriy.levchenko@perfectial.com"
+    },
+    "license": {
+      "name": "Apache 2"
+    },
+    "version": "1.0.0"
+  },
+  "host": "api.pavedroad.io",
+  "basePath": "/api/v1/namespace/pavedroad.io/eventCollector",
+  "paths": {
+    "/api/v1/namespace/mirantis/eventCollector/EventCollectorJobsEndPoint": {
+      "post": {
+        "description": "Create a new Job",
+        "tags": [
+          "EventCollectorJobsEndPoint"
+        ],
+        "operationId": "createJob",
+        "responses": {
+          "201": {
+            "$ref": "#/responses/jobResponse"
+          },
+          "400": {
+            "$ref": "#/responses/genericError"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/mirantis/eventCollector/EventCollectorJobsEndPoint/{key}": {
+      "put": {
+        "description": "Update a EventCollectorJobsEndPoint specified by key, where key is a uuid",
+        "tags": [
+          "EventCollectorSchedulerEndPoint"
+        ],
+        "operationId": "updateJob",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/jobResponse"
+          },
+          "400": {
+            "$ref": "#/responses/genericError"
+          },
+          "404": {
+            "$ref": "#/responses/genericError"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a job specified by key, which is a uuid",
+        "tags": [
+          "EventCollectorJobsEndPoint"
+        ],
+        "operationId": "deleteJobs",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/jobResponse"
+          },
+          "400": {
+            "$ref": "#/responses/genericError"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/mirantis/eventCollector/EventCollectorJobsEndPointLIST": {
+      "get": {
+        "description": "Returns a list of Jobs",
+        "tags": [
+          "jobs"
+        ],
+        "operationId": "listjobs",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/jobsList"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/mirantis/eventCollector/EventCollectorSchedulerEndPoint": {
+      "post": {
+        "description": "Create a new scheduler",
+        "tags": [
+          "EventCollectorSchedulerEndPoint"
+        ],
+        "operationId": "createSchedule",
+        "responses": {
+          "201": {
+            "$ref": "#/responses/schedulerResponse"
+          },
+          "400": {
+            "$ref": "#/responses/genericError"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/mirantis/eventCollector/EventCollectorSchedulerEndPoint/{key}": {
+      "put": {
+        "description": "Update a EventCollectorSchedulerEndPoint specified by key, where key is a uuid",
+        "tags": [
+          "EventCollectorSchedulerEndPoint"
+        ],
+        "operationId": "updateSchedule",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/schedulerResponse"
+          },
+          "400": {
+            "$ref": "#/responses/genericError"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete the current schedule by setting interval to 272 billion years",
+        "tags": [
+          "EventCollectorSchedulerEndPoint"
+        ],
+        "operationId": "deleteSchudler",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/schedulerResponse"
+          },
+          "400": {
+            "$ref": "#/responses/genericError"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/mirantis/eventCollector/EventCollectorSchedulerEndPointLIST": {
+      "get": {
+        "description": "Returns a list of schedules",
+        "tags": [
+          "schedules"
+        ],
+        "operationId": "listschedule",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/scheduleList"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/mirantis/eventCollector/jobs/{key}": {
+      "get": {
+        "description": "Returns a job given a key, where key is a UUID",
+        "tags": [
+          "job"
+        ],
+        "operationId": "getjob",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/jobResponse"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/mirantis/eventCollector/liveness": {
+      "get": {
+        "description": "Any other status code will cause kubelet to restart the pod.",
+        "tags": [
+          "liveness"
+        ],
+        "summary": "A HTTP response status code between 200-400 indicates the pod is alive.",
+        "operationId": "getliveness",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/livenessResponse"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/mirantis/eventCollector/management": {
+      "get": {
+        "description": "Returns available management commands",
+        "tags": [
+          "management"
+        ],
+        "operationId": "getManagement",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/managementResponse"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      },
+      "put": {
+        "description": "Returns available management commands",
+        "tags": [
+          "management"
+        ],
+        "operationId": "putManagement",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/managementResponse"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/mirantis/eventCollector/metrics": {
+      "get": {
+        "description": "Returns metrics for eventCollector service\nMetrics should include:\nScheduler\nDispatcher\nWorkers\nJobs",
+        "tags": [
+          "metrics"
+        ],
+        "operationId": "getMetrics",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/readinessResponse"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/mirantis/eventCollector/ready": {
+      "get": {
+        "description": "Should return a 200 after all pod initialization has completed.",
+        "tags": [
+          "ready"
+        ],
+        "summary": "Indicates the pod is ready to start taking traffic.",
+        "operationId": "getready",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/readinessResponse"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/mirantis/eventCollector/schedule/{key}": {
+      "get": {
+        "description": "Returns a schedule given a key, where key is a UUID",
+        "tags": [
+          "schedule"
+        ],
+        "operationId": "getschedule",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/scheduleResponse"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "mgtCommand": {
+      "description": "mgtCommand List of valaible command and field options",
+      "type": "object",
+      "properties": {
+        "command_type": {
+          "description": "Go data type",
+          "type": "string",
+          "x-go-name": "CommandType"
+        },
+        "data_type": {
+          "description": "Go data type",
+          "type": "string",
+          "x-go-name": "DataType"
+        },
+        "description": {
+          "description": "Description of what this command does",
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "name": {
+          "description": "Name of the command",
+          "type": "string",
+          "x-go-name": "Name"
+        }
+      },
+      "x-go-package": "worker"
+    }
+  },
+  "responses": {
+    "managementGetResponse": {
+      "description": "managementGetResponse List of valaible command and field options",
+      "headers": {
+        "commands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/mgtCommand"
+          },
+          "description": "Commands is a list of valide commands that can be executed"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Fields is a list of fields that can be changed"
+        }
+      }
+    },
+    "managementRequest": {
+      "description": "managementRequest user request to execute a management command",
+      "headers": {
+        "command": {
+          "type": "string",
+          "description": "Commands is a list of valide commands that can be executed"
+        },
+        "field": {
+          "type": "string",
+          "description": "Field to set"
+        },
+        "field_value": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Value for field"
+        }
+      }
+    }
+  }
+}

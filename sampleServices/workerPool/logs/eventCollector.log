@@ -1,0 +1,224 @@
+2020/01/08 14:16:42 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/08 14:16:42 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/08 14:39:25 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/08 14:39:25 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/08 16:32:41 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/08 16:32:41 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 06:40:09 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 06:40:09 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 06:49:04 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 06:49:04 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 06:50:21 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 06:50:21 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 06:54:35 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 06:54:35 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 06:59:56 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 06:59:56 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 07:01:24 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 07:01:24 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 07:01:54 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 07:01:54 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 07:02:47 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 07:02:47 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 07:05:07 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 07:05:07 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 07:06:03 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 07:06:03 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 07:15:55 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 07:15:55 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 07:17:07 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 07:17:07 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 07:17:34 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 07:17:34 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 07:18:12 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 07:18:12 eventCollectorApp.go:54: Listing at: 127.0.0.1:8081
+2020/01/09 12:07:09 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 12:07:09 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/09 12:15:46 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 12:15:46 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/09 12:17:51 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/09 12:17:51 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 04:02:47 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 04:02:47 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 04:05:32 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 04:05:32 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 04:06:07 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 04:06:07 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 04:12:35 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 04:12:35 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 04:13:58 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 04:13:58 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 04:15:55 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 04:15:55 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 04:16:51 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 04:16:51 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 04:19:43 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 04:19:43 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 04:20:44 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 04:20:44 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 04:23:35 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 04:23:35 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 14:11:00 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 14:11:00 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 14:15:07 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 14:15:07 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 14:15:52 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 14:15:52 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 14:18:12 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 14:18:12 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 15:08:38 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 15:08:38 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 15:10:41 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 15:10:41 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 15:13:01 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 15:13:01 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 15:15:46 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 15:15:46 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/10 15:20:58 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/10 15:20:58 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:20:02 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:20:02 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:23:34 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:23:34 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:25:15 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:25:15 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:30:47 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:30:47 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:32:58 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:32:58 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:33:35 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:33:35 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:33:59 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:33:59 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:35:47 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:35:47 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:36:20 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:36:20 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:36:58 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:36:58 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:37:14 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:37:14 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:39:09 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:39:09 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:41:56 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:41:56 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:42:55 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:42:55 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:44:59 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:44:59 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:46:48 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:46:48 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:48:40 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:48:40 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:50:32 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:50:32 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:52:32 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:52:32 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:54:09 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:54:09 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 10:57:01 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 10:57:01 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 11:51:15 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 11:51:15 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 11:56:34 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 11:56:34 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 11:58:25 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 11:58:25 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 12:22:04 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 12:22:04 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 12:22:58 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 12:22:58 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/12 12:24:47 eventCollectorMain.go:103: Logfile opened logs/eventCollector.log
+2020/01/12 12:24:47 eventCollectorApp.go:55: Listing at: 127.0.0.1:8081
+2020/01/13 10:30:42 eventCollectorMain.go:105: Logfile opened logs/eventCollector.log
+2020/01/13 10:30:42 eventCollectorApp.go:53: Listing at: 127.0.0.1:8081
+2020/01/13 10:33:15 eventCollectorMain.go:105: Logfile opened logs/eventCollector.log
+2020/01/13 10:33:15 eventCollectorApp.go:53: Listing at: 127.0.0.1:8081
+2020/01/13 10:35:47 eventCollectorMain.go:105: Logfile opened logs/eventCollector.log
+2020/01/13 10:35:47 eventCollectorApp.go:53: Listing at: 127.0.0.1:8081
+2020/01/13 10:42:09 eventCollectorMain.go:105: Logfile opened logs/eventCollector.log
+2020/01/13 10:42:09 eventCollectorApp.go:53: Listing at: 127.0.0.1:8081
+2020/01/13 10:49:14 eventCollectorMain.go:105: Logfile opened logs/eventCollector.log
+2020/01/13 10:49:14 eventCollectorApp.go:53: Listing at: 127.0.0.1:8081
+2020/01/13 10:59:56 eventCollectorMain.go:105: Logfile opened logs/eventCollector.log
+2020/01/13 10:59:56 eventCollectorApp.go:53: Listing at: 127.0.0.1:8081
+2020/01/13 11:06:25 eventCollectorMain.go:105: Logfile opened logs/eventCollector.log
+2020/01/13 11:06:25 eventCollectorApp.go:53: Listing at: 127.0.0.1:8081
+2020/01/13 11:36:59 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 11:36:59 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 11:38:56 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 11:38:56 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 11:40:02 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 11:40:02 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 11:42:38 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 11:42:38 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 12:59:02 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 12:59:02 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 13:01:11 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 13:01:11 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 13:02:20 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 13:02:20 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 13:05:10 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 13:05:10 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 13:06:06 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 13:06:06 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 13:07:54 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 13:07:54 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 13:08:01 server.go:3056: http: panic serving 127.0.0.1:54450: invalid WriteHeader code 0
+goroutine 16 [running]:
+net/http.(*conn).serve.func1(0xc0003bc320)
+	/snap/go/4901/src/net/http/server.go:1767 +0x139
+panic(0x725a60, 0xc0002ea1a0)
+	/snap/go/4901/src/runtime/panic.go:679 +0x1b2
+net/http.checkWriteHeaderCode(...)
+	/snap/go/4901/src/net/http/server.go:1091
+net/http.(*response).WriteHeader(0xc000436380, 0x0)
+	/snap/go/4901/src/net/http/server.go:1125 +0x5f3
+main.respondWithByte(0x8266a0, 0xc000436380, 0x0, 0x0, 0x0, 0x0)
+	/home/jscharber/demo/src/worker/eventCollectorApp.go:741 +0x10b
+main.(*EventCollectorApp).putManagement(0xc000001980, 0x8266a0, 0xc000436380, 0xc00017a500)
+	/home/jscharber/demo/src/worker/eventCollectorApp.go:534 +0x34c
+net/http.HandlerFunc.ServeHTTP(0xc000013270, 0x8266a0, 0xc000436380, 0xc00017a500)
+	/snap/go/4901/src/net/http/server.go:2007 +0x44
+worker/vendor/github.com/gorilla/mux.(*Router).ServeHTTP(0xc0000ee000, 0x8266a0, 0xc000436380, 0xc000146200)
+	/home/jscharber/demo/src/worker/vendor/github.com/gorilla/mux/mux.go:212 +0xe2
+net/http.serverHandler.ServeHTTP(0xc0001da000, 0x8266a0, 0xc000436380, 0xc000146200)
+	/snap/go/4901/src/net/http/server.go:2802 +0xa4
+net/http.(*conn).serve(0xc0003bc320, 0x826da0, 0xc00005e400)
+	/snap/go/4901/src/net/http/server.go:1890 +0x875
+created by net/http.(*Server).Serve
+	/snap/go/4901/src/net/http/server.go:2928 +0x384
+2020/01/13 13:10:40 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 13:10:40 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 13:12:33 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 13:12:33 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 13:16:21 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 13:16:21 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 13:20:10 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 13:20:10 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 13:21:20 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 13:21:20 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 13:23:08 eventCollectorMain.go:116: Logfile opened logs/eventCollector.log
+2020/01/13 13:23:08 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 14:20:09 eventCollectorMain.go:118: Logfile opened logs/eventCollector.log
+2020/01/13 14:20:09 eventCollectorApp.go:60: Listing at: 127.0.0.1:8081
+2020/01/13 14:24:22 eventCollectorMain.go:118: Logfile opened logs/eventCollector.log
+2020/01/13 14:24:22 eventCollectorApp.go:60: Listing at: 127.0.0.1:8081
+2020/01/13 14:25:51 eventCollectorMain.go:118: Logfile opened logs/eventCollector.log
+2020/01/13 14:25:51 eventCollectorApp.go:59: Listing at: 127.0.0.1:8081
+2020/01/13 14:30:55 eventCollectorMain.go:118: Logfile opened logs/eventCollector.log
+2020/01/13 14:30:55 eventCollectorApp.go:60: Listing at: 127.0.0.1:8081
+2020/01/13 14:39:12 eventCollectorMain.go:118: Logfile opened logs/eventCollector.log
+2020/01/13 14:39:12 eventCollectorApp.go:60: Listing at: 127.0.0.1:8081
+2020/01/13 14:41:30 eventCollectorMain.go:118: Logfile opened logs/eventCollector.log
+2020/01/13 14:41:30 eventCollectorApp.go:60: Listing at: 127.0.0.1:8081
+2020/01/13 14:42:42 eventCollectorMain.go:118: Logfile opened logs/eventCollector.log
+2020/01/13 14:42:42 eventCollectorApp.go:60: Listing at: 127.0.0.1:8081
+2020/01/13 14:43:14 eventCollectorMain.go:118: Logfile opened logs/eventCollector.log
+2020/01/13 14:43:14 eventCollectorApp.go:60: Listing at: 127.0.0.1:8081
+2020/01/13 15:19:06 eventCollectorMain.go:118: Logfile opened logs/eventCollector.log
+2020/01/13 15:19:06 eventCollectorApp.go:60: Listing at: 127.0.0.1:8081
+2020/01/13 15:21:14 eventCollectorMain.go:118: Logfile opened logs/eventCollector.log
+2020/01/13 15:21:14 eventCollectorApp.go:60: Listing at: 127.0.0.1:8081
+2020/01/13 15:25:32 eventCollectorMain.go:118: Logfile opened logs/eventCollector.log
+2020/01/13 15:25:32 eventCollectorApp.go:60: Listing at: 127.0.0.1:8081
