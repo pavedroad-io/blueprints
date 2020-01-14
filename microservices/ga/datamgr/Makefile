@@ -14,7 +14,7 @@ BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
 GITTEST := .git/HEAD
-FOSSATEST := .fossa.ymml
+FOSSATEST := .fossa.yml
 
 # Go related variables.
 GOBASE := $(shell cd ../../;pwd)
