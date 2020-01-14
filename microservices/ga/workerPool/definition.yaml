@@ -11,7 +11,7 @@ community:
   - {name: SECURITY.md, path: ., src: templatedir}
   - {name: ROADMAP.md, path: ., src: 'https://w.pavedroad.io/templates/roadmap.md'}
   description: list of community files to include
-info: {api-version: 1.0.0, id: datamgr, name: users, organization: acme, release-status: alpha,
+info: {api-version: 1.0.0, id: datamgr, name: users, organization: acme-demo, release-status: alpha,
   version: 1.0.0}
 project:
   dependencies:
