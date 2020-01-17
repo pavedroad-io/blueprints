@@ -1,4 +1,4 @@
-{{define "dev/testPostJob"}}#!/bin/bash
+{{define "dev/testPostJob.sh"}}#!/bin/bash
 
 host=127.0.0.1
 port=8081

@@ -112,10 +112,15 @@ go-clean:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go clean
 
 ## check: Start services and execute static code analysis and tests
-##check: lint sonar-scanner $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
-check: lint $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
+check: lint sonar-scanner $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
+	@echo "  >  Starting cockroach DB..."
+	docker-compose -f manifests/docker-db-only.yaml up -d
+	@echo "  >  Waiting cockroach DB is ready..."
+	@sleep 5
 	@echo "  >  running to tests..."
 	go test -coverprofile=$(GOCOVERAGE) -v ./...
+	@echo "  >  Stopping cockroach DB..."
+	docker-compose -f manifests/docker-db-only.yaml down
 
 sonar-scanner: $(ARTIFACTS)
 	sonarcloud.sh

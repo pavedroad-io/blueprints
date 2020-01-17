@@ -1,5 +1,4 @@
 #!/bin/bash
-# /api/v1/namespace/mirantis/eventCollector/jobsLIST
 
 host=127.0.0.1
 port=8081

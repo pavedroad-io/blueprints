@@ -32,8 +32,10 @@
 // there are no TOS at this moment, use at your own risk we take no responsibility
 //
 //     Schemes: http, https
+//     TODO: needs to be configurable via roadctl and templates
 //     Host: api.pavedroad.io
-//     BasePath: /api/v1/namespace/pavedroad.io/{{.Name}}
+//     TODO:                       vvvvv Need the correct namespace
+//     BasePath: /api/v1/namespace/{{.Namespace}}/{{.Name}}
 //     Version: 1.0.0
 //     License: Apache 2
 //     Contact: {{.MaintainerName}}<{{.MaintainerEmail}}> {{.MaintainerWeb}}

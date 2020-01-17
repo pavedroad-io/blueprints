@@ -1,3 +1,4 @@
+
 //
 // Copyright (c) PavedRoad. All rights reserved.
 // Licensed under the Apache2. See LICENSE file in the project root for full license information.
@@ -16,62 +17,26 @@ import (
 	"github.com/google/uuid"
 )
 
-// TODO: catch connection timeout to avoid trace-back
 const (
-	// TODO: make inverted url syntax like a topic
-	HTTPJobType   string = "httpJob"
-	ClientTimeout int    = 30
+	HTTPJobType		string = "io.pavedraod.eventcollector.httpjob"
+	ClientTimeout int  = 30
 )
 
 type httpJob struct {
-	ctx           context.Context
-	JobID         uuid.UUID `json:"job_id"`
-	JobType       string    `json:"job_type"`
-	client        *http.Client
-	ClientTimeout int `json:"client_timeout"`
-	// FIX to errors or custom errors
+	ctx						context.Context
+	JobID					uuid.UUID				`json:"job_id"`
+	JobType				string					`json:"job_type"`
+	client				*http.Client
+	ClientTimeout int							`json:"client_timeout"`
+	// TODO: FIX to errors or custom errors
 	jobErrors []string
-	JobURL    *url.URL  `json:"job_url"`
-	Stats     httpStats `json:"stats"`
+	JobURL		*url.URL	`json:"job_url"`
+	Stats			httpStats `json:"stats"`
 }
 
 type httpStats struct {
 	RequestTimedOut bool
-	RequestTime     time.Duration
-}
-
-// TODO: these are going to die I moved them to the scheduler
-func (j *httpJob) GetJob(ID string) (jblob []byte, err error) {
-	jblob, err = json.Marshal(j)
-	if err != nil {
-		return nil, err
-	}
-
-	return jblob, nil
-}
-
-func (j *httpJob) UpdateJob(jblob []byte) error {
-	err := json.Unmarshal(jblob, j)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (j *httpJob) CreateJob(jblob []byte) error {
-	err := json.Unmarshal(jblob, j)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (j *httpJob) DeleteJob(ID string) error {
-	// Cancel request
-	return nil
-
+	RequestTime			time.Duration
 }
 
 // Process methods
@@ -103,13 +68,8 @@ func (j *httpJob) Init() error {
 	return nil
 }
 
-func (j *httpJob) New(in *chan Job, out *chan Result) error {
-
-	return nil
-}
-
 func (j *httpJob) Run() (result Result, err error) {
-	req, err := http.NewRequest("GET", j.JobURL.String(), nil)
+		req, err := http.NewRequest("GET", j.JobURL.String(), nil)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
@@ -121,7 +81,8 @@ func (j *httpJob) Run() (result Result, err error) {
 	end := time.Now()
 	j.Stats.RequestTime = end.Sub(start)
 
-	// TODO: deal with other errors
+  // client errors are handled with errors.New()
+  // so there is no defined set to check for
 	if err != nil {
 		j.Stats.RequestTimedOut = true
 		fmt.Println(err)
@@ -133,12 +94,11 @@ func (j *httpJob) Run() (result Result, err error) {
 		fmt.Println(err)
 		return nil, err
 	}
-	//fmt.Printf("HTTP Status: %v for %s\n", resp.StatusCode, req.URL.String())
 
 	md := j.buildMetadata(resp)
 	jrsp := &httpResult{job: j,
 		metaData: md,
-		payload:  payload}
+		payload:	payload}
 
 	return jrsp, nil
 }

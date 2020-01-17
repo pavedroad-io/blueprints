@@ -1,5 +1,5 @@
-{{define "template_test.go"}}
-// {{.Name}}_test.go
+
+// eventCollector_test.go
 
 package main
 
@@ -23,10 +23,21 @@ const (
 	Updated         string = "updated"
 	Created         string = "created"
 	Active          string = "active"
-  {{.NameExported}}URL string = "/api/v1/namespace/pavedroad.io/{{.Name}}/%s"
+  EventCollectorURL string = "/api/v1/namespace/pavedroad.io/eventCollector/%s"
 )
 
-var new{{.NameExported}}JSON=`{{.PostJSON}}`
+var newEventCollectorJSON=`{
+	"eventcollectoruuid": "4241b4b6-26a7-49c7-bb4e-1078b07dd1bf",
+	"id": "MdN8rIZho6rBpxN",
+	"title": "7FV23nH2c4YbtVg",
+	"updated": "2020-01-16T17:10:26-08:00",
+	"created": "2020-01-16T17:10:26-08:00",
+	"metadata": {
+		"author": "QJBNZqhhmczvwSg",
+		"genre": "B49JeEH3PjpLw9L",
+		"rating": "bp89PHY5mswVGAh"
+	}
+}`
 	"eventcollectoruuid": "6e3d1e83-c8f1-40a1-a805-6562269ec2c9",
 	"id": "t7H7hSmX0J8YrbX",
 	"title": "UXMn5RCYpoyUGQr",
@@ -39,10 +50,10 @@ var new{{.NameExported}}JSON=`{{.PostJSON}}`
 	}
 }`
 
-var a {{.NameExported}}App
+var a EventCollectorApp
 
 func TestMain(m *testing.M) {
-	a = {{.NameExported}}App{}
+	a = EventCollectorApp{}
 	a.Initialize()
 
 	clearDB()
@@ -68,29 +79,29 @@ func ensureTableExists() {
 }
 
 func clearTable() {
-	a.DB.Exec("DELETE FROM {{.OrgSQLSafe}}.{{.NameExported}}")
+	a.DB.Exec("DELETE FROM Mirantis.EventCollector")
 }
 
 func clearDB() {
-	a.DB.Exec("DROP DATABASE IF EXISTS {{.OrgSQLSafe}}")
-	a.DB.Exec("CREATE DATABASE {{.OrgSQLSafe}}")
+	a.DB.Exec("DROP DATABASE IF EXISTS Mirantis")
+	a.DB.Exec("CREATE DATABASE Mirantis")
 }
 
 const tableCreationQuery = `
-CREATE TABLE IF NOT EXISTS {{.OrgSQLSafe}}.{{.Name}} (
-    {{.NameExported}}UUID UUID DEFAULT uuid_v4()::UUID PRIMARY KEY,
-    {{.Name}} JSONB
+CREATE TABLE IF NOT EXISTS Mirantis.eventCollector (
+    EventCollectorUUID UUID DEFAULT uuid_v4()::UUID PRIMARY KEY,
+    eventCollector JSONB
 );`
 
 
 const indexCreate = `
-CREATE INDEX IF NOT EXISTS {{.Name}}Idx ON {{.OrgSQLSafe}}.{{.Name}} USING GIN ({{.Name}});`
+CREATE INDEX IF NOT EXISTS eventCollectorIdx ON Mirantis.eventCollector USING GIN (eventCollector);`
 
 
 func TestEmptyTable(t *testing.T) {
 	clearTable()
 
-	req, _ := http.NewRequest("GET", "/api/v1/namespace/pavedroad.io/{{.Name}}LIST", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/namespace/pavedroad.io/eventCollectorLIST", nil)
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
@@ -121,7 +132,7 @@ func TestGetWithBadUserUUID(t *testing.T) {
 	clearTable()
 
 	req, _ := http.NewRequest("GET",
-		"/api/v1/namespace/pavedroad.io/{{.Name}}/43ae99c9", nil)
+		"/api/v1/namespace/pavedroad.io/eventCollector/43ae99c9", nil)
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
@@ -139,11 +150,11 @@ func TestGetWithBadUserUUID(t *testing.T) {
 //
 func TestGetWrongUUID(t *testing.T) {
 	clearTable()
-  nt := New{{.NameExported}}()
-  add{{.NameExported}}(nt)
+  nt := NewEventCollector()
+  addEventCollector(nt)
   badUid := "00000000-d01d-4c09-a4e7-59026d143b89"
 
-	statement := fmt.Sprintf({{.NameExported}}URL, badUid)
+	statement := fmt.Sprintf(EventCollectorURL, badUid)
 
 	req, _ := http.NewRequest("GET", statement, nil)
 	response := executeRequest(req)
@@ -151,17 +162,17 @@ func TestGetWrongUUID(t *testing.T) {
 	checkResponseCode(t, http.StatusNotFound, response.Code)
 }
 // TestCreate
-// Use sample data from new{{.NameExported}}JSON) to create
+// Use sample data from newEventCollectorJSON) to create
 // a new record.
 // TODO:
 //  need to assert tests for subattributes being present
 //
-func TestCreate{{.NameExported}}(t *testing.T) {
+func TestCreateEventCollector(t *testing.T) {
 	clearTable()
 
-	payload := []byte(new{{.NameExported}}JSON)
+	payload := []byte(newEventCollectorJSON)
 
-	req, _ := http.NewRequest("POST", "/api/v1/namespace/pavedroad.io/{{.Name}}", bytes.NewBuffer(payload))
+	req, _ := http.NewRequest("POST", "/api/v1/namespace/pavedroad.io/eventCollector", bytes.NewBuffer(payload))
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusCreated, response.Code)
@@ -192,21 +203,21 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 	}
 }
 
-func TestMarshall{{.NameExported}}(t *testing.T) {
-	nt := New{{.NameExported}}()
+func TestMarshallEventCollector(t *testing.T) {
+	nt := NewEventCollector()
 	_, err := json.Marshal(nt)
 	if err != nil {
-		t.Errorf("Marshal of {{.NameExported}} failed: Got '%v'", err)
+		t.Errorf("Marshal of EventCollector failed: Got '%v'", err)
 	}
 }
 
-// add{{.NameExported}}
+// addEventCollector
 // Inserts a new user into the database and returns the UUID
 // for the record that was created
 //
-func add{{.NameExported}}(t *{{.Name}}) (string) {
+func addEventCollector(t *eventCollector) (string) {
 
-  statement := fmt.Sprintf("INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.Name}}UUID", new{{.NameExported}}JSON)
+  statement := fmt.Sprintf("INSERT INTO Mirantis.eventCollector(eventCollector) VALUES('%s') RETURNING eventCollectorUUID", newEventCollectorJSON)
   rows, er1 := a.DB.Query(statement)
 
 	if er1 != nil {
@@ -217,31 +228,31 @@ func add{{.NameExported}}(t *{{.Name}}) (string) {
 	defer rows.Close()
 
   for rows.Next() {
-    err := rows.Scan(&t.{{.NameExported}}UUID)
+    err := rows.Scan(&t.EventCollectorUUID)
     if err != nil {
       return ""
     }
   }
 
-  return t.{{.NameExported}}UUID
+  return t.EventCollectorUUID
 }
 
-// New{{.NameExported}}
-// Create a new instance of {{.NameExported}}
+// NewEventCollector
+// Create a new instance of EventCollector
 // Iterate over the struct setting random values
 // 
-func New{{.NameExported}}() (t *{{.Name}}) {
-	var n {{.Name}}
-  json.Unmarshal([]byte(new{{.NameExported}}JSON), &n) 
+func NewEventCollector() (t *eventCollector) {
+	var n eventCollector
+  json.Unmarshal([]byte(newEventCollectorJSON), &n) 
 	return &n
 }
 
-//test getting a {{.Name}}
-func TestGet{{.NameExported}}(t *testing.T) {
+//test getting a eventCollector
+func TestGetEventCollector(t *testing.T) {
 	clearTable()
-	nt := New{{.NameExported}}()
-	uid := add{{.NameExported}}(nt)
-	statement := fmt.Sprintf({{.NameExported}}URL, uid)
+	nt := NewEventCollector()
+	uid := addEventCollector(nt)
+	statement := fmt.Sprintf(EventCollectorURL, uid)
 
 	req, err := http.NewRequest("GET", statement, nil)
   if err != nil {
@@ -252,13 +263,13 @@ func TestGet{{.NameExported}}(t *testing.T) {
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 }
-// TestUpdate{{.NameExported}}
-func TestUpdate{{.Name}}(t *testing.T) {
+// TestUpdateEventCollector
+func TestUpdateeventCollector(t *testing.T) {
 	clearTable()
-	nt := New{{.NameExported}}()
-	uid := add{{.NameExported}}(nt)
+	nt := NewEventCollector()
+	uid := addEventCollector(nt)
 
-	statement := fmt.Sprintf({{.NameExported}}URL, uid)
+	statement := fmt.Sprintf(EventCollectorURL, uid)
 	req, _ := http.NewRequest("GET", statement, nil)
 	response := executeRequest(req)
 
@@ -287,12 +298,12 @@ func TestUpdate{{.Name}}(t *testing.T) {
 //	}
 }
 
-func TestDelete{{.Name}}(t *testing.T) {
+func TestDeleteeventCollector(t *testing.T) {
 	clearTable()
-	nt := New{{.NameExported}}()
-	uid := add{{.NameExported}}(nt)
+	nt := NewEventCollector()
+	uid := addEventCollector(nt)
 
-	statement := fmt.Sprintf({{.NameExported}}URL, uid)
+	statement := fmt.Sprintf(EventCollectorURL, uid)
 	req, _ := http.NewRequest("DELETE", statement, nil)
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
@@ -303,8 +314,8 @@ func TestDelete{{.Name}}(t *testing.T) {
 }
 
 /*
-func TestDump{{.NameExported}}(t *testing.T) {
-	nt := New{{.NameExported}}()
+func TestDumpEventCollector(t *testing.T) {
+	nt := NewEventCollector()
 
   err := dumpUser(*nt)
 
@@ -313,4 +324,3 @@ func TestDump{{.NameExported}}(t *testing.T) {
 	}
 }
 */
-{{end}}

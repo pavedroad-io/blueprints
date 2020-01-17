@@ -14,7 +14,7 @@ BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
 GITTEST := .git/HEAD
-FOSSATEST := .fossa.yml
+FOSSATEST := .fossa.ymml
 
 # Go related variables.
 GOBASE := $(shell cd ../../;pwd)
@@ -123,7 +123,7 @@ check: lint sonar-scanner $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
 	docker-compose -f manifests/docker-db-only.yaml down
 
 sonar-scanner: $(ARTIFACTS)
-	./sonarcloud.sh
+	sonarcloud.sh
 
 ## show-coverage: Show go code coverage in browser
 show-coverage:

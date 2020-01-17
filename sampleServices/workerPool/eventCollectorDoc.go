@@ -1,3 +1,4 @@
+
 //
 // Copyright (c) PavedRoad. All rights reserved.
 // Licensed under the Apache2. See LICENSE file in the project root for full license information.
@@ -22,7 +23,7 @@
 // a dispatcher.  The dispatcher manages and forwards jobs
 // to a number N number of workers using a buffered channel.
 //
-// Workers read the jobs, perform the tasks, and log the
+// Workers read the jobs, perform the tasks, and log the 
 // results. The log code, logs to one or more configured
 // destinations.  This can include local filesystem, stdout,
 // or a Kafka topic.
@@ -38,7 +39,7 @@
 //     TODO: needs to be configurable via roadctl and templates
 //     Host: api.pavedroad.io
 //     TODO:                       vvvvv Need the correct namespace
-//     BasePath: /api/v1/namespace/pavedroad.io/eventCollector
+//     BasePath: /api/v1/namespace/mirantis/eventCollector
 //     Version: 1.0.0
 //     License: Apache 2
 //     Contact: Andriy Levchenko<andriy.levchenko@perfectial.com> https://perfectial.com/

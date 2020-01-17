@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # curl -v http://127.0.0.1:8081/api/v1/namespace/mirantis/eventCollector/management
 

@@ -1,3 +1,4 @@
+
 //
 // Copyright (c) PavedRoad. All rights reserved.
 // Licensed under the Apache2. See LICENSE file in the project root for full license information.
@@ -9,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"log"
 	"os"
 	"sync"
 	"time"
@@ -22,47 +24,48 @@ const (
 // Defaults
 const (
 	defaultConstantInterval = 10
-	maximumInt              = 9223372036854775807
+	defaultResponseTimeJobs = 10
 )
 
 // Metrics constants
 const (
-	schedulerIterations             = "scheduler_iterations"
-	jobsSent                        = "jobs_sent"
-	jobListSize                     = "job_list_size"
-	resultsReceived                 = "results_received"
-	currentJobChannelUtilization    = "current_job_channel_utilization"
-	currentJobChannelCapacity       = "current_job_channel_capacity"
+	schedulerIterations							= "scheduler_iterations"
+	jobsSent												= "jobs_sent"
+	jobListSize											= "job_list_size"
+	resultsReceived									= "results_received"
+	currentJobChannelUtilization		= "current_job_channel_utilization"
+	currentJobChannelCapacity				= "current_job_channel_capacity"
 	currentResultChannelUtilization = "current_result_channel_utilization"
-	currentResultChannelCapacit     = "current_result_channel_capacity"
-	numberOfJobTimedOut             = "number_of_jobs_sent"
-	averageJobProcessingTime        = "average_job_processing_time"
+	currentResultChannelCapacit			= "current_result_channel_capacity"
+	numberOfJobTimedOut							= "number_of_jobs_sent"
+	averageJobProcessingTime				= "average_job_processing_time"
 )
 
 type httpScheduler struct {
-	jobList               []*httpJob
-	schedulerJobChan      chan Job       // Channel to read jobs from
-	schedulerResponseChan chan Result    // Channel to write repose to
-	schedulerDone         chan bool      // Shudown initiated by applicatoin
-	schedulerInterrupt    chan os.Signal // Shutdown initiated by OS
-	metrics               httpSchedulerMetrics
-	mux                   sync.Mutex
-	schedule              httpSchedule
+	jobList								[]*httpJob
+	schedulerJobChan			chan Job			 // Channel to read jobs from
+	schedulerResponseChan chan Result		 // Channel to write repose to
+	schedulerDone					chan bool			 // Shudown initiated by applicatoin
+	schedulerInterrupt		chan os.Signal // Shutdown initiated by OS
+	metrics								httpSchedulerMetrics
+	mux										*sync.Mutex
+	schedule							httpSchedule
 }
 
-// httpSchedule holds the type  of scheduler and it's configuration
+// httpSchedule holds the type of scheduler and it's configuration
 type httpSchedule struct {
-	ScheduleType        string `json:"schedule_type"`
+	ScheduleType				string `json:"schedule_type"`
 	SendIntervalSeconds int64  `json:"send_interval_seconds"`
+	ResponseTimeJobs    int    `json:"response_time_jobs"`
 }
 
 // httpSchedulerMetrics hold metrics about the Scheduler, Jobs, and Results
 // We export attributes we want included in the JSON output
 type httpSchedulerMetrics struct {
-	StartTime time.Time      `json:"start_time"`
-	UpTime    time.Duration  `json:"up_time"`
-	Counters  map[string]int `json:"counters"`
-	mux       sync.Mutex
+	StartTime time.Time				`json:"start_time"`
+	UpTime		time.Duration		`json:"up_time"`
+	Counters	map[string]int	`json:"counters"`
+	mux				*sync.Mutex
 }
 
 func (s *httpScheduler) MetricToJSON() ([]byte, error) {
@@ -115,21 +118,20 @@ func (s *httpScheduler) UpdateJobList(newJobList []*httpJob) {
 	s.mux.Unlock()
 }
 
-type listScheduleResponse struct {
-	ID   string `json:"id"`
+type listJobsResponse struct {
+	ID	 string `json:"id"`
 	URL  string `json:"url"`
 	Type string `json:"type"`
 }
 
-// Required object methods for interfaces
+// Required object methods for interface
 //
 // GetScheduledJobs returns a list of job IDs and URL
 func (s *httpScheduler) GetScheduledJobs() ([]byte, error) {
-	// TODO: this is a list of jobs make the name reflect that
-	var response []listScheduleResponse
+	var response []listJobsResponse
 
 	for _, v := range s.jobList {
-		var newRow = listScheduleResponse{}
+		var newRow = listJobsResponse{}
 		newRow.ID = v.JobID.String()
 		newRow.URL = v.JobURL.String()
 		newRow.Type = v.JobType
@@ -145,7 +147,7 @@ func (s *httpScheduler) GetScheduledJobs() ([]byte, error) {
 
 // GetScheduleJob returns a single job matching the UUID provided
 func (s *httpScheduler) GetScheduleJob(UUID string) (httpStatusCode int, jsonBlob []byte, err error) {
-	var newRow = listScheduleResponse{}
+	var newRow = listJobsResponse{}
 
 	for _, v := range s.jobList {
 		if v.ID() == UUID {
@@ -174,7 +176,7 @@ func (s *httpScheduler) GetScheduleJob(UUID string) (httpStatusCode int, jsonBlo
 // UpdateScheduleJob decodes json data into a job and updates the jobID
 // Returns httpStatusCode, JSON body, and error code
 func (s *httpScheduler) UpdateScheduleJob(jsonBlob []byte) (httpStatusCode int, jsonb []byte, err error) {
-	var updateData = listScheduleResponse{}
+	var updateData = listJobsResponse{}
 	var oldJobID, newJobID string
 	var newJobList []*httpJob
 	foundJob := false
@@ -223,7 +225,7 @@ func (s *httpScheduler) UpdateScheduleJob(jsonBlob []byte) (httpStatusCode int, 
 // CreateScheduleJob decodes json data into a job and inserts into jobList
 // Returns httpStatusCode, JSON body, and error code
 func (s *httpScheduler) CreateScheduleJob(jsonBlob []byte) (httpStatusCode int, jsonb []byte, err error) {
-	var newJobType = listScheduleResponse{}
+	var newJobType = listJobsResponse{}
 
 	e := json.Unmarshal(jsonBlob, &newJobType)
 
@@ -295,8 +297,9 @@ func (s *httpScheduler) UpdateSchedule(jsonBlob []byte) (httpStatusCode int, jso
 		return http.StatusInternalServerError, []byte(msg), e
 	}
 
-	// TODO: Should we lock the schedule struct?
+	s.mux.Lock()
 	s.schedule.SendIntervalSeconds = us.SendIntervalSeconds
+	s.mux.Unlock()
 
 	msg := fmt.Sprintf("{\"Status\": \"Success\", \"New interval seconds\": %v}",
 		s.schedule.SendIntervalSeconds)
@@ -314,9 +317,10 @@ func (s *httpScheduler) CreateSchedule(jsonBlob []byte) (httpStatusCode int, jso
 		return http.StatusInternalServerError, []byte(msg), e
 	}
 
-	// TODO: Lock the schedule struct?
+	s.mux.Lock()
 	s.schedule.ScheduleType = us.ScheduleType
 	s.schedule.SendIntervalSeconds = us.SendIntervalSeconds
+	s.mux.Unlock()
 
 	msg := fmt.Sprintf("{\"Status\": \"Success\", \"New interval seconds\": %v}",
 		s.schedule.SendIntervalSeconds)
@@ -350,6 +354,10 @@ func (s *httpScheduler) Init() error {
 		"https://swapi.co/api/people/3/"}
 
 	s.metrics.Counters = make(map[string]int)
+
+	s.mux = new(sync.Mutex)
+	s.metrics.mux = new(sync.Mutex)
+	s.schedule.ResponseTimeJobs = defaultResponseTimeJobs
 
 	s.schedule.SendIntervalSeconds = defaultConstantInterval
 	s.schedule.ScheduleType = constantIntervaleScheduler
@@ -390,9 +398,10 @@ func (s *httpScheduler) RunScheduler() error {
 			s.MetricSet(jobListSize, len(s.jobList))
 		}
 		s.MetricUpdateUpTime()
-		// TODO: add interrupt channel
 		select {
 		case <-s.schedulerDone:
+			return nil
+		case <-s.schedulerInterrupt:
 			return nil
 		default:
 			time.Sleep(time.Duration(s.schedule.SendIntervalSeconds) * time.Second)
@@ -404,8 +413,7 @@ func (s *httpScheduler) RunScheduler() error {
 func (s *httpScheduler) ComputeAverageResponseTime(jt []int, newTime int) ([]int, int) {
 	currentLength := len(jt)
 	desiredLength := currentLength - 9
-	// TODO: make 10 configurable
-	if currentLength >= 10 {
+	if currentLength >= s.schedule.ResponseTimeJobs {
 		jt = jt[desiredLength:currentLength]
 	}
 	jt = append(jt, newTime)
@@ -420,16 +428,15 @@ func (s *httpScheduler) ComputeAverageResponseTime(jt []int, newTime int) ([]int
 }
 
 func (s *httpScheduler) RunResultsReader() error {
-	jobTimes := make([]int, 0, 10)
-	fmt.Println("Reading job results")
+	jobTimes := make([]int, 0, s.schedule.ResponseTimeJobs)
+	log.Println("Starting result reader")
 	for {
 		select {
-		// TODO: should this be worker response channel
 		case currentResult := <-s.schedulerResponseChan:
 			s.MetricInc(resultsReceived)
 			s.MetricSet(currentResultChannelCapacit, cap(s.schedulerJobChan))
 			s.MetricSet(currentResultChannelUtilization, len(s.schedulerJobChan))
-			fmt.Printf("Processing response for job ID %v\n", currentResult.Job().ID())
+			log.Printf("Processing response for job ID %v\n", currentResult.Job().ID())
 			j := currentResult.Job()
 			if j.(*httpJob).Stats.RequestTimedOut {
 				s.MetricInc(numberOfJobTimedOut)

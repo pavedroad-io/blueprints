@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"sync"
@@ -13,26 +14,37 @@ import (
 
 // Map counters to JSON friendly names
 const (
-  dispatcherJobsSent        = "jobs_sent"
-  dispatcherResultsReceived = "results_received"
+	dispatcherJobsSent        = "jobs_sent"
+	dispatcherResultsReceived = "results_received"
 )
 
 // Defaults for dispatcher and workers
 const (
-	NUMBEROFWORKERS     int = 5
-	SIZEOFJOBCHANNEL    int = 5
-	SIZEOFRESULTCHANNEL int = 5
-	GRACEFULLSHUTDOWN   int = 30
-	HARDSHUTDOWN        int = 0
+	// NumberOfWorkers in the worker pool
+	NumberOfWorkers int = 5
+
+	// SizeOfJobChannel sets the buffers size for the jobs channel
+	SizeOfJobChannel int = 5
+
+	// SizeOfResultChannel sets the buffers size for the results channel
+	SizeOfResultChannel int = 5
+
+	// GracefullShutdown sets the number of seconds to wait for work to complete
+	// durring shutdown
+	GracefullShutdown int = 30
+
+	// HardShutdown sets the number of seconds to wait for work to complete
+	// durring a hard shutdown
+	HardShutdown int = 0
 )
 
 // Management API
 const (
 	gracefulShutdownSeconds string = "graceful_shutdown_seconds"
-	hardShutdownSeconds     string = "hard_shutdown_seconds"
-	numberOfWorkers         string = "number_of_workers"
-	schedulerChannelSize    string = "scheduler_channel_size"
-	resultChannelSize       string = "result_channel_size"
+	hardShutdownSeconds			string = "hard_shutdown_seconds"
+	numberOfWorkers					string = "number_of_workers"
+	schedulerChannelSize		string = "scheduler_channel_size"
+	resultChannelSize				string = "result_channel_size"
 )
 
 // managementGetResponse List of valaible command and field options
@@ -83,13 +95,13 @@ type managementRequest struct {
 
 // worker is a go worker pool pattern
 type worker struct {
-	currentJob   Job
-	lastJob      Job
-	wg           sync.WaitGroup
-	jobChan      chan Job
+	currentJob	 Job
+	lastJob			 Job
+	wg					 sync.WaitGroup
+	jobChan			 chan Job
 	responseChan chan Result
-	interrup     chan os.Signal
-	done         chan bool
+	interrup		 chan os.Signal
+	done				 chan bool
 }
 
 // Run starts listing for jobs to be processed
@@ -103,149 +115,168 @@ func (w *worker) Run() error {
 		case currentJob := <-w.jobChan:
 			r, e := currentJob.Run()
 
-      if e != nil {
-        // TODO: what do we want to do with an error?
-        fmt.Println(e)
-      }
-      w.responseChan <- r
+			if e != nil {
+				log.Printf("Job: %v error: %v\n", currentJob.ID(), e.Error())
+			}
+			w.responseChan <- r
 			w.lastJob = currentJob
 
 		case done := <-w.done:
 			if done {
-        w.wg.Done()
-        return nil
-      }
+				w.wg.Done()
+				return nil
+			}
 
 		case <-w.interrup:
 			w.wg.Done()
 			return nil
 		}
 	}
-	return nil
 }
 
+// dispatcherConfiguration options set durring Initialize
+type dispatcherConfiguration struct {
+	scheduler              Scheduler
+	numberOfWorkers        int // target number of workers
+	currentNumberOfWorkers int // current number of workers
+	// this may be different durring resizing
+	sizeOfJobChannel    int
+	sizeOfResultChannel int
+	gracefulShutdown    int
+	hardShutdown        int
+}
+
+// SetSain Verify and set sain configuration options
+// 	if not defined or exit if an option is mandatory
+func (dc *dispatcherConfiguration) SetSain(d *dispatcher) {
+	if dc.scheduler == nil {
+		fmt.Println("A scheduler is required")
+		os.Exit(-1)
+	}
+	d.scheduler = dc.scheduler
+
+	if d.conf.numberOfWorkers == 0 {
+		d.conf.numberOfWorkers = NumberOfWorkers
+	}
+
+	if d.conf.sizeOfJobChannel == 0 {
+		d.conf.sizeOfJobChannel = SizeOfJobChannel
+	}
+
+	if d.conf.sizeOfResultChannel == 0 {
+		d.conf.sizeOfResultChannel = SizeOfResultChannel
+	}
+
+	if d.conf.gracefulShutdown == 0 {
+		d.conf.gracefulShutdown = GracefullShutdown
+	}
+
+	if d.conf.hardShutdown == 0 {
+		d.conf.hardShutdown = HardShutdown
+	}
+}
+
+// dispatcher structure
 type dispatcher struct {
+	conf *dispatcherConfiguration
+
 	// Points to client implemented scheduler
 	// that we read Jobs from
-	scheduler             *Scheduler      // Pointer to the scheduler
-	schedulerCapacity     int             // buffer size of channel
-	schedulerJobChan      chan Job        // Channel to read jobs from
-	schedulerResultChan chan Result     // Channel to write result to
-	schedulerDone         chan bool       // Shudown initiated by applicatoin
-	schedulerInterrupt     chan os.Signal // Shutdown initiated by OS
-	schedulerInterrupt  chan os.Signal // Shutdown initiated by OS
+	scheduler           Scheduler     // Pointer to the scheduler
+	schedulerJobChan    chan Job       // Channel to read jobs from
+	schedulerResultChan chan Result    // Channel to write result to
+	schedulerDone       chan bool      // Shudown initiated by applicatoin
+	schedulerInterrupt	chan os.Signal // Shutdown initiated by OS
 
 	// Workers config
-	wg             sync.WaitGroup
-	desiredWorkers int
-	currentWorkers int
-	workers        []*worker
+	wg						 sync.WaitGroup
+	workers				 []*worker
 
 	// Worker Channels
-	workerJobChan     chan Job
+	workerJobChan			chan Job
 	workerJobResponse chan Result
-	workerDone        chan bool
-	workerInterrup    chan os.Signal
+	workerDone				chan bool
+	workerInterrupt		chan os.Signal
 
 	// Management response
 	managementOptions managementGetResponse
 
 	// Metrics counters
-  metrics dispatcherMetrics
+	metrics dispatcherMetrics
 
-	// Shutdown options
-	gracefulShutdown int //Seconds to wait
-	hardShutdown     int
-	mux              sync.Mutex
+	mux							 sync.Mutex
 }
 
 type dispatcherMetrics struct {
-  StartTime time.Time      `json:"start_time"`
-  UpTime    time.Duration  `json:"up_time"`
-  Counters  map[string]int `json:"counters"`
-  mux       sync.Mutex     `json:"mux"`
+	StartTime time.Time      `json:"start_time"`
+	UpTime    time.Duration  `json:"up_time"`
+	Counters  map[string]int `json:"counters"`
+	mux       sync.Mutex
 }
 
 func (d *dispatcher) MetricToJSON() ([]byte, error) {
-  d.metrics.mux.Lock()
-  defer d.metrics.mux.Unlock()
-  jb, e := json.Marshal(d.metrics)
-  if e != nil {
-    fmt.Println(e)
-    return nil, e
-  }
-  return jb, nil
+	d.metrics.mux.Lock()
+	defer d.metrics.mux.Unlock()
+	jb, e := json.Marshal(d.metrics)
+	if e != nil {
+		fmt.Println(e)
+		return nil, e
+	}
+	return jb, nil
 }
 
 func (d *dispatcher) MetricSetStartTime() {
-  d.metrics.mux.Lock()
-  d.metrics.StartTime = time.Now()
-  ct := time.Now()
-  d.metrics.UpTime = ct.Sub(d.metrics.StartTime)
-  d.metrics.mux.Unlock()
+	d.metrics.mux.Lock()
+	d.metrics.StartTime = time.Now()
+	ct := time.Now()
+	d.metrics.UpTime = ct.Sub(d.metrics.StartTime)
+	d.metrics.mux.Unlock()
 }
 
 func (d *dispatcher) MetricUpdateUpTime() (uptime time.Duration) {
-  d.metrics.mux.Lock()
-  ct := time.Now()
-  d.metrics.UpTime = ct.Sub(d.metrics.StartTime)
-  d.metrics.mux.Unlock()
-  return d.metrics.UpTime
+	d.metrics.mux.Lock()
+	ct := time.Now()
+	d.metrics.UpTime = ct.Sub(d.metrics.StartTime)
+	d.metrics.mux.Unlock()
+	return d.metrics.UpTime
 }
 
 func (d *dispatcher) MetricInc(key string) {
-  d.metrics.mux.Lock()
-  d.metrics.Counters[key]++
-  d.metrics.mux.Unlock()
+	d.metrics.mux.Lock()
+	d.metrics.Counters[key]++
+	d.metrics.mux.Unlock()
 }
 
 func (d *dispatcher) MetricSet(key string, value int) {
-  d.metrics.mux.Lock()
-  d.metrics.Counters[key] = value
-  d.metrics.mux.Unlock()
+	d.metrics.mux.Lock()
+	d.metrics.Counters[key] = value
+	d.metrics.mux.Unlock()
 }
 
 func (d *dispatcher) MetricValue(key string) int {
-  d.metrics.mux.Lock()
-  defer d.metrics.mux.Unlock()
-  return d.metrics.Counters[key]
+	d.metrics.mux.Lock()
+	defer d.metrics.mux.Unlock()
+	return d.metrics.Counters[key]
 }
 
 // Init sets size of work and scheduler channels and then creates them
-//   Job channels send or wait for jobs to execute
-//   Done channels allow go routines to be stopped by application
-//   logic
-//   Inter channels handle OS interrups
-func (d *dispatcher) Init(numWorkers, chanCapacity int, s Scheduler) {
-	d.gracefulShutdown = GRACEFULLSHUTDOWN
-	d.hardShutdown = HARDSHUTDOWN
-
-	if numWorkers == 0 {
-		d.desiredWorkers = NUMBEROFWORKERS
-	} else {
-		d.desiredWorkers = numWorkers
-	}
-
-	if chanCapacity == 0 {
-		d.schedulerCapacity = SIZEOFJOBCHANNEL
-		d.resultsCapacity = SIZEOFRESULTCHANNEL
-	} else {
-		d.schedulerCapacity = chanCapacity
-		d.resultsCapacity = chanCapacity
-	}
+//	 Job channels send or wait for jobs to execute
+//	 Done channels allow go routines to be stopped by application
+//	 logic
+//   Interrupt channels handle OS interrups
+func (d *dispatcher) Init(dc *dispatcherConfiguration) {
+	d.conf = dc
+	dc.SetSain(d)
 
 	d.metrics.Counters = make(map[string]int)
-	d.desiredWorkers = numWorkers
-	d.schedulerCapacity = chanCapacity
 
-	// Job channels
-	// Scheduler
-	d.schedulerJobChan = make(chan Job, d.schedulerCapacity)
-	d.schedulerResultChan = make(chan Result, d.schedulerCapacity)
+	// Scheduler channels
+	d.schedulerJobChan = make(chan Job, d.conf.sizeOfJobChannel)
+	d.schedulerResultChan = make(chan Result, d.conf.sizeOfResultChannel)
 
-	// Worker
-	d.workerJobChan = make(chan Job, d.desiredWorkers)
-	d.workerJobResponse = make(chan Result, d.desiredWorkers)
+	// Worker Channels
+	d.workerJobChan = make(chan Job, d.conf.numberOfWorkers)
+	d.workerJobResponse = make(chan Result, d.conf.numberOfWorkers)
 
 	// Done channels
 	d.schedulerDone = make(chan bool)
@@ -253,14 +284,14 @@ func (d *dispatcher) Init(numWorkers, chanCapacity int, s Scheduler) {
 
 	// Interrupt channels
 	d.schedulerInterrupt = make(chan os.Signal)
-	d.workerInterrup = make(chan os.Signal)
+	d.workerInterrupt = make(chan os.Signal)
 
-  // Set scheduler internal channels
-	s.SetChannels(
-    d.schedulerJobChan,
-    d.schedulerResultChan,
-    d.schedulerDone,
-    d.schedulerInterrupt)
+	// Set scheduler internal channels
+	d.scheduler.SetChannels(
+		d.schedulerJobChan,
+		d.schedulerResultChan,
+		d.schedulerDone,
+		d.schedulerInterrupt)
 
 	d.managementInit()
 	d.MetricSetStartTime()
@@ -324,45 +355,46 @@ func (d *dispatcher) managementInit() {
 func (d dispatcher) Run() error {
 	d.createWorkerPool()
 	go d.Forwarder()
-  go d.Responder()
+	go d.Responder()
 
 	//wg.Wait()
 	return nil
 }
 
 func (d dispatcher) Forwarder() {
-  for {
-    select {
-    case currentJob := <-d.schedulerJobChan:
+	for {
+		select {
+		case currentJob := <-d.schedulerJobChan:
 			d.MetricInc(dispatcherJobsSent)
-      d.workerJobChan <- currentJob
-    }
-  }
+			d.workerJobChan <- currentJob
+		}
+	}
 }
 
 func (d dispatcher) Responder() {
-  for {
-    select {
+	log.Println("Dispatcher result channel started worker result -> scheduler  result")
+	for {
+		select {
 		case currentJobResponse := <-d.workerJobResponse:
 			d.MetricInc(dispatcherResultsReceived)
-      d.schedulerResultChan <- currentJobResponse
-    }
-  }
+			d.schedulerResultChan <- currentJobResponse
+		}
+	}
 }
 
 func (d *dispatcher) Shutdown() error {
 	return nil
 }
 
-// SetConfigVariable
+// SetConfigVariable changegs the value of a given field
 func (d *dispatcher) SetConfigVariable(name string, value int) (msg []byte, err error) {
 	var rmsg string
 
 	switch name {
 	case gracefulShutdownSeconds:
 		d.mux.Lock()
-		old := d.gracefulShutdown
-		d.gracefulShutdown = value
+		old := d.conf.gracefulShutdown
+		d.conf.gracefulShutdown = value
 		d.mux.Unlock()
 		rmsg = fmt.Sprintf("{\"Status\": \"%s changed from %d to %d\"}",
 			name, old, value)
@@ -370,8 +402,8 @@ func (d *dispatcher) SetConfigVariable(name string, value int) (msg []byte, err 
 
 	case hardShutdownSeconds:
 		d.mux.Lock()
-		old := d.hardShutdown
-		d.hardShutdown = value
+		old := d.conf.hardShutdown
+		d.conf.hardShutdown = value
 		d.mux.Unlock()
 		rmsg = fmt.Sprintf("{\"Status\": \"%s changed from %d to %d\"}",
 			name, old, value)
@@ -379,11 +411,11 @@ func (d *dispatcher) SetConfigVariable(name string, value int) (msg []byte, err 
 
 	case numberOfWorkers:
 		d.mux.Lock()
-		old := d.desiredWorkers
-		d.desiredWorkers = value
+		old := d.conf.numberOfWorkers
+		d.conf.numberOfWorkers = value
 		d.mux.Unlock()
 
-		//TODO: grow or srinkt as necessary
+		//TODO: grow or srink as necessary
 		rmsg = fmt.Sprintf("{\"Status\": \"%s changed from %d to %d\"}",
 			name, old, value)
 		return []byte(rmsg), nil
@@ -405,6 +437,7 @@ func (d *dispatcher) SetConfigVariable(name string, value int) (msg []byte, err 
 
 }
 
+// ProcessManagementRequest executes a management command
 func (d *dispatcher) ProcessManagementRequest(r managementRequest) (httpStatusCode int, jsonb []byte, err error) {
 
 	switch r.Command {
@@ -413,9 +446,8 @@ func (d *dispatcher) ProcessManagementRequest(r managementRequest) (httpStatusCo
 
 		if e != nil {
 			return http.StatusBadRequest, []byte(msg), nil
-		} else {
-			return http.StatusOK, []byte(msg), nil
 		}
+		return http.StatusOK, []byte(msg), nil
 
 	case "stop_scheduler":
 		d.schedulerDone <- true
@@ -433,7 +465,12 @@ func (d *dispatcher) ProcessManagementRequest(r managementRequest) (httpStatusCo
 		return http.StatusOK, []byte(msg), nil
 
 	case "start_workers":
-		// TODO: make sure it isn't running first
+		if d.conf.currentNumberOfWorkers > 0 {
+			msg := fmt.Sprintf("{\"Status\": \"%v already running\"}",
+				d.conf.currentNumberOfWorkers)
+			return http.StatusBadRequest, []byte(msg), nil
+		}
+
 		d.createWorkerPool()
 		msg := fmt.Sprintf("{\"Status\": \"Worker stop initiated\"}")
 		return http.StatusOK, []byte(msg), nil
@@ -449,8 +486,7 @@ func (d *dispatcher) ProcessManagementRequest(r managementRequest) (httpStatusCo
 
 	case "shutdown_now":
 		d.schedulerInterrupt <- syscall.SIGINT
-		// TODO: fix this spelling
-		d.workerInterrup <- syscall.SIGINT
+		d.workerInterrupt <- syscall.SIGINT
 		msg := fmt.Sprintf("{\"Status\": \"shutdown_now complete\"}")
 		return http.StatusOK, []byte(msg), nil
 
@@ -463,20 +499,23 @@ func (d *dispatcher) ProcessManagementRequest(r managementRequest) (httpStatusCo
 	return 0, nil, nil
 }
 
-// TODO: keep a list of points to workes so we can call Shutdown()
-//       Errors(), etc
 func (d *dispatcher) createWorkerPool() error {
-	for i := 0; i < d.desiredWorkers; i++ {
+	for i := 0; i < d.conf.numberOfWorkers; i++ {
 		newWorker := worker{wg: d.wg,
-			jobChan:     d.workerJobChan,
+			jobChan:      d.workerJobChan,
 			responseChan: d.workerJobResponse,
-			interrup:    d.workerInterrup,
-			done:        d.workerDone}
+			interrup:     d.workerInterrupt,
+			done:         d.workerDone}
 
 		d.wg.Add(1)
+
+		// Keep track of each worker
 		d.workers = append(d.workers, &newWorker)
+
 		go newWorker.Run()
 	}
+	d.conf.currentNumberOfWorkers = d.conf.numberOfWorkers
+	log.Printf("Worker pool created, %d workers\n", d.conf.numberOfWorkers)
 	return nil
 }
 

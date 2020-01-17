@@ -14,11 +14,12 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	_ "github.com/lib/pq"
 )
 
 // Initialize setups database connection object and the http server
@@ -32,7 +33,19 @@ func (a *{{.NameExported}}App) Initialize() {
 	a.initializeEnvironment()
 
 	// Start the Dispatcher
-	a.Dispatcher.Init(NUMBEROFWORKERS, SIZEOFJOBCHANNEL, &a.Scheduler)
+	// TOOD generate this next line from roadctl
+	a.Scheduler = &httpScheduler{}
+
+	dConf := &dispatcherConfiguration{
+		scheduler:           a.Scheduler,
+		sizeOfJobChannel:    SizeOfJobChannel,
+		sizeOfResultChannel: SizeOfResultChannel,
+		numberOfWorkers:     NumberOfWorkers,
+		gracefulShutdown:    GracefullShutdown,
+		hardShutdown:        HardShutdown,
+	}
+
+	a.Dispatcher.Init(dConf)
 	go a.Dispatcher.Run()
 
 	// Scheduler
@@ -50,15 +63,20 @@ func (a *{{.NameExported}}App) Initialize() {
 	a.initializeRoutes()
 }
 
-// Start the server
+// Run start the HTTP server for Rest endpoints
 func (a *{{.NameExported}}App) Run(addr string) {
 
 	log.Println("Listing at: " + addr)
+	// Wrap router with w3C logging
+
+	lf, _ := os.OpenFile("logs/access.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+
+	loggedRouter := handlers.LoggingHandler(lf, a.Router)
 	srv := &http.Server{
-		Handler:			a.Router,
-		Addr:					addr,
+		Handler:      loggedRouter,
+		Addr:         addr,
 		WriteTimeout: httpconf.writeTimeout * time.Second,
-		ReadTimeout:	httpconf.readTimeout * time.Second,
+		ReadTimeout:  httpconf.readTimeout * time.Second,
 	}
 
 	go func() {
@@ -150,7 +168,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}ResourceType + "/" +
 				EventCollectorJobsEndPoint + "LIST"
 	a.Router.HandleFunc(uri, a.listJobs).Methods("GET")
-	fmt.Println(uri)
+	log.Println("GET: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
@@ -158,7 +176,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}ResourceType + "/" +
 				EventCollectorSchedulerEndPoint + "LIST"
 	a.Router.HandleFunc(uri, a.listSchedule).Methods("GET")
-	fmt.Println(uri)
+	log.Println("GET: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
@@ -166,15 +184,15 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}ResourceType + "/" +
 				EventCollectorJobsEndPoint + EventCollectorKey
 	a.Router.HandleFunc(uri, a.getJob).Methods("GET")
-	fmt.Println(uri)
+	log.Println("GET: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint + EventCollectorKey
+				EventCollectorSchedulerEndPoint
 	a.Router.HandleFunc(uri, a.getSchedule).Methods("GET")
-	fmt.Println(uri)
+	log.Println("GET: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
@@ -182,7 +200,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}ResourceType + "/" +
 				EventCollectorLivenessEndPoint
 	a.Router.HandleFunc(uri, a.getLiveness).Methods("GET")
-	fmt.Println(uri)
+	log.Println("GET: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
@@ -190,7 +208,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}ResourceType + "/" +
 				EventCollectorReadinessEndPoint
 	a.Router.HandleFunc(uri, a.getReadiness).Methods("GET")
-	fmt.Println(uri)
+	log.Println("GET: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
@@ -198,23 +216,23 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}ResourceType + "/" +
 				EventCollectorMetricsEndPoint
 	a.Router.HandleFunc(uri, a.getMetrics).Methods("GET")
-	fmt.Println(uri)
+	log.Println("GET: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + EventCollectorKey
+				EventCollectorManagementEndPoint
 	a.Router.HandleFunc(uri, a.getManagement).Methods("GET")
-	fmt.Println("GET: ", uri)
+	log.Println("GET: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-		EventCollectorManagementEndPoint
+				EventCollectorManagementEndPoint
 	a.Router.HandleFunc(uri, a.putManagement).Methods("PUT")
-	fmt.Println("GET: ", uri)
+	log.Println("PUT: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
@@ -222,7 +240,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}ResourceType + "/" +
 		EventCollectorJobsEndPoint + EventCollectorKey
 	a.Router.HandleFunc(uri, a.updateJob).Methods("PUT")
-	fmt.Println(uri)
+	log.Println("PUT: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
@@ -230,7 +248,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}ResourceType + "/" +
 				EventCollectorJobsEndPoint + EventCollectorKey
 	a.Router.HandleFunc(uri, a.deleteJob).Methods("DELETE")
-	fmt.Println(uri)
+	log.Println("DELETE: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
@@ -238,23 +256,23 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}ResourceType + "/" +
 				EventCollectorJobsEndPoint
 	a.Router.HandleFunc(uri, a.createJob).Methods("POST")
-	fmt.Println(uri)
+	log.Println("POST: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint + EventCollectorKey
+				EventCollectorSchedulerEndPoint
 	a.Router.HandleFunc(uri, a.updateSchedule).Methods("PUT")
-	fmt.Println(uri)
+	log.Println("PUT: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint + EventCollectorKey
+				EventCollectorSchedulerEndPoint
 	a.Router.HandleFunc(uri, a.deleteSchedule).Methods("DELETE")
-	fmt.Println(uri)
+	log.Println("DELETE: ", uri)
 
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
@@ -262,7 +280,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}ResourceType + "/" +
 				EventCollectorSchedulerEndPoint
 	a.Router.HandleFunc(uri, a.createSchedule).Methods("POST")
-	fmt.Println(uri)
+	log.Println("POST: ", uri)
 
 	return
 }
@@ -277,8 +295,6 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 //				200: jobsList
 
 func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) {
-	//{{.Name}} := {{.Name}}{}
-
 	count, _ := strconv.Atoi(r.FormValue("count"))
 	start, _ := strconv.Atoi(r.FormValue("start"))
 
@@ -313,8 +329,8 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
 //		default: genericError
 //				200: scheduleList
 
+// TODO: decide do kill it or do something with it
 func (a *{{.NameExported}}App) listSchedule(w http.ResponseWriter, r *http.Request) {
-	//{{.Name}} := {{.Name}}{}
 
 	count, _ := strconv.Atoi(r.FormValue("count"))
 	start, _ := strconv.Atoi(r.FormValue("start"))
@@ -354,11 +370,11 @@ func (a *{{.NameExported}}App) getJob(w http.ResponseWriter, r *http.Request) {
 
 	// Pre-processing hook
 	getJobPreHook(w, r, key)
+
 	status, jb, e := a.Scheduler.GetScheduleJob(key)
 
 	if e != nil {
-		// TODO: log for internal errors
-		fmt.Println(e)
+		log.Println(e)
 	}
 
 	// Pre-processing hook
@@ -385,9 +401,9 @@ func (a *{{.NameExported}}App) getSchedule(w http.ResponseWriter, r *http.Reques
 
   status, respBody, e := a.Scheduler.GetSchedule()
   if e != nil {
-    // TODO: log for internal errors
-    fmt.Println(e)
+    log.Println(e)
   }
+
 
 	// Pre-processing hook
 	getSchedulePostHook(w, r, key)
@@ -414,15 +430,7 @@ func (a *{{.NameExported}}App) getLiveness(w http.ResponseWriter, r *http.Reques
 		respondWithError(w, http.StatusServiceUnavailable, "{\"Live\": false}")
 	}
 
-	/*
-	New logic here
-	*/
-
-	// Pre-processing hook
-	getLivenessPostHook(w, r)
->>>>>>> f295aeb5e221c78778ff998f57211df7a1004c8d
-
-	respondWithJSON(w, http.StatusOK, "{}")
+	respondWithJSON(w, http.StatusOK, a.Live)
 }
 
 {{.GetSwaggerDoc}}
@@ -444,7 +452,7 @@ func (a *{{.NameExported}}App) getReadiness(w http.ResponseWriter, r *http.Reque
 		respondWithError(w, http.StatusServiceUnavailable, "{\"Ready\": false}")
 	}
 
-	respondWithJSON(w, http.StatusOK, "{}")
+	respondWithJSON(w, http.StatusOK, a.Ready)
 }
 
 {{.GetSwaggerDoc}}
@@ -528,7 +536,7 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 
 	e = json.Unmarshal(payload, &requestedCommand)
 	if e != nil {
-		msg := fmt.Sprintf("{\"error\": \"json.Marshal failed\", \"Error\": \"%v\"}", e.Error())
+		msg := fmt.Sprintf("{\"error\": \"json.Unmarshal failed\", \"Error\": \"%v\"}", e.Error())
 		respondWithByte(w, http.StatusInternalServerError, []byte(msg))
 	}
 
@@ -543,12 +551,13 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 	// Post-processing hook
 	putManagementPostHook(w, r)
 
+	// TODO: find a way to flush this out
 	respondWithByte(w, status, respBody)
 
 	// Special case for shutting down
 	if requestedCommand.Command == "shutdown" {
 		// Give it 1 second to be sent
-		time.Sleep(time.Duration(a.Dispatcher.gracefulShutdown) * time.Second)
+		time.Sleep(time.Duration(a.Dispatcher.conf.gracefulShutdown) * time.Second)
 		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
 	}
 
@@ -556,7 +565,7 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 	// We've sent the reply
 	if requestedCommand.Command == "shutdown_now" {
 		// Give it 1 second to be sent
-		time.Sleep(time.Duration(a.Dispatcher.hardShutdown) * time.Second)
+		time.Sleep(time.Duration(a.Dispatcher.conf.hardShutdown) * time.Second)
 		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
 	}
 
@@ -577,7 +586,7 @@ func (a *{{.NameExported}}App) createJob(w http.ResponseWriter, r *http.Request)
 	// Pre-processing hook
 	createJobPreHook(w, r)
 
-		payload, e := ioutil.ReadAll(r.Body)
+	payload, e := ioutil.ReadAll(r.Body)
 	if e != nil {
 		msg := fmt.Sprintf("{\"error\": \"ioutil.ReadAll failed\", \"Error\": \"%v\"}", e.Error())
 		respondWithByte(w, http.StatusBadRequest, []byte(msg))
@@ -609,7 +618,7 @@ func (a *{{.NameExported}}App) createJob(w http.ResponseWriter, r *http.Request)
 //				400: genericError
 //				404: genericError
 func (a *{{.NameExported}}App) updateJob(w http.ResponseWriter, r *http.Request) {
-		// Read URI variables
+	// Read URI variables
 	vars := mux.Vars(r)
 	key := vars["key"]
 
@@ -626,8 +635,7 @@ func (a *{{.NameExported}}App) updateJob(w http.ResponseWriter, r *http.Request)
 	status, respBody, e := a.Scheduler.UpdateScheduleJob(payload)
 
 	if e != nil {
-		// TODO: log this
-		fmt.Printf("UpdateScheduleJob error: %v status %v", e.Error(), status)
+		log.Printf("UpdateScheduleJob error: %v status %v", e.Error(), status)
 	}
 
 	// Post-processing hook
@@ -639,7 +647,7 @@ func (a *{{.NameExported}}App) updateJob(w http.ResponseWriter, r *http.Request)
 {{.DeleteSwaggerDoc}}
 // deleteJob swagger:route DELETE /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}JobsEndPoint/{key} {{.NameExported}}JobsEndPoint deleteJobs
 //
-// Update a job specified by key, which is a uuid
+// Delete a job specified by key, which is a uuid
 //
 // Responses:
 //		default: genericError
@@ -655,8 +663,7 @@ func (a *{{.NameExported}}App) deleteJob(w http.ResponseWriter, r *http.Request)
 	status, respBody, e := a.Scheduler.DeleteScheduleJob(key)
 
 	if e != nil {
-		// TODO: log this
-		fmt.Printf("DeleteScheduleJob error: %v status %v", e.Error(), status)
+		log.Printf("DeleteScheduleJob error: %v status %v", e.Error(), status)
 	}
 
 	// Post-processing hook
@@ -689,8 +696,7 @@ func (a *{{.NameExported}}App) createSchedule(w http.ResponseWriter, r *http.Req
 	status, respBody, e := a.Scheduler.UpdateSchedule(payload)
 
 	if e != nil {
-		// TODO: log this
-		fmt.Printf("CreateSchedule error: %v status %v", e.Error(), status)
+		log.Printf("CreateSchedule error: %v status %v", e.Error(), status)
 	}
 
 	// Post-processing hook
@@ -726,8 +732,7 @@ func (a *{{.NameExported}}App) updateSchedule(w http.ResponseWriter, r *http.Req
 	status, respBody, e := a.Scheduler.UpdateSchedule(payload)
 
 	if e != nil {
-		// TODO: log this
-		fmt.Printf("updateSchedule error: %v status %v", e.Error(), status)
+		log.Printf("updateSchedule error: %v status %v", e.Error(), status)
 	}
 
 	// Post-processing hook
@@ -756,8 +761,7 @@ func (a *{{.NameExported}}App) deleteSchedule(w http.ResponseWriter, r *http.Req
 	status, respBody, e := a.Scheduler.DeleteSchedule()
 
 	if e != nil {
-		// TODO: log this
-		fmt.Printf("DeleteSchedule error: %v status %v", e.Error(), status)
+		log.Printf("DeleteSchedule error: %v status %v", e.Error(), status)
 	}
 
 	// Post-processing hook
@@ -786,20 +790,64 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.Write(response)
 }
 
-func logRequest(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
-		handler.ServeHTTP(w, r)
-	})
+func openAccessLogFile(accesslogfile string) *os.File {
+	var lf *os.File
+	var err error
+
+	if accesslogfile == "" {
+		accesslogfile = "access.log"
+		log.Println("Access log file name not declared using errors.log")
+	}
+
+	rollLogIfExists(accesslogfile)
+
+	lf, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+
+	if err != nil {
+		log.Fatal("Error opening access log file: os.OpenFile:", err)
+		return nil
+	}
+
+	return lf
 }
 
-func openLogFile(logfile string) {
-	if logfile != "" {
-		lf, err := os.OpenFile(logfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
-
-		if err != nil {
-			log.Fatal("OpenLogfile: os.OpenFile:", err)
-		}
-		log.SetOutput(lf)
+func openErrorLogFile(errorlogfile string) {
+	if errorlogfile == "" {
+		errorlogfile = "errors.log"
+		log.Println("Error log file name not declared using errors.log")
 	}
+
+	rollLogIfExists(errorlogfile)
+
+	lf, err := os.OpenFile(errorlogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+
+	if err != nil {
+		log.Fatal("Error opening error log file: os.OpenFile:", err)
+	}
+	log.SetOutput(lf)
+}
+
+func rollLogIfExists(logfilename string) {
+
+	if _, err := os.Stat(logfilename); os.IsNotExist(err) {
+		return
+	}
+	var newFileName string
+	tn := time.Now()
+	endsWithDotLogIdx := strings.LastIndex(logfilename, ".log")
+	if endsWithDotLogIdx == -1 {
+		newFileName = logfilename + tn.Format(time.RFC3339)
+	} else {
+		newFileName = logfilename[0:endsWithDotLogIdx] +
+			tn.Format(time.RFC3339) + ".log"
+	}
+
+	err := os.Rename(logfilename, newFileName)
+	if err != nil {
+		log.Printf("Rename logfile %v to %v failed with error %v\n",
+			logfilename, newFileName, err.Error())
+	}
+
+	return
+
 }{{end}}

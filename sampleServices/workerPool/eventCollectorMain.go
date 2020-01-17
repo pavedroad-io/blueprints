@@ -1,3 +1,4 @@
+
 //
 // Copyright (c) PavedRoad. All rights reserved.
 // Licensed under the Apache2. See LICENSE file in the project root for full license information.
@@ -53,16 +54,17 @@ const (
 	EventCollectorSchedulerEndPoint string = "scheduler"
 )
 
-// EventCollectorApp Top level construct containing building blockes for this microservice
+// EventCollectorApp Top level construct containing building blockes
+// for this microservice
 type EventCollectorApp struct {
 	// Router http request router, gorilla mux for this app
 	Router *mux.Router
 
 	// Dispatcher manages jobs for workers
 	Dispatcher dispatcher
+
 	// Scheduler creates and forwards jobs to dispatcher
-	//TODO: read from roadctl
-	Scheduler httpScheduler
+	Scheduler  Scheduler
 
 	// Live http server is start
 	Live bool
@@ -71,21 +73,26 @@ type EventCollectorApp struct {
 	Ready bool
 
 	httpInterruptChan chan os.Signal
+
+	// Logs
+	accessLog *os.File
 }
 
 // HTTP server configuration
 type httpConfig struct {
-	ip              string
-	port            string
+	ip							string
+	port						string
 	shutdownTimeout time.Duration
-	readTimeout     time.Duration
-	writeTimeout    time.Duration
-	listenString    string
-	logPath         string
+	readTimeout			time.Duration
+	writeTimeout		time.Duration
+	listenString		string
+	logPath					string
+	diagnosticsFile string
+	accessFile      string
 }
 
 // Set default http configuration
-var httpconf = httpConfig{ip: "127.0.0.1", port: "8081", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "127.0.0.1:8081", logPath: "logs/eventCollector.log"}
+var httpconf = httpConfig{ip: "127.0.0.1", port: "8081", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "127.0.0.1:8081", logPath: "logs/", diagnosticsFile: "diagnostics.log", accessFile: "access.log"}
 
 // shutdownTimeout will be initialized based on the default or HTTP_SHUTDOWN_TIMEOUT
 var shutdowTimeout time.Duration
@@ -108,6 +115,7 @@ func printVersion() {
 
 // main entry point for server
 func main() {
+	a := EventCollectorApp{}
 
 	versionFlag := flag.Bool("v", false, "Print version information")
 	flag.Parse()
@@ -116,12 +124,12 @@ func main() {
 		printVersion()
 	}
 
-	// Setup loggin
-	openLogFile(httpconf.logPath)
+	// Setup logging
+	openErrorLogFile(httpconf.logPath + httpconf.diagnosticsFile)
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-	log.Printf("Logfile opened %s", httpconf.logPath)
 
-	a := EventCollectorApp{}
+	a.accessLog = openAccessLogFile(httpconf.logPath + httpconf.accessFile)
+
 	a.Initialize()
 	a.Run(httpconf.listenString)
 }

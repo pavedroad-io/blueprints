@@ -99,13 +99,12 @@ Generated files are prefixed with the name you define for your microservice.  Fo
 
 | Name | Description |
 | ---- | ----------- |
-| eventCollectorMain.go | Main entry point for starting application |
 | eventCollectorApp.go | Rest API endpoint handlers and manager for dispatcher and the scheduler |
 | eventCollectorDispatcher.go | Manages worker pool |
 | eventCollectorDoc.go | Used to generate swagger documentation |
 | eventCollectorHook.go | Provides pre/post hooks for customizing application |
-| ---  | --------------- |
 | eventCollectorJob.go | Job interface definition |
+| eventCollectorMain.go | Main entry point for starting application |
 | eventCollectorMetric.go | Metric collector interface definition |
 | eventCollectorResult.go | Reult inteface definition |
 | eventCollectorScheduler.go | Scheduler interface definition |

@@ -3,7 +3,7 @@ package main
 
 import "os"
 
-// Schedule
+// Scheduler defines the interfaces a scheduler must implement
 type Scheduler interface {
 	// Data methods
 	// For schedulers
@@ -23,6 +23,7 @@ type Scheduler interface {
 	Init() error
 	SetChannels(chan Job, chan Result, chan bool, chan os.Signal)
 	Shutdown() error
+	Run() error
 	//RestartScheduler() error
 	//RestartResultsCollector() error
 
@@ -31,10 +32,10 @@ type Scheduler interface {
 	//Status()
 	//RestartScheduler() error
 	//RestartResultsCollector() error
+}
 
+// SchedulerStatus tracks if the scheduler and Results collectors are running
 type SchedulerStatus struct {
 	SchedulerRunning       bool
 	ResultCollectorRunning bool
-}
-}
-{{end}}
+}{{end}}

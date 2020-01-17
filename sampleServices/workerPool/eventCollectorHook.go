@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -79,25 +80,25 @@ func getMetricsPostHook(w http.ResponseWriter, r *http.Request) {
 // getManagementPreHook
 //
 func getManagementPreHook(w http.ResponseWriter, r *http.Request) {
-	return
+  return
 }
 
 // getManagementPostHook
 //
 func getManagementPostHook(w http.ResponseWriter, r *http.Request) {
-	return
+  return
 }
 
 // putManagementPreHook
 //
 func putManagementPreHook(w http.ResponseWriter, r *http.Request) {
-	return
+  return
 }
 
 // putManagementPostHook
 //
 func putManagementPostHook(w http.ResponseWriter, r *http.Request) {
-	return
+  return
 }
 
 // createJobPreHook

@@ -5,60 +5,62 @@
 package main
 
 import (
-        "flag"
-        "fmt"
-        "github.com/gorilla/mux"
-        "log"
-        "os"
-        "time"
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/gorilla/mux"
 )
 
 // Contants to build up a k8s style URL
 const (
-  // {{.NameExported}}APIVersion Version API URL
-  {{.NameExported}}APIVersion string = "/api/{{.APIVersion}}"
+	// {{.NameExported}}APIVersion Version API URL
+	{{.NameExported}}APIVersion string = "/api/{{.APIVersion}}"
 
-  // {{.NameExported}}NamespaceID Prefix for namespaces
-  {{.NameExported}}NamespaceID string = "namespace"
+	// {{.NameExported}}NamespaceID Prefix for namespaces
+	{{.NameExported}}NamespaceID string = "namespace"
 
-  // {{.NameExported}}DefaultNamespace Default namespace
-  {{.NameExported}}DefaultNamespace string = "{{.Namespace}}"
+	// {{.NameExported}}DefaultNamespace Default namespace
+	{{.NameExported}}DefaultNamespace string = "{{.Namespace}}"
 
-  // {{.NameExported}}ResourceType CRD Type per k8s
-  {{.NameExported}}ResourceType string = "{{.Name}}"
+	// {{.NameExported}}ResourceType CRD Type per k8s
+	{{.NameExported}}ResourceType string = "{{.Name}}"
 
-  // The email or account login used by 3rd parth provider
-  {{.NameExported}}Key string = "/{key}"
+	// The email or account login used by 3rd parth provider
+	{{.NameExported}}Key string = "/{key}"
 
-  // {{.NameExported}}LivenessEndPoint
-  {{.NameExported}}LivenessEndPoint string = "{{.Liveness}}"
+	// {{.NameExported}}LivenessEndPoint
+	{{.NameExported}}LivenessEndPoint string = "{{.Liveness}}"
 
-  // {{.NameExported}}ReadinessEndPoint
-  {{.NameExported}}ReadinessEndPoint string = "{{.Readiness}}"
+	// {{.NameExported}}ReadinessEndPoint
+	{{.NameExported}}ReadinessEndPoint string = "{{.Readiness}}"
 
-  // {{.NameExported}}MetricsEndPoint
-  {{.NameExported}}MetricsEndPoint string = "{{.Metrics}}"
+	// {{.NameExported}}MetricsEndPoint
+	{{.NameExported}}MetricsEndPoint string = "{{.Metrics}}"
 
-  // {{.NameExported}}JobsEndPoint
-  {{.NameExported}}JobsEndPoint string = "jobs"
+	// EventCollectorManagementEndPoint
+	EventCollectorManagementEndPoint string = "management"
 
-  // {{.NameExported}}SchedulerEndPoint
-  {{.NameExported}}SchedulerEndPoint string = "scheduler"
+	// {{.NameExported}}JobsEndPoint
+	{{.NameExported}}JobsEndPoint string = "jobs"
 
-	// EventCollectorSchedulerEndPoint
-	EventCollectorSchedulerEndPoint string = "scheduler"
+	// {{.NameExported}}SchedulerEndPoint
+	{{.NameExported}}SchedulerEndPoint string = "scheduler"
 )
 
-// holds pointers to database and http server
+// {{.NameExported}}App Top level construct containing building blockes
+// for this microservice
 type {{.NameExported}}App struct {
 	// Router http request router, gorilla mux for this app
-  Router *mux.Router
+	Router *mux.Router
 
 	// Dispatcher manages jobs for workers
 	Dispatcher dispatcher
+
 	// Scheduler creates and forwards jobs to dispatcher
-	//TODO: read from roadctl
-  Scheduler  httpScheduler
+	Scheduler  Scheduler
 
 	// Live http server is start
 	Live bool
@@ -67,52 +69,63 @@ type {{.NameExported}}App struct {
 	Ready bool
 
 	httpInterruptChan chan os.Signal
+
+	// Logs
+	accessLog *os.File
 }
 
 // HTTP server configuration
 type httpConfig struct {
-  ip              string
-  port            string
-  shutdownTimeout time.Duration
-  readTimeout     time.Duration
-  writeTimeout    time.Duration
-  listenString    string
-  logPath         string
+	ip							string
+	port						string
+	shutdownTimeout time.Duration
+	readTimeout			time.Duration
+	writeTimeout		time.Duration
+	listenString		string
+	logPath					string
+	diagnosticsFile string
+	accessFile      string
 }
 
 // Set default http configuration
-var httpconf = httpConfig{ip: "127.0.0.1", port: "8081", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "127.0.0.1:8081", logPath: "logs/{{.Name}}.log"}
+var httpconf = httpConfig{ip: "127.0.0.1", port: "8081", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "127.0.0.1:8081", logPath: "logs/", diagnosticsFile: "diagnostics.log", accessFile: "access.log"}
 
 // shutdownTimeout will be initialized based on the default or HTTP_SHUTDOWN_TIMEOUT
 var shutdowTimeout time.Duration
 
+// GitTag contains current git tab for this repository
 var GitTag string
+
+// Version contains version specified in definitions file
 var Version string
+
+// Build holds latest git commit hash in short form
 var Build string
 
 // printVersion
 func printVersion() {
-        fmt.Printf("{\"Version\": \"%v\", \"Build\": \"%v\", \"GitTag\": \"%v\"}\n",
-                Version, Build, GitTag)
-        os.Exit(0)
+	fmt.Printf("{\"Version\": \"%v\", \"Build\": \"%v\", \"GitTag\": \"%v\"}\n",
+		Version, Build, GitTag)
+	os.Exit(0)
 }
 
 // main entry point for server
 func main() {
+	a := {{.NameExported}}App{}
 
 	versionFlag := flag.Bool("v", false, "Print version information")
-        flag.Parse()
+	flag.Parse()
 
-        if *versionFlag {
-                printVersion()
-        }
+	if *versionFlag {
+		printVersion()
+	}
 
-  // Setup loggin
-  openLogFile(httpconf.logPath)
-  log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-  log.Printf("Logfile opened %s", httpconf.logPath)
+	// Setup logging
+	openErrorLogFile(httpconf.logPath + httpconf.diagnosticsFile)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-  a := {{.NameExported}}App{}
-  a.Initialize()
-  a.Run(httpconf.listenString)
+	a.accessLog = openAccessLogFile(httpconf.logPath + httpconf.accessFile)
+
+	a.Initialize()
+	a.Run(httpconf.listenString)
 }{{end}}

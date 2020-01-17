@@ -1,3 +1,4 @@
+
 //
 // Copyright (c) PavedRoad. All rights reserved.
 // Licensed under the Apache2. See LICENSE file in the project root for full license information.
@@ -17,9 +18,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -34,9 +37,19 @@ func (a *EventCollectorApp) Initialize() {
 	a.initializeEnvironment()
 
 	// Start the Dispatcher
-	// TODO: make size of result channel configurable
-	// TODO: change to take a configuration structure
-	a.Dispatcher.Init(NUMBEROFWORKERS, SIZEOFJOBCHANNEL, &a.Scheduler)
+	// TOOD generate this next line from roadctl
+	a.Scheduler = &httpScheduler{}
+
+	dConf := &dispatcherConfiguration{
+		scheduler:           a.Scheduler,
+		sizeOfJobChannel:    SizeOfJobChannel,
+		sizeOfResultChannel: SizeOfResultChannel,
+		numberOfWorkers:     NumberOfWorkers,
+		gracefulShutdown:    GracefullShutdown,
+		hardShutdown:        HardShutdown,
+	}
+
+	a.Dispatcher.Init(dConf)
 	go a.Dispatcher.Run()
 
 	// Scheduler
@@ -58,8 +71,13 @@ func (a *EventCollectorApp) Initialize() {
 func (a *EventCollectorApp) Run(addr string) {
 
 	log.Println("Listing at: " + addr)
+	// Wrap router with w3C logging
+
+	lf, _ := os.OpenFile("logs/access.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+
+	loggedRouter := handlers.LoggingHandler(lf, a.Router)
 	srv := &http.Server{
-		Handler:      a.Router,
+		Handler:      loggedRouter,
 		Addr:         addr,
 		WriteTimeout: httpconf.writeTimeout * time.Second,
 		ReadTimeout:  httpconf.readTimeout * time.Second,
@@ -145,130 +163,132 @@ func (a *EventCollectorApp) initializeEnvironment() {
 
 }
 
+
 func (a *EventCollectorApp) initializeRoutes() {
 
 	uri := EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorJobsEndPoint + "LIST"
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorJobsEndPoint + "LIST"
 	a.Router.HandleFunc(uri, a.listJobs).Methods("GET")
-	fmt.Println("GET: ", uri)
+	log.Println("GET: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorSchedulerEndPoint + "LIST"
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorSchedulerEndPoint + "LIST"
 	a.Router.HandleFunc(uri, a.listSchedule).Methods("GET")
-	fmt.Println("GET: ", uri)
+	log.Println("GET: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorJobsEndPoint + EventCollectorKey
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorJobsEndPoint + EventCollectorKey
 	a.Router.HandleFunc(uri, a.getJob).Methods("GET")
-	fmt.Println("GET: ", uri)
+	log.Println("GET: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorSchedulerEndPoint
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorSchedulerEndPoint
 	a.Router.HandleFunc(uri, a.getSchedule).Methods("GET")
-	fmt.Println("GET: ", uri)
+	log.Println("GET: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorLivenessEndPoint
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorLivenessEndPoint
 	a.Router.HandleFunc(uri, a.getLiveness).Methods("GET")
-	fmt.Println("GET: ", uri)
+	log.Println("GET: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorReadinessEndPoint
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorReadinessEndPoint
 	a.Router.HandleFunc(uri, a.getReadiness).Methods("GET")
-	fmt.Println("GET: ", uri)
+	log.Println("GET: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorMetricsEndPoint
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorMetricsEndPoint
 	a.Router.HandleFunc(uri, a.getMetrics).Methods("GET")
-	fmt.Println("GET: ", uri)
+	log.Println("GET: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorManagementEndPoint
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorManagementEndPoint
 	a.Router.HandleFunc(uri, a.getManagement).Methods("GET")
-	fmt.Println("GET: ", uri)
+	log.Println("GET: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorManagementEndPoint
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorManagementEndPoint
 	a.Router.HandleFunc(uri, a.putManagement).Methods("PUT")
-	fmt.Println("PUT: ", uri)
+	log.Println("PUT: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
 		EventCollectorJobsEndPoint + EventCollectorKey
 	a.Router.HandleFunc(uri, a.updateJob).Methods("PUT")
-	fmt.Println("PUT: ", uri)
+	log.Println("PUT: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorJobsEndPoint + EventCollectorKey
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorJobsEndPoint + EventCollectorKey
 	a.Router.HandleFunc(uri, a.deleteJob).Methods("DELETE")
-	fmt.Println("DELETE: ", uri)
+	log.Println("DELETE: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorJobsEndPoint
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorJobsEndPoint
 	a.Router.HandleFunc(uri, a.createJob).Methods("POST")
-	fmt.Println("POST: ", uri)
+	log.Println("POST: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorSchedulerEndPoint
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorSchedulerEndPoint
 	a.Router.HandleFunc(uri, a.updateSchedule).Methods("PUT")
-	fmt.Println("PUT: ", uri)
+	log.Println("PUT: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorSchedulerEndPoint
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorSchedulerEndPoint
 	a.Router.HandleFunc(uri, a.deleteSchedule).Methods("DELETE")
-	fmt.Println("DELETE: ", uri)
+	log.Println("DELETE: ", uri)
 
 	uri = EventCollectorAPIVersion + "/" +
-		EventCollectorNamespaceID + "/" +
-		EventCollectorDefaultNamespace + "/" +
-		EventCollectorResourceType + "/" +
-		EventCollectorSchedulerEndPoint
+				EventCollectorNamespaceID + "/" +
+				EventCollectorDefaultNamespace + "/" +
+				EventCollectorResourceType + "/" +
+				EventCollectorSchedulerEndPoint
 	a.Router.HandleFunc(uri, a.createSchedule).Methods("POST")
-	fmt.Println("POST: ", uri)
+	log.Println("POST: ", uri)
 
 	return
 }
+
 
 // listJobs swagger:route GET /api/v1/namespace/mirantis/eventCollector/EventCollectorJobsEndPointLIST jobs listjobs
 //
@@ -279,7 +299,6 @@ func (a *EventCollectorApp) initializeRoutes() {
 //				200: jobsList
 
 func (a *EventCollectorApp) listJobs(w http.ResponseWriter, r *http.Request) {
-
 	count, _ := strconv.Atoi(r.FormValue("count"))
 	start, _ := strconv.Atoi(r.FormValue("start"))
 
@@ -293,7 +312,7 @@ func (a *EventCollectorApp) listJobs(w http.ResponseWriter, r *http.Request) {
 	// Pre-processing hook
 	listJobsPreHook(w, r, count, start)
 
-	jl, e := a.Scheduler.GetScheduledJobs()
+	 jl, e := a.Scheduler.GetScheduledJobs()
 
 	if e != nil {
 		respondWithError(w, http.StatusInternalServerError, e.Error())
@@ -305,6 +324,7 @@ func (a *EventCollectorApp) listJobs(w http.ResponseWriter, r *http.Request) {
 	respondWithByte(w, http.StatusOK, jl)
 }
 
+
 // listSchedule swagger:route GET /api/v1/namespace/mirantis/eventCollector/EventCollectorSchedulerEndPointLIST schedules listschedule
 //
 // Returns a list of schedules
@@ -315,7 +335,6 @@ func (a *EventCollectorApp) listJobs(w http.ResponseWriter, r *http.Request) {
 
 // TODO: decide do kill it or do something with it
 func (a *EventCollectorApp) listSchedule(w http.ResponseWriter, r *http.Request) {
-	//eventCollector := eventCollector{}
 
 	count, _ := strconv.Atoi(r.FormValue("count"))
 	start, _ := strconv.Atoi(r.FormValue("start"))
@@ -330,8 +349,8 @@ func (a *EventCollectorApp) listSchedule(w http.ResponseWriter, r *http.Request)
 	// Pre-processing hook
 	listSchedulePreHook(w, r, count, start)
 
-	/*
-	 jl, e := a.Scheduler.GetSchedule()
+	  /*
+	jl, e := a.Scheduler.GetSchedule()
 	*/
 
 	// Post-processing hook
@@ -340,6 +359,7 @@ func (a *EventCollectorApp) listSchedule(w http.ResponseWriter, r *http.Request)
 	respondWithJSON(w, http.StatusOK, "{}")
 }
 
+
 // getJob swagger:route GET /api/v1/namespace/mirantis/eventCollector/jobs/{key} job getjob
 //
 // Returns a job given a key, where key is a UUID
@@ -347,6 +367,7 @@ func (a *EventCollectorApp) listSchedule(w http.ResponseWriter, r *http.Request)
 // Responses:
 //		default: genericError
 //				200: jobResponse
+
 func (a *EventCollectorApp) getJob(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["key"]
@@ -357,8 +378,7 @@ func (a *EventCollectorApp) getJob(w http.ResponseWriter, r *http.Request) {
 	status, jb, e := a.Scheduler.GetScheduleJob(key)
 
 	if e != nil {
-		// TODO: log for internal errors
-		fmt.Println(e)
+		log.Println(e)
 	}
 
 	// Pre-processing hook
@@ -366,6 +386,7 @@ func (a *EventCollectorApp) getJob(w http.ResponseWriter, r *http.Request) {
 
 	respondWithByte(w, status, jb)
 }
+
 
 // getSchedule swagger:route GET /api/v1/namespace/mirantis/eventCollector/schedule/{key} schedule getschedule
 //
@@ -382,18 +403,18 @@ func (a *EventCollectorApp) getSchedule(w http.ResponseWriter, r *http.Request) 
 	// Pre-processing hook
 	getSchedulePreHook(w, r, key)
 
-	status, respBody, e := a.Scheduler.GetSchedule()
+  status, respBody, e := a.Scheduler.GetSchedule()
+  if e != nil {
+    log.Println(e)
+  }
 
-	if e != nil {
-		// TODO: log for internal errors
-		fmt.Println(e)
-	}
 
 	// Pre-processing hook
 	getSchedulePostHook(w, r, key)
 
 	respondWithByte(w, status, respBody)
 }
+
 
 // getLiveness swagger:route GET /api/v1/namespace/mirantis/eventCollector/liveness liveness getliveness
 //
@@ -416,6 +437,7 @@ func (a *EventCollectorApp) getLiveness(w http.ResponseWriter, r *http.Request) 
 	respondWithJSON(w, http.StatusOK, a.Live)
 }
 
+
 // getReadiness swagger:route GET /api/v1/namespace/mirantis/eventCollector/ready ready getready
 //
 // Indicates the pod is ready to start taking traffic.
@@ -436,6 +458,7 @@ func (a *EventCollectorApp) getReadiness(w http.ResponseWriter, r *http.Request)
 
 	respondWithJSON(w, http.StatusOK, a.Ready)
 }
+
 
 // getMetrics swagger:route GET /api/v1/namespace/mirantis/eventCollector/metrics metrics getMetrics
 //
@@ -538,7 +561,7 @@ func (a *EventCollectorApp) putManagement(w http.ResponseWriter, r *http.Request
 	// Special case for shutting down
 	if requestedCommand.Command == "shutdown" {
 		// Give it 1 second to be sent
-		time.Sleep(time.Duration(a.Dispatcher.gracefulShutdown) * time.Second)
+		time.Sleep(time.Duration(a.Dispatcher.conf.gracefulShutdown) * time.Second)
 		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
 	}
 
@@ -546,12 +569,13 @@ func (a *EventCollectorApp) putManagement(w http.ResponseWriter, r *http.Request
 	// We've sent the reply
 	if requestedCommand.Command == "shutdown_now" {
 		// Give it 1 second to be sent
-		time.Sleep(time.Duration(a.Dispatcher.hardShutdown) * time.Second)
+		time.Sleep(time.Duration(a.Dispatcher.conf.hardShutdown) * time.Second)
 		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
 	}
 
 	return
 }
+
 
 // createJob swagger:route POST /api/v1/namespace/mirantis/eventCollector/EventCollectorJobsEndPoint EventCollectorJobsEndPoint createJob
 //
@@ -587,6 +611,7 @@ func (a *EventCollectorApp) createJob(w http.ResponseWriter, r *http.Request) {
 	respondWithByte(w, status, respBody)
 }
 
+
 // updateJob swagger:route PUT /api/v1/namespace/mirantis/eventCollector/EventCollectorJobsEndPoint/{key} EventCollectorSchedulerEndPoint updateJob
 //
 // Update a EventCollectorJobsEndPoint specified by key, where key is a uuid
@@ -614,8 +639,7 @@ func (a *EventCollectorApp) updateJob(w http.ResponseWriter, r *http.Request) {
 	status, respBody, e := a.Scheduler.UpdateScheduleJob(payload)
 
 	if e != nil {
-		// TODO: log this
-		fmt.Printf("UpdateScheduleJob error: %v status %v", e.Error(), status)
+		log.Printf("UpdateScheduleJob error: %v status %v", e.Error(), status)
 	}
 
 	// Post-processing hook
@@ -623,6 +647,7 @@ func (a *EventCollectorApp) updateJob(w http.ResponseWriter, r *http.Request) {
 
 	respondWithByte(w, status, respBody)
 }
+
 
 // deleteJob swagger:route DELETE /api/v1/namespace/mirantis/eventCollector/EventCollectorJobsEndPoint/{key} EventCollectorJobsEndPoint deleteJobs
 //
@@ -642,8 +667,7 @@ func (a *EventCollectorApp) deleteJob(w http.ResponseWriter, r *http.Request) {
 	status, respBody, e := a.Scheduler.DeleteScheduleJob(key)
 
 	if e != nil {
-		// TODO: log this
-		fmt.Printf("DeleteScheduleJob error: %v status %v", e.Error(), status)
+		log.Printf("DeleteScheduleJob error: %v status %v", e.Error(), status)
 	}
 
 	// Post-processing hook
@@ -651,6 +675,7 @@ func (a *EventCollectorApp) deleteJob(w http.ResponseWriter, r *http.Request) {
 
 	respondWithByte(w, status, respBody)
 }
+
 
 // createSchedule swagger:route POST /api/v1/namespace/mirantis/eventCollector/EventCollectorSchedulerEndPoint EventCollectorSchedulerEndPoint createSchedule
 //
@@ -675,8 +700,7 @@ func (a *EventCollectorApp) createSchedule(w http.ResponseWriter, r *http.Reques
 	status, respBody, e := a.Scheduler.UpdateSchedule(payload)
 
 	if e != nil {
-		// TODO: log this
-		fmt.Printf("CreateSchedule error: %v status %v", e.Error(), status)
+		log.Printf("CreateSchedule error: %v status %v", e.Error(), status)
 	}
 
 	// Post-processing hook
@@ -684,6 +708,7 @@ func (a *EventCollectorApp) createSchedule(w http.ResponseWriter, r *http.Reques
 
 	respondWithByte(w, status, respBody)
 }
+
 
 // updateSchedle swagger:route PUT /api/v1/namespace/mirantis/eventCollector/EventCollectorSchedulerEndPoint/{key} EventCollectorSchedulerEndPoint updateSchedule
 //
@@ -711,8 +736,7 @@ func (a *EventCollectorApp) updateSchedule(w http.ResponseWriter, r *http.Reques
 	status, respBody, e := a.Scheduler.UpdateSchedule(payload)
 
 	if e != nil {
-		// TODO: log this
-		fmt.Printf("updateSchedule error: %v status %v", e.Error(), status)
+		log.Printf("updateSchedule error: %v status %v", e.Error(), status)
 	}
 
 	// Post-processing hook
@@ -721,9 +745,10 @@ func (a *EventCollectorApp) updateSchedule(w http.ResponseWriter, r *http.Reques
 	respondWithByte(w, status, respBody)
 }
 
+
 // deleteSchedule swagger:route DELETE /api/v1/namespace/mirantis/eventCollector/EventCollectorSchedulerEndPoint/{key} EventCollectorSchedulerEndPoint deleteSchudler
 //
-// Delete the current schedule by setting interval to 272 billion years
+// Delete a job specified by key, which is a uuid
 //
 // Responses:
 //		default: genericError
@@ -740,8 +765,7 @@ func (a *EventCollectorApp) deleteSchedule(w http.ResponseWriter, r *http.Reques
 	status, respBody, e := a.Scheduler.DeleteSchedule()
 
 	if e != nil {
-		// TODO: log this
-		fmt.Printf("DeleteSchedule error: %v status %v", e.Error(), status)
+		log.Printf("DeleteSchedule error: %v status %v", e.Error(), status)
 	}
 
 	// Post-processing hook
@@ -770,22 +794,64 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.Write(response)
 }
 
-// TODO: Figure out why this isn't logging each request, aka access log
-// TODO: two logs one for diag and one for access
-func logRequest(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
-		handler.ServeHTTP(w, r)
-	})
+func openAccessLogFile(accesslogfile string) *os.File {
+	var lf *os.File
+	var err error
+
+	if accesslogfile == "" {
+		accesslogfile = "access.log"
+		log.Println("Access log file name not declared using errors.log")
+	}
+
+	rollLogIfExists(accesslogfile)
+
+	lf, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+
+	if err != nil {
+		log.Fatal("Error opening access log file: os.OpenFile:", err)
+		return nil
+	}
+
+	return lf
 }
 
-func openLogFile(logfile string) {
-	if logfile != "" {
-		lf, err := os.OpenFile(logfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
-
-		if err != nil {
-			log.Fatal("OpenLogfile: os.OpenFile:", err)
-		}
-		log.SetOutput(lf)
+func openErrorLogFile(errorlogfile string) {
+	if errorlogfile == "" {
+		errorlogfile = "errors.log"
+		log.Println("Error log file name not declared using errors.log")
 	}
+
+	rollLogIfExists(errorlogfile)
+
+	lf, err := os.OpenFile(errorlogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+
+	if err != nil {
+		log.Fatal("Error opening error log file: os.OpenFile:", err)
+	}
+	log.SetOutput(lf)
+}
+
+func rollLogIfExists(logfilename string) {
+
+	if _, err := os.Stat(logfilename); os.IsNotExist(err) {
+		return
+	}
+	var newFileName string
+	tn := time.Now()
+	endsWithDotLogIdx := strings.LastIndex(logfilename, ".log")
+	if endsWithDotLogIdx == -1 {
+		newFileName = logfilename + tn.Format(time.RFC3339)
+	} else {
+		newFileName = logfilename[0:endsWithDotLogIdx] +
+			tn.Format(time.RFC3339) + ".log"
+	}
+
+	err := os.Rename(logfilename, newFileName)
+	if err != nil {
+		log.Printf("Rename logfile %v to %v failed with error %v\n",
+			logfilename, newFileName, err.Error())
+	}
+
+	return
+
 }

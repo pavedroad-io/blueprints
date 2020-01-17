@@ -70,8 +70,8 @@ done
 #put
 
 # shutdown_now
-#postdata=$postdata6
-#put
+postdata=$postdata6
+put
 
 # graceful_shutdown_second
 #postdata=$postdata7
@@ -92,5 +92,3 @@ done
 # result_channel_size
 #postdata=$postdata11
 #put
-
-
