@@ -1,0 +1,11 @@
+
+bases:
+  - kafka
+  - eventCollector
+
+commonLabels:
+  pavedroad.env: dev
+
+commonAnnotations:
+  pavedroad.kustomize.base: eventCollector/manifests/kubernetes/dev
+  pavedroad.kustomize.bases: "eventCollector,kafka"

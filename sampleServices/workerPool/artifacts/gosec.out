@@ -1,0 +1,364 @@
+{
+	"issues": [
+		{
+			"engineId": "gosec",
+			"ruleId": "G302",
+			"primaryLocation": {
+				"message": "Expect file permissions to be 0600 or less",
+				"filePath": "eventCollectorApp.go",
+				"textRange": {
+					"startLine": 779,
+					"endLine": 779
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MAJOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G302",
+			"primaryLocation": {
+				"message": "Expect file permissions to be 0600 or less",
+				"filePath": "eventCollectorApp.go",
+				"textRange": {
+					"startLine": 779,
+					"endLine": 779
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MAJOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorApp.go",
+				"textRange": {
+					"startLine": 86,
+					"endLine": 86
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorApp.go",
+				"textRange": {
+					"startLine": 758,
+					"endLine": 758
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorApp.go",
+				"textRange": {
+					"startLine": 767,
+					"endLine": 767
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorApp.go",
+				"textRange": {
+					"startLine": 547,
+					"endLine": 547
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorDispatcher.go",
+				"textRange": {
+					"startLine": 324,
+					"endLine": 324
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorDispatcher.go",
+				"textRange": {
+					"startLine": 435,
+					"endLine": 435
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpScheduler.go",
+				"textRange": {
+					"startLine": 198,
+					"endLine": 198
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpScheduler.go",
+				"textRange": {
+					"startLine": 242,
+					"endLine": 242
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpScheduler.go",
+				"textRange": {
+					"startLine": 366,
+					"endLine": 366
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorApp.go",
+				"textRange": {
+					"startLine": 86,
+					"endLine": 86
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorApp.go",
+				"textRange": {
+					"startLine": 539,
+					"endLine": 539
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorApp.go",
+				"textRange": {
+					"startLine": 547,
+					"endLine": 547
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorApp.go",
+				"textRange": {
+					"startLine": 758,
+					"endLine": 758
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorApp.go",
+				"textRange": {
+					"startLine": 767,
+					"endLine": 767
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorApp.go",
+				"textRange": {
+					"startLine": 539,
+					"endLine": 539
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorDispatcher.go",
+				"textRange": {
+					"startLine": 324,
+					"endLine": 324
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "eventCollectorDispatcher.go",
+				"textRange": {
+					"startLine": 435,
+					"endLine": 435
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpScheduler.go",
+				"textRange": {
+					"startLine": 198,
+					"endLine": 198
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpScheduler.go",
+				"textRange": {
+					"startLine": 242,
+					"endLine": 242
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpScheduler.go",
+				"textRange": {
+					"startLine": 366,
+					"endLine": 366
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpJob_test.go",
+				"textRange": {
+					"startLine": 41,
+					"endLine": 41
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpJob_test.go",
+				"textRange": {
+					"startLine": 101,
+					"endLine": 101
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		}
+	]
+}

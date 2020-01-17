@@ -1,5 +1,4 @@
-{{define "templateApp.go"}}
-{{.PavedroadInfo}}
+{{define "templateApp.go"}}{{.PavedroadInfo}}
 
 // User project / copyright / usage information
 // {{.ProjectInfo}}
@@ -221,11 +220,17 @@ func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *h
     start = 0
   }
 
+  // Pre-processing hook
+  a.list{{.NameExported}}PreHook(w, r, count, start)
+
   mappings, err := {{.Name}}.list{{.NameExported}}(a.DB, start, count)
   if err != nil {
     respondWithError(w, http.StatusInternalServerError, err.Error())
     return
   }
+
+	// Post-processing hook
+  a.list{{.NameExported}}PostHook(w, r)
 
   respondWithJSON(w, http.StatusOK, mappings)
 }
@@ -242,9 +247,13 @@ func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *h
 func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
   {{.Name}} := {{.Name}}{}
+	key := vars["key"]
+
+	// Pre-processing hook
+  a.get{{.NameExported}}PreHook(w, r, key)
 
   //TODO: allows them to specify the column used to retrieve user
-  err := {{.Name}}.get{{.NameExported}}(a.DB, vars["key"], UUID)
+  err := {{.Name}}.get{{.NameExported}}(a.DB, key, UUID)
 
   if err != nil {
     errmsg := err.Error()
@@ -256,6 +265,9 @@ func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *ht
     }
     return
   }
+
+  // Pre-processing hook
+  a.get{{.NameExported}}PostHook(w, r, key)
 
   respondWithJSON(w, http.StatusOK, {{.Name}})
 }
@@ -272,6 +284,9 @@ func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *ht
 func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   // New map structure
   {{.Name}} := {{.Name}}{}
+
+  // Pre-processing hook
+  a.create{{.NameExported}}PreHook(w, r)
 
   htmlData, err := ioutil.ReadAll(r.Body)
   if err != nil {
@@ -296,6 +311,9 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
     return
   }
 
+ // Post-processing hook
+  a.create{{.NameExported}}PostHook(w, r)
+
   respondWithJSON(w, http.StatusCreated, {{.Name}})
 }
 
@@ -312,7 +330,11 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
   {{.Name}} := {{.Name}}{}
 
   // Read URI variables
-  // vars := mux.Vars(r)
+  vars := mux.Vars(r)
+  key := vars["key"]
+
+  // Pre-processing hook
+  a.update{{.NameExported}}PreHook(w, r, key)
 
   htmlData, err := ioutil.ReadAll(r.Body)
   if err != nil {
@@ -334,6 +356,9 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
     return
   }
 
+  // Post-processing hook
+  a.update{{.NameExported}}PostHook(w, r, key)
+
   respondWithJSON(w, http.StatusOK, {{.Name}})
 }
 
@@ -349,12 +374,19 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
 func (a *{{.NameExported}}App) delete{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   {{.Name}} := {{.Name}}{}
   vars := mux.Vars(r)
+	key := vars["key"]
 
-  err := {{.Name}}.delete{{.NameExported}}(a.DB, vars["key"])
+  // Pre-processing hook
+  a.delete{{.NameExported}}PreHook(w, r, key)
+
+  err := {{.Name}}.delete{{.NameExported}}(a.DB, key)
   if err != nil {
     respondWithError(w, http.StatusNotFound, err.Error())
     return
   }
+
+  // Post-processing hook
+  a.delete{{.NameExported}}PostHook(w, r, key)
 
   respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
@@ -397,5 +429,4 @@ func dump{{.NameExported}}(m {{.NameExported}}) {
   fmt.Println("Dump {{.Name}}")
   {{.DumpStructs}}
 }
-*/
-{{end}}
+*/{{end}}
