@@ -2,7 +2,7 @@
 
 // Result for a given job
 type Result interface {
-	// Return the orginal job
+	// Return the original job
 	Job() Job
 
 	// Return the header/message headers
@@ -10,4 +10,4 @@ type Result interface {
 
 	// Return the payload/response data
 	Payload() []byte
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

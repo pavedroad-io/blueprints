@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Microservice for managing a pool of workers
+// Micro service for managing a pool of workers
 //
 // A scheduler go routine writes jobs to be performed to
 // a dispatcher.  The dispatcher manages and forwards jobs
@@ -34,7 +34,6 @@
 //     Schemes: http, https
 //     TODO: needs to be configurable via roadctl and templates
 //     Host: api.pavedroad.io
-//     TODO:                       vvvvv Need the correct namespace
 //     BasePath: /api/v1/namespace/{{.Namespace}}/{{.Name}}
 //     Version: 1.0.0
 //     License: Apache 2
@@ -48,4 +47,4 @@
 //
 // swagger:meta
 package main
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

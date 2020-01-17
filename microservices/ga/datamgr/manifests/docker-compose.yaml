@@ -19,4 +19,4 @@ services:
      - "6060:8080"
     volumes:
      - ../volumes/data/db-1:/cockroach/cockroach-data
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

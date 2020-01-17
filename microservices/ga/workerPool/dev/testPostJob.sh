@@ -41,4 +41,4 @@ done
 
 # Get UUID and call get
 postdata="{\"id\": \"$uuid\", \"url\": \"$newurl\", \"type\": \"httpJob\"}"
-post{{end}}
+post{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

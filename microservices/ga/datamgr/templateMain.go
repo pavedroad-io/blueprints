@@ -16,7 +16,7 @@ import (
         "time"
 )
 
-// Contants to build up a k8s style URL
+// Constants to build up a k8s style URL
 const (
   // {{.NameExported}}APIVersion Version API URL
   {{.NameExported}}APIVersion string = "/api/v1"
@@ -26,7 +26,7 @@ const (
   {{.NameExported}}DefaultNamespace string = "pavedroad.io"
   // {{.NameExported}}ResourceType CRD Type per k8s
   {{.NameExported}}ResourceType string = "{{.Name}}"
-  // The email or account login used by 3rd parth provider
+  // The email or account login used by 3rd party provider
   {{.NameExported}}Key string = "/{key}"
 )
 
@@ -36,13 +36,13 @@ const (
   NAME
 )
 
-// {{.NameExported}}App holds pointers to database and http server
+// holds pointers to database and http server
 type {{.NameExported}}App struct {
   Router *mux.Router
   DB     *sql.DB
 }
 
-// both db and http configuration can be changed using environment varialbes
+// both db and http configuration can be changed using environment variables
 type databaseConfig struct {
   username string
   password string
@@ -75,11 +75,8 @@ var httpconf = httpConfig{ip: "127.0.0.1", port: "8082", shutdownTimeout: 15, re
 // shutdownTimeout will be initialized based on the default or HTTP_SHUTDOWN_TIMEOUT
 var shutdowTimeout time.Duration
 
-// GitTag is used for namespace functionality
 var GitTag string
-// Version release
 var Version string
-// Build release
 var Build string
 
 // printVersion
@@ -91,9 +88,6 @@ func printVersion() {
 
 // main entry point for server
 func main() {
-
-	//See the golang flag package for expanding the CLI interface
-	//to your {{.NameExported}} microservice.
 
 	versionFlag := flag.Bool("v", false, "Print version information")
         flag.Parse()
@@ -111,4 +105,4 @@ func main() {
   a.Initialize()
   a.Run(httpconf.listenString)
 }
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

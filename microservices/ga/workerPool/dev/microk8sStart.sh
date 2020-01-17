@@ -18,4 +18,4 @@ else
 	echo "microk8s is already running"
 
 fi
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

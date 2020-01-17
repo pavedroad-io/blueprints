@@ -48,8 +48,7 @@ func (a *{{.NameExported}}App) Initialize() {
   a.initializeRoutes()
 }
 
-// Run starts the server
-//
+// Start the server
 func (a *{{.NameExported}}App) Run(addr string) {
 
   log.Println("Listing at: " + addr)
@@ -76,20 +75,16 @@ func (a *{{.NameExported}}App) Run(addr string) {
 
   // Doesn't block if no connections, but will otherwise wait
   // until the timeout deadline.
-  if  err := srv.Shutdown(ctx); err != http.ErrServerClosed {
-	  log.Printf("HTTP server shut down: %v", err)
-  }
+  srv.Shutdown(ctx)
   log.Println("shutting down")
   os.Exit(0)
 }
 
-// Get for ennvironment variable overrides
+// Get for environment variable overrides
 func (a *{{.NameExported}}App) initializeEnvironment() {
   var envVar = ""
 
-  //Look for environment variables overrides
-  //You should set the evironment variables as needed
-  //Defaults are hard coded in the Main package
+  //look for environment variables overrides
   envVar = os.Getenv("APP_DB_USERNAME")
   if envVar != "" {
     dbconf.username = envVar
@@ -304,7 +299,7 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
   {{.Name}}.Created = ct
   {{.Name}}.Updated = ct
 
-  // Save into backend storage
+  // Save into back end storage
   // returns the UUID if needed
   if _, err := {{.Name}}.create{{.NameExported}}(a.DB); err != nil {
     respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -320,7 +315,7 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
 {{.PutSwaggerDoc}}
 // update{{.NameExported}} swagger:route PUT /api/v1/namespace/pavedroad.io/{{.Name}}/{key} {{.Name}} update{{.Name}}
 //
-// Update a {{.Name}} specified by key, where key is a uuid
+// Update a {{.Name}} specified by key, where key is a UUID
 //
 // Responses:
 //    default: genericError
@@ -400,10 +395,7 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
   w.Header().Set("Content-Type", "application/json")
   w.WriteHeader(code)
-  _, err := w.Write(response)
-  if err != nil {
-	  log.Printf("Response errror: %s", err)
-  }
+  w.Write(response)
 }
 
 func logRequest(handler http.Handler) http.Handler {
@@ -415,7 +407,7 @@ func logRequest(handler http.Handler) http.Handler {
 
 func openLogFile(logfile string) {
   if logfile != "" {
-    lf, err := os.OpenFile(logfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+    lf, err := os.OpenFile(logfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
 
     if err != nil {
       log.Fatal("OpenLogfile: os.OpenFile:", err)
@@ -429,4 +421,4 @@ func dump{{.NameExported}}(m {{.NameExported}}) {
   fmt.Println("Dump {{.Name}}")
   {{.DumpStructs}}
 }
-*/{{end}}
+*/{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

@@ -52,4 +52,4 @@ done
 
 # call all
 cleanPath
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

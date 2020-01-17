@@ -175,10 +175,10 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 	if ok {
 		c, err := time.Parse(time.RFC3339, cs)
 		if err != nil {
-			t.Errorf("Parse failed on parse creataed time Got '%v'", c)
+			t.Errorf("Parse failed on parse created time Got '%v'", c)
 		}
 	} else {
-		t.Errorf("Expected creataed of string type Got '%v'", reflect.TypeOf(m["Created"]))
+		t.Errorf("Expected created of string type Got '%v'", reflect.TypeOf(m["Created"]))
 	}
 
 	us, ok := m["updated"].(string)
@@ -313,4 +313,4 @@ func TestDump{{.NameExported}}(t *testing.T) {
 	}
 }
 */
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

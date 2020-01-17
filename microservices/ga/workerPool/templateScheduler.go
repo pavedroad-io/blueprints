@@ -38,4 +38,4 @@ type Scheduler interface {
 type SchedulerStatus struct {
 	SchedulerRunning       bool
 	ResultCollectorRunning bool
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

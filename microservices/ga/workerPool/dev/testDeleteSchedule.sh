@@ -39,4 +39,4 @@ while [ "$1" != "" ]; do
 done
 
 # Delete UUID and call delete
-delete{{end}}
+delete{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

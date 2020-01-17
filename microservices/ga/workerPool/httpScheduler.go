@@ -470,4 +470,4 @@ func (s *httpScheduler) Metrics() []byte {
 		return nil
 	}
 	return jb
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

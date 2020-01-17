@@ -19,4 +19,4 @@ func (r *httpResult) MetaData() map[string]string {
 
 func (r *httpResult) Payload() []byte {
 	return r.payload
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

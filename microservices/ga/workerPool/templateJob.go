@@ -18,4 +18,4 @@ type Job interface {
 
 	// Status methods
 	Metrics() []byte
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

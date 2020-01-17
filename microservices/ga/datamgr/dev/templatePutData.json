@@ -1,3 +1,3 @@
 {{define "dev/templatePutData.json"}}
 {{.PutJSON}}
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
