@@ -107,180 +107,142 @@ func (a *{{.NameExported}}App) Run(addr string) {
 func (a *{{.NameExported}}App) initializeEnvironment() {
 	var envVar = ""
 
-	envVar = os.Getenv("HTTP_IP_ADDR")
-	if envVar != "" {
-		httpconf.ip = envVar
-	}
+        //string environment variables map 
+        varStrToProc := map[string]*string{
+                "HTTP_IP_ADDR": &httpconf.ip,
+                "HTTP_IP_PORT": &httpconf.port,
+                "HTTP_LOG": &httpconf.logPath,
+        }
 
-	envVar = os.Getenv("HTTP_IP_PORT")
-	if envVar != "" {
-		httpconf.port = envVar
-	}
+        //time environment variables map
+        varTimeToProc := map[string]*int{
+                "HTTP_READ_TIMEOUT": &httpconf.readTimeout,
+                "HTTP_WRITE_TIMEOUT": &httpconf.writeTimeout,
+                "HTTP_SHUTDOWN_TIMEOUT": &httpconf.shutdownTimeout,
+        }
 
-	envVar = os.Getenv("HTTP_READ_TIMEOUT")
-	if envVar != "" {
-		to, err := strconv.Atoi(envVar)
-		if err == nil {
-			log.Printf("failed to convert HTTP_READ_TIMEOUT: %s to int", envVar)
-		} else {
-			httpconf.readTimeout = time.Duration(to) * time.Second
-		}
-		log.Printf("Read timeout: %d", httpconf.readTimeout)
-	}
+        //Environment variable list to process
+        //Expand with case statement
+        varsToProc := [][]string{
+                []string{"HTTP_IP_ADDR","string"},
+                []string{"HTTP_IP_PORT","string"},
+                []string{"HTTP_READ_TIMEOUT","time"},
+                []string{"HTTP_WRITE_TIMEOUT","time"},
+                []string{"HTTP_SHUTDOWN_TIMEOUT","time"},
+                []string{"HTTP_LOG","string"},
+        }
 
-	envVar = os.Getenv("HTTP_WRITE_TIMEOUT")
-	if envVar != "" {
-		to, err := strconv.Atoi(envVar)
-		if err == nil {
-			log.Printf("failed to convert HTTP_READ_TIMEOUT: %s to int", envVar)
-		} else {
-			httpconf.writeTimeout = time.Duration(to) * time.Second
-		}
-		log.Printf("Write timeout: %d", httpconf.writeTimeout)
-	}
+	for i := 0; i < len(varsToProc); i++ {
+                envVar = os.Getenv(varToProc[i][0])
+                if envVar != "" {
+                   switch varTyp := varToProc[i][1]; varTyp {
+                   case "string" :
+                         *varStrToProc[varToProc[i][0]] = envVar
+                   case "time" :
+                         to, err := strconv.Atoi(envVar)
+                         if err == nil {
+                        log.Printf("failed to convert %s : %s to int",varToProc[i,0] ,envVar)
+                        } else {
+                          to = time.Duration(to) * time.Second
+                          *varTimeToProc[varToProc[i][0]] = to
+                        log.Printf("%s : %d", varToProc[i,0], to)
+                        }
+                   default:
+                        log.Printf("Env variable type  %s, not supporte",varTyp)
 
-	envVar = os.Getenv("HTTP_SHUTDOWN_TIMEOUT")
-	if envVar != "" {
-		if envVar != "" {
-			to, err := strconv.Atoi(envVar)
-			if err != nil {
-				httpconf.shutdownTimeout = time.Second * time.Duration(to)
-			} else {
-				httpconf.shutdownTimeout = time.Second * httpconf.shutdownTimeout
-			}
-			log.Println("Shutdown timeout", httpconf.shutdownTimeout)
-		}
-	}
-
-	envVar = os.Getenv("HTTP_LOG")
-	if envVar != "" {
-		httpconf.logPath = envVar
-	}
+                }
+              }
+        }
 
 }
 
 {{.AllRoutesSwaggerDoc}}
 func (a *{{.NameExported}}App) initializeRoutes() {
 
-	uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + "LIST"
-	a.Router.HandleFunc(uri, a.listJobs).Methods("GET")
-	log.Println("GET: ", uri)
+	var uriPrefix = ""
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint + "LIST"
-	a.Router.HandleFunc(uri, a.listSchedule).Methods("GET")
-	log.Println("GET: ", uri)
+        uriPrefix =  {{.NameExported}}APIVersion + "/" +
+                                {{.NameExported}}NamespaceID + "/" +
+                                {{.NameExported}}DefaultNamespace + "/" +
+                                {{.NameExported}}ResourceType + "/"
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + EventCollectorKey
-	a.Router.HandleFunc(uri, a.getJob).Methods("GET")
-	log.Println("GET: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
-	a.Router.HandleFunc(uri, a.getSchedule).Methods("GET")
-	log.Println("GET: ", uri)
+        uri := uriPrefix +
+               EventCollectorJobsEndPoint + "LIST"
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorLivenessEndPoint
-	a.Router.HandleFunc(uri, a.getLiveness).Methods("GET")
-	log.Println("GET: ", uri)
+        a.Router.HandleFunc(uri, a.listJobs).Methods("GET")
+	log.Println("Get: ",uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorReadinessEndPoint
-	a.Router.HandleFunc(uri, a.getReadiness).Methods("GET")
-	log.Println("GET: ", uri)
+        uri = uriPrefix +
+              EventCollectorSchedulerEndPoint + "LIST"
+        a.Router.HandleFunc(uri, a.listSchedule).Methods("GET")
+        log.Println("Get: ",uri)
+        
+	uri = uriPrefix +
+              EventCollectorJobsEndPoint + EventCollectorKey
+        a.Router.HandleFunc(uri, a.getJob).Methods("GET")
+        log.Println("Get: ",uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorMetricsEndPoint
-	a.Router.HandleFunc(uri, a.getMetrics).Methods("GET")
-	log.Println("GET: ", uri)
+        uri = uriPrefix +
+              EventCollectorSchedulerEndPoint 
+        a.Router.HandleFunc(uri, a.getSchedule).Methods("GET")
+        log.Println("Get: ",uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorManagementEndPoint
-	a.Router.HandleFunc(uri, a.getManagement).Methods("GET")
-	log.Println("GET: ", uri)
+        uri = uriPrefix +
+              EventCollectorLivenessEndPoint
+        a.Router.HandleFunc(uri, a.getLiveness).Methods("GET")
+        log.Println("Get: ",uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorManagementEndPoint
-	a.Router.HandleFunc(uri, a.putManagement).Methods("PUT")
-	log.Println("PUT: ", uri)
+        uri = uriPrefix +
+              EventCollectorReadinessEndPoint
+        a.Router.HandleFunc(uri, a.getReadiness).Methods("GET")
+        log.Println("Get: ",uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-		EventCollectorJobsEndPoint + EventCollectorKey
-	a.Router.HandleFunc(uri, a.updateJob).Methods("PUT")
-	log.Println("PUT: ", uri)
+        uri = uriPrefix +
+              EventCollectorMetricsEndPoint
+        a.Router.HandleFunc(uri, a.getMetrics).Methods("GET")
+        log.Println("Get: ",uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + EventCollectorKey
-	a.Router.HandleFunc(uri, a.deleteJob).Methods("DELETE")
-	log.Println("DELETE: ", uri)
+        //uri same for next getManagement,putManagement
+        uri = uriPrefix +
+              EventCollectorManagementEndPoint
+        a.Router.HandleFunc(uri, a.getManagement).Methods("GET")
+        log.Println("GET: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint
-	a.Router.HandleFunc(uri, a.createJob).Methods("POST")
-	log.Println("POST: ", uri)
+        a.Router.HandleFunc(uri, a.putManagement).Methods("PUT")
+        log.Println("PUT: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
-	a.Router.HandleFunc(uri, a.updateSchedule).Methods("PUT")
-	log.Println("PUT: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
-	a.Router.HandleFunc(uri, a.deleteSchedule).Methods("DELETE")
-	log.Println("DELETE: ", uri)
+	uri = uriPrefix +
+              EventCollectorJobsEndPoint
+        a.Router.HandleFunc(uri, a.createJob).Methods("POST")
+        log.Println("POST :" ,uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
-	a.Router.HandleFunc(uri, a.createSchedule).Methods("POST")
-	log.Println("POST: ", uri)
+
+        //uri same for deleteJob to follow
+	uri = uriPrefix +
+        EventCollectorJobsEndPoint + EventCollectorKey
+        a.Router.HandleFunc(uri, a.updateJob).Methods("PUT")
+        log.Println(("PUT: ",uri)
+
+	//uri same as above updateJob
+        a.Router.HandleFunc(uri, a.deleteJob).Methods("DELETE")
+        log.Println("DELETE: ", uri)
+        
+
+	uri = uriPrefix +
+        EventCollectorSchedulerEndPoint
+        a.Router.HandleFunc(uri, a.createSchedule).Methods("POST")
+        log.Println("POST:", uri)
+
+
+	//uri same for createSchedule
+        a.Router.HandleFunc(uri, a.updateSchedule).Methods("PUT")
+        log.Println(("PUT :" ,uri)
+
+        //uri same for createSchedule above
+        a.Router.HandleFunc(uri, a.deleteSchedule).Methods("DELETE")
+        log.Println("Delete:", uri)
 
 	return
 }
