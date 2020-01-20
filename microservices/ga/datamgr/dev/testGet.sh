@@ -49,4 +49,4 @@ done
 # Get UUID and call get
 getUUID
 get
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

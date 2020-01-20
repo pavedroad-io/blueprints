@@ -9,4 +9,4 @@ commonLabels:
 commonAnnotations:
   pavedroad.kustomize.base: {{.Name}}/manifests/kubernetes/dev
   pavedroad.kustomize.bases: "{{.Name}},kafka"
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

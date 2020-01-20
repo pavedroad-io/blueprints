@@ -38,4 +38,4 @@
 //
 // swagger:meta
 package main
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

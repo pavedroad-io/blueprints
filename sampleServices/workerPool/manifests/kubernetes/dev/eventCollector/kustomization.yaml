@@ -14,6 +14,6 @@ commonAnnotations:
 configMapGenerator:
 - name: eventCollector-configmap
   literals:
-  - database-ip=roach-ui
+  - kafka-ip=kafka-ui
   - ip=0.0.0.0
   - port=8081

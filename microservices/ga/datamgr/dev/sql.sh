@@ -12,5 +12,4 @@ CMD=`echo $CMD "--insecure" --host=$IP:$PORT`
 
 echo "$CMD"
 $CMD
-{{end}}
-
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

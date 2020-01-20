@@ -42,4 +42,4 @@ done
 # call post
 post
 
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

@@ -171,4 +171,4 @@ func deleteSchedulePreHook(w http.ResponseWriter, r *http.Request, key string) {
 //
 func deleteSchedulePostHook(w http.ResponseWriter, r *http.Request, key string) {
 	return
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

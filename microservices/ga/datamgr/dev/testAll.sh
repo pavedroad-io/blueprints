@@ -88,4 +88,4 @@ get
 getList
 put
 delete
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

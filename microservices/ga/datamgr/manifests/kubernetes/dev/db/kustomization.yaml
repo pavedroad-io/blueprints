@@ -8,4 +8,4 @@ configMapGenerator:
 - name: cockroach-configmap
   literals:
   - host-ip=roach-ui
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

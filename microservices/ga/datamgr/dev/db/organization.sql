@@ -1,3 +1,3 @@
 {{define "dev/db/organization.sql"}}
 CREATE DATABASE IF NOT EXISTS {{.OrgSQLSafe}};
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

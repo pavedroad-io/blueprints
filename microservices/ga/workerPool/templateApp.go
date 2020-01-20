@@ -33,8 +33,7 @@ func (a *{{.NameExported}}App) Initialize() {
 	a.initializeEnvironment()
 
 	// Start the Dispatcher
-	// TOOD generate this next line from roadctl
-	a.Scheduler = &httpScheduler{}
+	a.Scheduler = &{{.SchedulerName}}{}
 
 	dConf := &dispatcherConfiguration{
 		scheduler:           a.Scheduler,
@@ -103,7 +102,7 @@ func (a *{{.NameExported}}App) Run(addr string) {
 	os.Exit(0)
 }
 
-// Get for ennvironment variable overrides
+// Get for environment variable overrides
 func (a *{{.NameExported}}App) initializeEnvironment() {
 	var envVar = ""
 
@@ -458,7 +457,7 @@ func (a *{{.NameExported}}App) getMetrics(w http.ResponseWriter, r *http.Request
 	respondWithByte(w, http.StatusOK, []byte(combinedJSON))
 }
 
-// getManagement swagger:route GET /api/v1/namespace/mirantis/eventCollector/management management getManagement
+// getManagement swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.Management}} {{.Management}} get{{.Management}}
 //
 // Returns available management commands
 //
@@ -475,7 +474,7 @@ func (a *{{.NameExported}}App) getManagement(w http.ResponseWriter, r *http.Requ
 	respondWithJSON(w, http.StatusOK, a.Dispatcher.managementOptions)
 }
 
-// putManagement swagger:route PUT /api/v1/namespace/mirantis/eventCollector/management management putManagement
+// put{{.Management}} swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.Management}} {{.Management}} put{{.Management}}
 //
 // Returns available management commands
 //
@@ -812,4 +811,4 @@ func rollLogIfExists(logfilename string) {
 
 	return
 
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

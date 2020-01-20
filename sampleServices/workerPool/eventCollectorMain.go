@@ -1,7 +1,7 @@
 
-//
 // Copyright (c) PavedRoad. All rights reserved.
-// Licensed under the Apache2. See LICENSE file in the project root for full license information.
+// Licensed under the Apache2. See LICENSE file in the project root
+// for full license information.
 //
 
 // Allocate jobs to workers in a pool
@@ -18,7 +18,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Contants to build up a k8s style URL
+// Constants to build up a k8s style URL
 const (
 	// EventCollectorAPIVersion Version API URL
 	EventCollectorAPIVersion string = "/api/v1"
@@ -32,7 +32,7 @@ const (
 	// EventCollectorResourceType CRD Type per k8s
 	EventCollectorResourceType string = "eventCollector"
 
-	// The email or account login used by 3rd parth provider
+	// The email or account login used by 3rd party provider
 	EventCollectorKey string = "/{key}"
 
 	// EventCollectorLivenessEndPoint
@@ -54,8 +54,8 @@ const (
 	EventCollectorSchedulerEndPoint string = "scheduler"
 )
 
-// EventCollectorApp Top level construct containing building blockes
-// for this microservice
+// EventCollectorApp Top level construct containing building blocks
+// for this micro service
 type EventCollectorApp struct {
 	// Router http request router, gorilla mux for this app
 	Router *mux.Router

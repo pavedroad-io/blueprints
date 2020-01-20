@@ -47,20 +47,20 @@ const (
 	resultChannelSize				string = "result_channel_size"
 )
 
-// managementGetResponse List of valaible command and field options
+// managementGetResponse List of available command and field options
 //
 // swagger:response managementGetResponse
 type managementGetResponse struct {
 	// The error message
 	// in: body
 
-	// Commands is a list of valide commands that can be executed
+	// Commands is a list of valid commands that can be executed
 	Commands []mgtCommand `json:"commands"`
 	// Fields is a list of fields that can be changed
 	Fields []string `json:"fields"`
 }
 
-// mgtCommand List of valaible command and field options
+// mgtCommand List of available command and field options
 //
 type mgtCommand struct {
 	// Name of the command
@@ -83,7 +83,7 @@ type managementRequest struct {
 	// The error message
 	// in: body
 
-	// Commands is a list of valide commands that can be executed
+	// Commands is a list of valid commands that can be executed
 	Command string `json:"command"`
 
 	// Field to set
@@ -100,14 +100,14 @@ type worker struct {
 	wg					 sync.WaitGroup
 	jobChan			 chan Job
 	responseChan chan Result
-	interrup		 chan os.Signal
+	interrupt		 chan os.Signal
 	done				 chan bool
 }
 
 // Run starts listing for jobs to be processed
 // Read a job from the Job channel
 // Read the done channel to see if this worker should exit
-// Read the interrup channel to see if this worker must exit
+// Read the interrupt channel to see if this worker must exit
 func (w *worker) Run() error {
 
 	for {
@@ -127,28 +127,28 @@ func (w *worker) Run() error {
 				return nil
 			}
 
-		case <-w.interrup:
+		case <-w.interrupt:
 			w.wg.Done()
 			return nil
 		}
 	}
 }
 
-// dispatcherConfiguration options set durring Initialize
+// dispatcherConfiguration options set during Initialize
 type dispatcherConfiguration struct {
 	scheduler              Scheduler
 	numberOfWorkers        int // target number of workers
 	currentNumberOfWorkers int // current number of workers
-	// this may be different durring resizing
+	// this may be different during resizing
 	sizeOfJobChannel    int
 	sizeOfResultChannel int
 	gracefulShutdown    int
 	hardShutdown        int
 }
 
-// SetSain Verify and set sain configuration options
+// SetSane Verify and set san configuration options
 // 	if not defined or exit if an option is mandatory
-func (dc *dispatcherConfiguration) SetSain(d *dispatcher) {
+func (dc *dispatcherConfiguration) SetSane(d *dispatcher) {
 	if dc.scheduler == nil {
 		fmt.Println("A scheduler is required")
 		os.Exit(-1)
@@ -263,10 +263,10 @@ func (d *dispatcher) MetricValue(key string) int {
 //	 Job channels send or wait for jobs to execute
 //	 Done channels allow go routines to be stopped by application
 //	 logic
-//   Interrupt channels handle OS interrups
+//   Interrupt channels handle OS interrupts
 func (d *dispatcher) Init(dc *dispatcherConfiguration) {
 	d.conf = dc
-	dc.SetSain(d)
+	dc.SetSane(d)
 
 	d.metrics.Counters = make(map[string]int)
 
@@ -504,7 +504,7 @@ func (d *dispatcher) createWorkerPool() error {
 		newWorker := worker{wg: d.wg,
 			jobChan:      d.workerJobChan,
 			responseChan: d.workerJobResponse,
-			interrup:     d.workerInterrupt,
+			interrupt:     d.workerInterrupt,
 			done:         d.workerDone}
 
 		d.wg.Add(1)
@@ -525,4 +525,4 @@ func (d *dispatcher) growWorkerPool() error {
 
 func (d *dispatcher) srinkWorkerPool() error {
 	return nil
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

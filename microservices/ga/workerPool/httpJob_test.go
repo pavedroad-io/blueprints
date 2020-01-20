@@ -100,4 +100,4 @@ func newJob(testURL string) httpJob {
 	// Set type and ID and http.Client
 	newJob.Init()
 	return newJob
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

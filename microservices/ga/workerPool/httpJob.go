@@ -139,4 +139,4 @@ func (j *httpJob) Metrics() []byte {
 	}
 
 	return jblob
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

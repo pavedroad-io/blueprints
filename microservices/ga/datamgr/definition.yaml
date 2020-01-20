@@ -2,7 +2,7 @@ community:
   community-files:
   - {name: CODE_OF_CONDUCT.md, path: ., src: templatedir}
   - {name: CONTRIBUTING.md, path: ., src: templatedir}
-  - {name: COVERNANCE.md, path: ., src: templatedir}
+  - {name: GOVERNANCE.md, path: ., src: templatedir}
   - {name: MEETING.md, path: ., src: templatedir}
   - {name: OWNERS.md, path: ., src: templatedir}
   - {name: SECURITY.md, path: ., src: templatedir}
@@ -11,7 +11,7 @@ community:
   - {name: SECURITY.md, path: ., src: templatedir}
   - {name: ROADMAP.md, path: ., src: 'https://w.pavedroad.io/templates/roadmap.md'}
   description: list of community files to include
-info: {api-version: 1.0.0, id: datamgr, name: yourMicroserviceName, organization: acme-demo, release-status: alpha,
+info: {api-version: 1.0.0, id: datamgr, name: users, organization: acme, release-status: alpha,
   version: 1.0.0}
 project:
   dependencies:
@@ -33,7 +33,7 @@ project:
     - {external: '9094', internal: '9092'}
     topics: [microservice-emit, microservice-consume]
     volumes: []
-  description: Microservice for managing a backend persistent store for an object
+  description: Microservice for managing a back end persistent store for an object
   integrations:
   - badges:
     - {enable: true, link: '<img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fpavedroad-io%2Fkevlar-web.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fpavedroad-io%2Fkevlar-web?ref=badge_shield">',
@@ -90,8 +90,8 @@ project:
 tables:
 - columns:
   - {constraints: '', mapped-name: id, modifiers: '', name: id, type: string}
-  - {constraints: '', mapped-name: updated, modifiers: '', name: updated, type: time}
-  - {constraints: '', mapped-name: created, modifiers: '', name: created, type: time}
+  - {constraints: '', mapped-name: updated, modifiers: '', name: updated, type: string}
+  - {constraints: '', mapped-name: created, modifiers: '', name: created, type: string}
   parent-tables: ''
   table-name: users
   table-type: jsonb

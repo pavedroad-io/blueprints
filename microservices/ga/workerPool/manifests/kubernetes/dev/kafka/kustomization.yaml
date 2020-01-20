@@ -1,11 +1,10 @@
 {{define "manifests/kubernetes/dev/kafka/kustomization.yaml"}}
 resources:
-  - roach-ui-claim0-persistentvolumeclaim.yaml
-  - roach-ui-deployment.yaml
-  - roach-ui-service.yaml
+  - kafka-deployment.yaml
+  - kafka-service.yaml
 
 configMapGenerator:
-- name: cockroach-configmap
+- name: kafka-configmap
   literals:
   - host-ip=roach-ui
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

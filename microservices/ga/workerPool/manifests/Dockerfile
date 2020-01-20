@@ -24,4 +24,4 @@ COPY $ms $pavedroad
 
 EXPOSE 8081
 CMD ["/bin/sh", "-c", "$pavedroadbin"]
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

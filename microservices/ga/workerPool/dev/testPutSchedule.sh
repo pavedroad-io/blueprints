@@ -44,4 +44,4 @@ while [ "$1" != "" ]; do
 done
 
 # Get UUID and call get
-put{{end}}
+put{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

@@ -51,4 +51,4 @@ spec:
         resources: {}
       restartPolicy: Always
 status: {}
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

@@ -8,4 +8,4 @@ clear
 echo "Writing microk8s.config to $HOME/.kube/config"
 echo "microk8s.config > $HOME/.kube/config"
 $CMD1
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
