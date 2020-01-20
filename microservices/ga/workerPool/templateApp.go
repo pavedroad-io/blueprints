@@ -33,8 +33,7 @@ func (a *{{.NameExported}}App) Initialize() {
 	a.initializeEnvironment()
 
 	// Start the Dispatcher
-	// TODO generate this next line from roadctl
-	a.Scheduler = &httpScheduler{}
+	a.Scheduler = &{{.SchedulerName}}{}
 
 	dConf := &dispatcherConfiguration{
 		scheduler:           a.Scheduler,

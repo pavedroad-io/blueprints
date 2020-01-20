@@ -21,7 +21,7 @@
 //
 // Workers read the jobs, perform the tasks, and log the 
 // results. The log code, logs to one or more configured
-// destinations.  This can include local filesystem, stdout,
+// destinations.  This can include local file system, stdout,
 // or a Kafka topic.
 //
 // Jobs, Scheduler, are both defined as interfaces enabling
@@ -32,8 +32,7 @@
 // there are no TOS at this moment, use at your own risk we take no responsibility
 //
 //     Schemes: http, https
-//     TODO: needs to be configurable via roadctl and templates
-//     Host: api.pavedroad.io
+//     Host: {{.TLD}}
 //     BasePath: /api/v1/namespace/{{.Namespace}}/{{.Name}}
 //     Version: 1.0.0
 //     License: Apache 2

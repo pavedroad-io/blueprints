@@ -35,7 +35,7 @@ project:
         alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/custom%2B9819%2FeventCollector.svg?type=shield"/></a>
       name: FOSSA
     name: fossa
-    enable: false
+    enable: true
   - sonar-cloud-config:
       key: PavedRoad_eventCollector
       login: 3faaf04fd0f66a33ced5dea109847fa3dc6d40a4
@@ -99,3 +99,46 @@ project:
     name: Andriy Levchenko
     slack: pavedroad.slack.com
     web: https://perfectial.com/
+tables:
+- columns:
+  - constraints: ""
+    mapped-name: id
+    modifiers: ""
+    name: id
+    type: string
+  - constraints: ""
+    mapped-name: title
+    modifiers: ""
+    name: title
+    type: string
+  - constraints: ""
+    mapped-name: updated
+    modifiers: ""
+    name: updated
+    type: time
+  - constraints: ""
+    mapped-name: created
+    modifiers: ""
+    name: created
+    type: time
+  parent-tables: ""
+  table-name: eventCollector
+  table-type: jsonb
+- columns:
+  - constraints: ""
+    mapped-name: author
+    modifiers: ""
+    name: author
+    type: string
+  - constraints: ""
+    mapped-name: genre
+    modifiers: ""
+    name: genre
+    type: string
+  - constraints: ""
+    mapped-name: rating
+    modifiers: ""
+    name: rating
+    type: string
+  parent-tables: eventCollector
+  table-name: metadata

@@ -41,7 +41,7 @@ type httpScheduler struct {
 	jobList								[]*httpJob
 	schedulerJobChan			chan Job			 // Channel to read jobs from
 	schedulerResponseChan chan Result		 // Channel to write repose to
-	schedulerDone					chan bool			 // Shudown initiated by applicatoin
+	schedulerDone					chan bool			 // Shutdown initiated by application
 	schedulerInterrupt		chan os.Signal // Shutdown initiated by OS
 	metrics								httpSchedulerMetrics
 	mux										*sync.Mutex

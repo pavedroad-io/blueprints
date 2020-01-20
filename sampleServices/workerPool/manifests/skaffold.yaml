@@ -9,10 +9,6 @@ build:
     context: .
     docker:
       dockerfile: manifests/Dockerfile
-  - image: localhost:32000/mirantis/eventCollectorinitdb
-    context: .
-    docker:
-      dockerfile: manifests/InitDbDockerFile
 deploy:
   kustomize:
     path: "manifests/kubernetes/dev"

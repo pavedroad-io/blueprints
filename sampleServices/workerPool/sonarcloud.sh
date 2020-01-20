@@ -1,3 +1,4 @@
+
 sonar-scanner \
   -Dsonar.projectKey=PavedRoad_eventCollector \
   -Dsonar.organization=mirantis \

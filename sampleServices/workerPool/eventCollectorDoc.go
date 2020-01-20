@@ -1,7 +1,7 @@
 
-//
 // Copyright (c) PavedRoad. All rights reserved.
-// Licensed under the Apache2. See LICENSE file in the project root for full license information.
+// Licensed under the Apache2. See LICENSE file in the project root
+// for full license information.
 //
 // Copyright 2019 pavedroad maintainers
 //
@@ -17,7 +17,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Microservice for managing a pool of workers
+// Micro service for managing a pool of workers
 //
 // A scheduler go routine writes jobs to be performed to
 // a dispatcher.  The dispatcher manages and forwards jobs
@@ -25,7 +25,7 @@
 //
 // Workers read the jobs, perform the tasks, and log the 
 // results. The log code, logs to one or more configured
-// destinations.  This can include local filesystem, stdout,
+// destinations.  This can include local file system, stdout,
 // or a Kafka topic.
 //
 // Jobs, Scheduler, are both defined as interfaces enabling
@@ -36,9 +36,7 @@
 // there are no TOS at this moment, use at your own risk we take no responsibility
 //
 //     Schemes: http, https
-//     TODO: needs to be configurable via roadctl and templates
-//     Host: api.pavedroad.io
-//     TODO:                       vvvvv Need the correct namespace
+//     Host: api.mirantis.com
 //     BasePath: /api/v1/namespace/mirantis/eventCollector
 //     Version: 1.0.0
 //     License: Apache 2
