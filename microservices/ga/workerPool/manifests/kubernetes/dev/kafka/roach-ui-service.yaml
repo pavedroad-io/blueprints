@@ -17,4 +17,4 @@ spec:
     pavedroad.service: roach-ui
 status:
   loadBalancer: {}
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

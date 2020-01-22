@@ -13,4 +13,4 @@ spec:
       - "3600"
     imagePullPolicy: IfNotPresent
   restartPolicy: Always
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

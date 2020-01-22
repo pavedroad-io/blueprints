@@ -22,4 +22,4 @@ fi
 name="$1"
 
 getNodePort
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

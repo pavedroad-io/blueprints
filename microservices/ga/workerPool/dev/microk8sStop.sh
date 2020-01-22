@@ -10,4 +10,4 @@ then
 else
 	echo "microk8s is not running"
 fi
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

@@ -41,7 +41,7 @@ type httpScheduler struct {
 	jobList								[]*httpJob
 	schedulerJobChan			chan Job			 // Channel to read jobs from
 	schedulerResponseChan chan Result		 // Channel to write repose to
-	schedulerDone					chan bool			 // Shudown initiated by applicatoin
+	schedulerDone					chan bool			 // Shutdown initiated by application
 	schedulerInterrupt		chan os.Signal // Shutdown initiated by OS
 	metrics								httpSchedulerMetrics
 	mux										*sync.Mutex
@@ -49,6 +49,7 @@ type httpScheduler struct {
 }
 
 // httpSchedule holds the type of scheduler and it's configuration
+
 type httpSchedule struct {
 	ScheduleType				string `json:"schedule_type"`
 	SendIntervalSeconds int64  `json:"send_interval_seconds"`
@@ -68,6 +69,8 @@ func (s *httpScheduler) MetricToJSON() ([]byte, error) {
 	s.metrics.mux.Lock()
 	defer s.metrics.mux.Unlock()
 	jb, e := json.Marshal(s.metrics)
+	ID	 string `json:"id"`
+	URL  string `json:"url"`
 	if e != nil {
 		fmt.Println(e)
 		return nil, e
@@ -114,9 +117,18 @@ func (s *httpScheduler) UpdateJobList(newJobList []*httpJob) {
 	s.mux.Unlock()
 }
 
+// A []listJobsResponse is a single job but returned as a list
+//
+// swagger:response listJobResponse
 type listJobsResponse struct {
-	ID	 string `json:"id"`
-	URL  string `json:"url"`
+	// in: body
+
+	//id: uuid for this job
+	ID string `json:"id"`
+	// url for this http request
+	URL string `json:"url"`
+
+	//type: of job the represents
 	Type string `json:"type"`
 }
 
@@ -470,4 +482,4 @@ func (s *httpScheduler) Metrics() []byte {
 		return nil
 	}
 	return jb
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

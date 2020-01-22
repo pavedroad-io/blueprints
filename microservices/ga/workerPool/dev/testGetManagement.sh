@@ -37,4 +37,4 @@ while [ "$1" != "" ]; do
 done
 
 # Call get
-get{{end}}
+get{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

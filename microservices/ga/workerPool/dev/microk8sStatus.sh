@@ -9,4 +9,4 @@ then
 else
 	echo "up"
 fi
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

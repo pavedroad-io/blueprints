@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Contants to build up a k8s style URL
+// Constants to build up a k8s style URL
 const (
 	// {{.NameExported}}APIVersion Version API URL
 	{{.NameExported}}APIVersion string = "/api/{{.APIVersion}}"
@@ -28,7 +28,7 @@ const (
 	// {{.NameExported}}ResourceType CRD Type per k8s
 	{{.NameExported}}ResourceType string = "{{.Name}}"
 
-	// The email or account login used by 3rd parth provider
+	// The email or account login used by 3rd party provider
 	{{.NameExported}}Key string = "/{key}"
 
 	// {{.NameExported}}LivenessEndPoint
@@ -50,8 +50,8 @@ const (
 	{{.NameExported}}SchedulerEndPoint string = "scheduler"
 )
 
-// {{.NameExported}}App Top level construct containing building blockes
-// for this microservice
+// {{.NameExported}}App Top level construct containing building blocks
+// for this micro service
 type {{.NameExported}}App struct {
 	// Router http request router, gorilla mux for this app
 	Router *mux.Router
@@ -128,4 +128,4 @@ func main() {
 
 	a.Initialize()
 	a.Run(httpconf.listenString)
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

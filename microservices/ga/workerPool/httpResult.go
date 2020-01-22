@@ -12,11 +12,10 @@ func (r *httpResult) Job() Job {
 	return r.job
 }
 
-// TODO: consider changing this to map[string]interface{}
 func (r *httpResult) MetaData() map[string]string {
 	return r.metaData
 }
 
 func (r *httpResult) Payload() []byte {
 	return r.payload
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

@@ -49,4 +49,4 @@ done
 
 # Get UUID and call get
 getUUID
-delete{{end}}
+delete{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

@@ -112,15 +112,9 @@ go-clean:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go clean
 
 ## check: Start services and execute static code analysis and tests
-check: lint sonar-scanner $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
-	@echo "  >  Starting cockroach DB..."
-	docker-compose -f manifests/docker-db-only.yaml up -d
-	@echo "  >  Waiting cockroach DB is ready..."
-	@sleep 5
+{{.CheckBuildTarget}}
 	@echo "  >  running to tests..."
 	go test -coverprofile=$(GOCOVERAGE) -v ./...
-	@echo "  >  Stopping cockroach DB..."
-	docker-compose -f manifests/docker-db-only.yaml down
 
 sonar-scanner: $(ARTIFACTS)
 	sonarcloud.sh
@@ -146,8 +140,7 @@ lint: $(GOFILES)
 	$(shell (export GOPATH=$(GOPATH);gosec -fmt=sonarqube -tests -out $(GOSECREPORT) -exclude-dir=.templates ./...))
 	@echo "  >  running go vet... > $(GOVETREPORT)"
 	$(shell (export GOPATH=$(GOPATH);go vet ./... 2> $(GOVETREPORT)))
-	@echo "  >  running FOSSA license scan."
-	@FOSSA_API_KEY=$(FOSSA_API_KEY) fossa analyze
+{{.FossaLintSection}}
 
 ## fmt: Run gofmt on all code
 fmt: $(GOFILES)
@@ -202,6 +195,5 @@ $(GITTEST):
 	git commit -m "initial commit"
 	git tag -a {{.Version}} -m "Initial Commit for version: {{.Version}}"
 
-$(FOSSATEST):
-	fossa init
-{{end}}
+{{.FossaBuildSection}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

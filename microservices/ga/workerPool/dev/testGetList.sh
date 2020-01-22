@@ -33,4 +33,4 @@ done
 
 # Call get
 get
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

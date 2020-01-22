@@ -9,11 +9,7 @@ build:
     context: .
     docker:
       dockerfile: manifests/Dockerfile
-  - image: localhost:32000/{{.Organization}}/{{.Name}}initdb
-    context: .
-    docker:
-      dockerfile: manifests/InitDbDockerFile
 deploy:
   kustomize:
     path: "manifests/kubernetes/dev"
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

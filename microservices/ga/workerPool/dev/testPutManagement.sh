@@ -91,4 +91,4 @@ done
 
 # result_channel_size
 #postdata=$postdata11
-#put{{end}}
+#put{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
