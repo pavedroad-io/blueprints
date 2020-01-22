@@ -67,4 +67,4 @@ func (a *{{.NameExported}}App) delete{{.NameExported}}PreHook(w http.ResponseWri
 // delete{{.NameExported}}PostHook
 func (a *{{.NameExported}}App) delete{{.NameExported}}PostHook(w http.ResponseWriter, r *http.Request, key string) {
   return
-}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

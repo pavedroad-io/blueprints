@@ -1,7 +1,7 @@
 
-//
 // Copyright (c) PavedRoad. All rights reserved.
-// Licensed under the Apache2. See LICENSE file in the project root for full license information.
+// Licensed under the Apache2. See LICENSE file in the project root
+// for full license information.
 //
 package main
 

@@ -1,7 +1,7 @@
 
-//
 // Copyright (c) PavedRoad. All rights reserved.
-// Licensed under the Apache2. See LICENSE file in the project root for full license information.
+// Licensed under the Apache2. See LICENSE file in the project root
+// for full license information.
 //
 
 // User project / copyright / usage information
@@ -37,7 +37,6 @@ func (a *EventCollectorApp) Initialize() {
 	a.initializeEnvironment()
 
 	// Start the Dispatcher
-	// TOOD generate this next line from roadctl
 	a.Scheduler = &httpScheduler{}
 
 	dConf := &dispatcherConfiguration{
@@ -107,7 +106,7 @@ func (a *EventCollectorApp) Run(addr string) {
 	os.Exit(0)
 }
 
-// Get for ennvironment variable overrides
+// Get for environment variable overrides
 func (a *EventCollectorApp) initializeEnvironment() {
 	var envVar = ""
 
@@ -500,7 +499,7 @@ func (a *EventCollectorApp) getMetrics(w http.ResponseWriter, r *http.Request) {
 	respondWithByte(w, http.StatusOK, []byte(combinedJSON))
 }
 
-// getManagement swagger:route GET /api/v1/namespace/mirantis/eventCollector/management management getManagement
+// getManagement swagger:route GET /api/v1/namespace/mirantis/eventCollector/management management getmanagement
 //
 // Returns available management commands
 //
@@ -517,7 +516,7 @@ func (a *EventCollectorApp) getManagement(w http.ResponseWriter, r *http.Request
 	respondWithJSON(w, http.StatusOK, a.Dispatcher.managementOptions)
 }
 
-// putManagement swagger:route PUT /api/v1/namespace/mirantis/eventCollector/management management putManagement
+// putmanagement swagger:route GET /api/v1/namespace/mirantis/eventCollector/management management putmanagement
 //
 // Returns available management commands
 //

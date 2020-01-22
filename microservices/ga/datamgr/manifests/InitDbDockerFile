@@ -22,4 +22,4 @@ WORKDIR pavedroad
 COPY dev/db .
 
 CMD ["/bin/sh", "-c", "./$cmd -k"]
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

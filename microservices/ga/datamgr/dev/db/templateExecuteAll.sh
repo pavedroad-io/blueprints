@@ -72,4 +72,4 @@ done
 
 # call all
 all
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

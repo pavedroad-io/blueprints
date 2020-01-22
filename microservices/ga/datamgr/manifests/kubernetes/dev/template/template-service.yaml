@@ -13,4 +13,4 @@ spec:
   type: NodePort
 status:
   loadBalancer: {}
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

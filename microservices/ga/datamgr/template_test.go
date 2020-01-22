@@ -58,21 +58,12 @@ func ensureTableExists() {
 }
 
 func clearTable() {
-
-      if _, err := a.DB.Exec("DELETE FROM {{.OrgSQLSafe}}.{{.NameExported}}"); err != nil {
-	       fmt.Println("Table delete :", err)
-      }
+	a.DB.Exec("DELETE FROM {{.OrgSQLSafe}}.{{.NameExported}}")
 }
 
 func clearDB() {
-
-	 if _, err := a.DB.Exec("DROP DATABASE IF EXISTS {{.OrgSQLSafe}}"); err != nil {
-               fmt.Println("Drop table:", err)
-      }      
-	if _, err := a.DB.Exec("CREATE DATABASE {{.OrgSQLSafe}}");  err != nil {
-               fmt.Println("Create table:", err)
-      }
-
+	a.DB.Exec("DROP DATABASE IF EXISTS {{.OrgSQLSafe}}")
+	a.DB.Exec("CREATE DATABASE {{.OrgSQLSafe}}")
 }
 
 const tableCreationQuery = `
@@ -119,21 +110,14 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 func TestGetWithBadUserUUID(t *testing.T) {
 	clearTable()
 
-	req, err := http.NewRequest("GET",
+	req, _ := http.NewRequest("GET",
 		"/api/v1/namespace/pavedroad.io/{{.Name}}/43ae99c9", nil)
-	if err != nil {
-		fmt.Println("NewRequest:", err)
-        }
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 
 	var m map[string]string
-	err = json.Unmarshal(response.Body.Bytes(), &m)
-        if err != nil {
-                fmt.Println("Unmarshal issue:", err)
-        }
-
+	json.Unmarshal(response.Body.Bytes(), &m)
 	if m["error"] != "400: invalid UUID: 43ae99c9" {
 		t.Errorf("Expected the 'error' key of the response to be set to '400: invalid UUID: 43ae99c9'. Got '%s'", m["error"])
 	}
@@ -147,9 +131,9 @@ func TestGetWrongUUID(t *testing.T) {
 	clearTable()
   nt := New{{.NameExported}}()
   add{{.NameExported}}(nt)
-  badUID := "00000000-d01d-4c09-a4e7-59026d143b89"
+  badUid := "00000000-d01d-4c09-a4e7-59026d143b89"
 
-	statement := fmt.Sprintf({{.NameExported}}URL, badUID)
+	statement := fmt.Sprintf({{.NameExported}}URL, badUid)
 
 	req, _ := http.NewRequest("GET", statement, nil)
 	response := executeRequest(req)
@@ -167,30 +151,24 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 
 	payload := []byte(new{{.NameExported}}JSON)
 
-	req, err := http.NewRequest("POST", "/api/v1/namespace/pavedroad.io/{{.Name}}", bytes.NewBuffer(payload)) 
-	if err != nil {
-		fmt.Println("NewRequest Post:", err)
-	}
+	req, _ := http.NewRequest("POST", "/api/v1/namespace/pavedroad.io/{{.Name}}", bytes.NewBuffer(payload))
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusCreated, response.Code)
 
 	var m map[string]interface{}
 	//var md map[string]interface{}
-	err = json.Unmarshal(response.Body.Bytes(), &m)
-	if err != nil {
-                fmt.Println("Unmarshal issue:", err)
-        }
+	json.Unmarshal(response.Body.Bytes(), &m)
 
 	//Test we can decode the data
 	cs, ok := m["created"].(string)
 	if ok {
 		c, err := time.Parse(time.RFC3339, cs)
 		if err != nil {
-			t.Errorf("Parse failed on parse creataed time Got '%v'", c)
+			t.Errorf("Parse failed on parse created time Got '%v'", c)
 		}
 	} else {
-		t.Errorf("Expected creataed of string type Got '%v'", reflect.TypeOf(m["Created"]))
+		t.Errorf("Expected created of string type Got '%v'", reflect.TypeOf(m["Created"]))
 	}
 
 	us, ok := m["updated"].(string)
@@ -218,8 +196,8 @@ func TestMarshall{{.NameExported}}(t *testing.T) {
 //
 func add{{.NameExported}}(t *{{.Name}}) (string) {
 
-  statement := `INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES($1) RETURNING {{.Name}}UUID`
-  rows, er1 := a.DB.Query(statement,new{{.NameExported}}JSON)
+  statement := fmt.Sprintf("INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.Name}}UUID", new{{.NameExported}}JSON)
+  rows, er1 := a.DB.Query(statement)
 
 	if er1 != nil {
 		log.Printf("Insert failed error %s", er1)
@@ -243,12 +221,9 @@ func add{{.NameExported}}(t *{{.Name}}) (string) {
 // Iterate over the struct setting random values
 // 
 func New{{.NameExported}}() (t *{{.Name}}) {
-	var N {{.Name}}
-        err := json.Unmarshal([]byte(new{{.NameExported}}JSON), &N)
-	if err != nil {
-                fmt.Println("Unmarshal issue:", err)
-        }
-	return &N
+	var n {{.Name}}
+  json.Unmarshal([]byte(new{{.NameExported}}JSON), &n) 
+	return &n
 }
 
 //test getting a {{.Name}}
@@ -274,16 +249,10 @@ func TestUpdate{{.Name}}(t *testing.T) {
 	uid := add{{.NameExported}}(nt)
 
 	statement := fmt.Sprintf({{.NameExported}}URL, uid)
-	req, err := http.NewRequest("GET", statement, nil)
-	if err != nil {
-		fmt.Println("NewRequest Get:", err)
-	}
+	req, _ := http.NewRequest("GET", statement, nil)
 	response := executeRequest(req)
 
-	err = json.Unmarshal(response.Body.Bytes(), &nt)
-	if err != nil {
-                fmt.Println("Unmarshal issue:", err)
-        }
+	json.Unmarshal(response.Body.Bytes(), &nt)
 
 	ut := nt
 
@@ -295,20 +264,13 @@ func TestUpdate{{.Name}}(t *testing.T) {
 		panic(err)
 	}
 
-	req, err = http.NewRequest("PUT", statement, strings.NewReader(string(jb)))
-	if err != nil {
-		fmt.Println("NewRequest Put:", err)
-	}
+	req, _ = http.NewRequest("PUT", statement, strings.NewReader(string(jb)))
 	response = executeRequest(req)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 
 	var m map[string]interface{}
-	err = json.Unmarshal(response.Body.Bytes(), &m)
-	if err != nil {
-                fmt.Println("Unmarshal issue:", err)
-        }
-
+	json.Unmarshal(response.Body.Bytes(), &m)
 
 //	if m["active"] != "eslaf" {
 //		t.Errorf("Expected active to be eslaf. Got %v", m["active"])
@@ -341,4 +303,4 @@ func TestDump{{.NameExported}}(t *testing.T) {
 	}
 }
 */
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

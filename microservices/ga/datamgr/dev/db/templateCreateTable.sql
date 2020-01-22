@@ -5,4 +5,4 @@ CREATE TABLE IF NOT EXISTS {{.OrgSQLSafe}}.{{.Name}} (
 );
 
 CREATE INDEX IF NOT EXISTS {{.Name}}Idx ON {{.OrgSQLSafe}}.{{.Name}} USING GIN ({{.Name}});
-{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

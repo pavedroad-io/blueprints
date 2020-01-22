@@ -2,7 +2,7 @@
 
 # Basic constructs
 
-                daemonsets <---> jobs <---> side cars 
+                Daemon sets <---> jobs <---> side cars 
 
        service <---> deployment <---> replicate controller <---> pod
 
@@ -34,7 +34,7 @@
 
 - [Replicate controller](https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/) manages scaling pods to the desired number specified
 
-- [pods](https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/) Support running stateless conainers
+- [pods](https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/) Support running stateless containers
 
 -
 
@@ -71,7 +71,7 @@ kubectl get po,deploy,svc
 |csr  |certificatesigningrequests |cs |componentstatuses|
 |cm  |configmaps  |ds |daemonsets |
 |deploy |deployments  |ep |endpoints|
-|ev |evnets  |hpa |horizontalpodautoscalers|
+|ev |events  |hpa |horizontalpodautoscalers|
 |ing |ingresses  |limits |limitranges|
 |no |nodes  |ns |namespaces|
 |pvc |persistentvolumeclaims  |pv |persistentvolumes|
@@ -133,7 +133,7 @@ FIELDS:
 ```
 
 # Creating a pod on the fly via yaml
-This examples uses the run command with the --genertor options.  It asks for a type of run-pod/v1 using the container tutum/dnsutils.  The --dry-run option executes without deploying to the k8s cluster and we redirect the output to dnsutils.yaml
+This examples uses the run command with the --generator options.  It asks for a type of run-pod/v1 using the container tutum/dnsutils.  The --dry-run option executes without deploying to the k8s cluster and we redirect the output to dnsutils.yaml
 
 ```bash
 $ kubectl run dnsutils --generator=run-pod/v1 --image=tutum/dnsutils --dry-run -o yaml > dnsutil.yaml
@@ -254,7 +254,7 @@ $ kubectl get po -o json | jq ".items[0].status.containerStatuses"
 ]
 ```
 
-# Get just the lifecyle events
+# Get just the life cycle events
 ```bash
 $ kubectl get po -o json | jq ".items[0].status.conditions"
 [
@@ -285,7 +285,7 @@ $ kubectl get po -o json | jq ".items[0].status.conditions"
 ]
 ```
 
-## Getting specific colums and sorting
+## Getting specific columns and sorting
 
 ### Note -A options includes all namespaces
 ```bash
@@ -321,8 +321,8 @@ ubuntu   Ready    <none>   77d   v1.16.3   192.168.150.146   <none>        Ubunt
 Use run command with --tail to watch the deployment progress
 
 ### Note: You need to run make before executing skaffold run
-### Run will build the docker containers.  That requies a copy
-### of the films microserice in the local directory.  Make
+### Run will build the docker containers.  That requires a copy
+### of the films microservice in the local directory.  Make
 ### will ensure that happens
 
 ```bash
@@ -376,7 +376,7 @@ $
 
 ## Get summary information for deployment
 Here we ask for status of the pods, deployments, and services.  This does
-not show our backend database, it uses different labels and selectors.
+not show our back end database, it uses different labels and selectors.
 
 You can ask for the service and deployments using just the name, aka films.
 Since the pods each have a unique hash, it won't match.  Using the label
@@ -508,7 +508,7 @@ root@films-7b47d6bdb-gzpf4:/pavedroad/logs# CTRL-D
 
 All docker, docker-compose, and kubernetes manifest are located in 
 the manifests directory. The kubernetes folder has directories for
-each defined enviornment: dev, staging, test, and production.
+each defined environment: dev, staging, test, and production.
 
 ```
 manifests/
@@ -535,18 +535,18 @@ manifests/
 ```
 
 ## Skaffold manifest
-In addtion to api and kind, there aer two major sections build and deploy.
+In addition to api and kind, there are two major sections build and deploy.
 
 Build:
 
-Build provides a list of repositories, and a list of artfacts. Each artifact
+Build provides a list of repositories, and a list of artifacts. Each artifact
 points to a docker file and includes the repository server to publish too.
 
 It can also include a tagPolicy, if omitted, the git commit hash is used.
 
 Deploy:
 
-Deployments are made using kustomize and kubectl.  Details on kustomzie follow
+Deployments are made using kustomize and kubectl.  Details on kustomize follow
 below.
 
 ```bash
@@ -570,7 +570,7 @@ deploy:
 ```
 
 # Kustomize
-The top level of each enviornment contains a kustomization.yaml.  
+The top level of each environment contains a kustomization.yaml.  
 The top kustomization.yaml file also include a list of other locations
 needed to build this deployment.  Each of those locations can define
 there own kustomization.yaml file.  Those locations can be:
@@ -602,8 +602,8 @@ The db kustomization.yaml defines a list of resources.  These are the manifests
 it will process.  Manifests will not be included, even if the are in the 
 directory, if they are not listed under resources.
 
-It then includes a configMapGenerater.  This generator greates a confipmap
-using the name specfied by name:.  And includes key/value pairs defined in
+It then includes a configMapGenerater.  This generator generates a configmap
+using the name specified by name:.  And includes key/value pairs defined in
 the literals section.
 
 manifests/kubernetes/dev/db/kustomization.yaml
@@ -914,7 +914,7 @@ With digest
 $ docker image ls --all --digests localhost:32000/films*
 ```
 
-Delet images by digest
+Delete images by digest
 
 ```bash
 $ docker image rm -f digest
@@ -990,7 +990,7 @@ $ kubectl get po -o json -A | jq '.items[].metadata.name'
 
 ## Get a range and pipe to a second filter
 
-.items[0-2] asks for a subrange of the array
+.items[0-2] asks for a sub range of the array
 
 You can not just append.metadata when slicing an array like this.
 
@@ -1004,7 +1004,7 @@ $ kubectl get po -o json -A | jq '.items[0:2] | .[].metadata.name'
 "dnsutils-74bdc55779-zbf5r"
 ```
 
-## Dealing with speical characters
+## Dealing with special characters
 Add quotes or brackets
 
 .["foo$"] or ."foo$"
@@ -1118,8 +1118,8 @@ films
 ```
 
 # References
-- [kubernetes.io cheatsheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/) More Kubectl cheatsheets
-- [kubectl commands cheatsheet](https://medium.com/faun/kubectl-commands-cheatsheet-43ce8f13adfb) Kenichi Shibata - General commands for an ops person
+- [kubernetes.io cheat sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/) More Kubectl cheat sheets
+- [kubectl commands cheat sheet](https://medium.com/faun/kubectl-commands-cheatsheet-43ce8f13adfb) Kenichi Shibata - General commands for an ops person
 - [Kubectl output options](https://gist.github.com/so0k/42313dbb3b547a0f51a547bb968696ba) so0k - JSON path, jq, custom columns
 - [JQ introduction](http://www.compciv.org/recipes/cli/jq-for-parsing-json/) compciv.org - Basic introduction to parsing with jq
 - [jq github](https://stedolan.github.io/jq/) stedolan - GitHub home page

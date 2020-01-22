@@ -2,7 +2,7 @@ package main
 
 // Result for a given job
 type Result interface {
-	// Return the orginal job
+	// Return the original job
 	Job() Job
 
 	// Return the header/message headers
