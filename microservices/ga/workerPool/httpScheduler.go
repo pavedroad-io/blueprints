@@ -69,8 +69,6 @@ func (s *httpScheduler) MetricToJSON() ([]byte, error) {
 	s.metrics.mux.Lock()
 	defer s.metrics.mux.Unlock()
 	jb, e := json.Marshal(s.metrics)
-	ID	 string `json:"id"`
-	URL  string `json:"url"`
 	if e != nil {
 		fmt.Println(e)
 		return nil, e

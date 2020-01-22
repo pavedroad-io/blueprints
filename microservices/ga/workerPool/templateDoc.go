@@ -1,5 +1,5 @@
 {{define "templateDoc.go"}}
-// Package classification {{.Named}} API.
+// Package classification {{.Name}} API.
 //
 // Micro service for managing a pool of workers
 //
