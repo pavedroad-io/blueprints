@@ -7,11 +7,11 @@ major components: the scheduler, a dispatcher, and a pool of workers.
 The scheduler connects to the dispatcher via four go channels.  A Job channel
 forwards Jobs to the dispatcher, and a Results channel reads replies.  Both 
 of these channels execute as separate goroutines.  A Done channel reads a 
-boolean true and supports graceful shutdowns initiated by the application.
+boolean (true) and supports graceful shutdowns initiated by the application.
 An interrupt channel supports graceful or forceful shutdowns undertaken by
 the host operating system.
 
-The dispatcher connects to the works using the same paradigm but with four
+The dispatcher connects to the workers using the same paradigm but with four
 independent channels. Each worker executes as its own goroutine.
 
 ```bash
@@ -31,7 +31,7 @@ independent channels. Each worker executes as its own goroutine.
 
 ## Go interfaces
 
-A go interface act a lot like an object-oriented class with no variables.
+A go interface acts a lot like an object-oriented class with no variables.
 It defines the methods that a Go type must implement for the defined 
 interface type.   In the example below, a Go type must fulfill each of the
 function signatures to be considered Scheduler.
@@ -248,9 +248,10 @@ A sample definitions is available to help you get started
 
 ### Create a copy of the sample definition
     roadctl describe templates datamgr > myservice.yaml
+    (Note: edit myservice.yaml to customize your create below.)
 
 ### Get definitions of attributes in your service.yaml
-    roadctl explain templates datamgr > myservice.yaml
+    roadctl explain templates datamgr > myservice.txt
 
 ### Create your microservice
     roadctl create templates --template datamgr --definition myservice.yaml
@@ -300,13 +301,13 @@ make help
 Skaffold is integrated into your project.  You can use the following commands:
 
 ### development mode
-Monitors source code and when it changes builds and push's a new image
+Monitors source code and when it changes builds and pushes a new image
 
 ```bash
 skaffold dev -f manifests/skaffold.yaml
 ```
 ### run
-Builds and push image once when executed
+Build and push the image when executed
 
 ```bash
 skaffold run -f manifests/skaffold.yaml
