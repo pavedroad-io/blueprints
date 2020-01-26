@@ -1,0 +1,1 @@
+rm -R .fossa.yml .git artifacts assets builds dev docs filmsApp.go filmsDoc.go filmsMain.go filmsModel.go films_test.go Gopkg.lock Gopkg.toml logs Makefile manifests README.md sonarcloud.sh sonar-project.properties volumes vendor* films 2> /dev/null
