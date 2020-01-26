@@ -1,7 +1,0 @@
-# worker
-./eventCollectorDispatcher.go:220:24: call of json.Marshal copies lock value: worker.dispatcherMetrics contains sync.Mutex
-./eventCollectorDispatcher.go:355:9: Run passes lock by value: worker.dispatcher contains sync.WaitGroup contains sync.noCopy
-./eventCollectorDispatcher.go:364:9: Forwarder passes lock by value: worker.dispatcher contains sync.WaitGroup contains sync.noCopy
-./eventCollectorDispatcher.go:374:9: Responder passes lock by value: worker.dispatcher contains sync.WaitGroup contains sync.noCopy
-./eventCollectorDispatcher.go:504:27: literal copies lock value from d.wg: sync.WaitGroup contains sync.noCopy
-./eventCollectorDispatcher.go:499:2: unreachable code
