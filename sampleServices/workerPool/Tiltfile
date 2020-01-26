@@ -1,4 +1,0 @@
-k8s_yaml(kustomize('manifests/kubernetes/dev'))
-
-docker_build('localhost:32000/acme-demo/films', '.', dockerfile='manifests/Dockerfile')
-docker_build('localhost:32000/acme-demo/filmsinitdb', '.', dockerfile='manifests/InitDbDockerFile')
