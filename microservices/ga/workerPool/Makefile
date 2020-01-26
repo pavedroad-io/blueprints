@@ -43,7 +43,7 @@ LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD) -X=main.GitT
 
 .PHONY: check build compile sonar-scanner
 
-all: $(GITTEST) $(FOSSATEST) compile check
+{{.AllBuildTarget}}
 
 ## compile: Compile the binary.
 compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc

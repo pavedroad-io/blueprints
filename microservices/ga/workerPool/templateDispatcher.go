@@ -60,6 +60,56 @@ type managementGetResponse struct {
 	Fields []string `json:"fields"`
 }
 
+// get404Response Not found
+//
+// swagger:response get404Response
+type get404Response struct {
+	// The 404 error message
+	// in: body
+
+	Body struct {
+		// Error message
+		Error string `json:"error"`
+
+		// UUID / key that was not found
+		UUID string `json:"uuid"`
+	}
+}
+
+// genericError
+//
+// swagger:response genericError
+type genericError struct {
+	// in: body
+	// Error message
+	Body struct {
+		Error string `json:"error"`
+	} `json:"body"`
+}
+
+// genericResponse
+//
+// swagger:response genericResponse
+type genericResponse struct {
+	// in: body
+	Body struct {
+		// JSON body
+		JsonBody string `json:"json_body"`
+	} `json:"body"`
+}
+
+// metricsResponse
+//
+// swagger:response metricsResponse
+type metricsResponse struct {
+	// in: body
+	Body struct {
+		// Error message
+		SchedulerMetrics string `json:"scheduler_metrics"`
+		DispatherMetrics string `json:"dispather_metrics"`
+	} `json:"body"`
+}
+
 // mgtCommand List of available command and field options
 //
 type mgtCommand struct {
