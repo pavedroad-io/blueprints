@@ -1,0 +1,19 @@
+
+resources:
+  - films-deployment.yaml
+  - films-service.yaml
+
+commonLabels:
+  pavedroad.service: films
+
+commonAnnotations:
+  pavedroad.roadctl.version: alphav1
+  pavedroad.roadctl.web: www.pavedroad.io
+  pavedroad.roadctl.support: support@pavedroad.io
+
+configMapGenerator:
+- name: films-configmap
+  literals:
+  - database-ip=roach-ui
+  - ip=0.0.0.0
+  - port=8081

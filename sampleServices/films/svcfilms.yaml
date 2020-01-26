@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{"pavedroad":"www.pavedroad.io","roadctlVersion":"alphav1"},"creationTimestamp":null,"labels":{"app.kubernetes.io/managed-by":"skaffold-v1.0.1","pavedroad.service":"films","skaffold.dev/builder":"local","skaffold.dev/cleanup":"true","skaffold.dev/deployer":"kubectl","skaffold.dev/docker-api-version":"1.39","skaffold.dev/run-id":"ccdbe5a2-0751-4a61-889c-af4cf2aa2c35","skaffold.dev/tag-policy":"git-commit","skaffold.dev/tail":"true"},"name":"films","namespace":"default"},"spec":{"ports":[{"name":"8081","port":8081,"targetPort":8081}],"selector":{"pavedroad.service":"films"}},"status":{"loadBalancer":{}}}
+    pavedroad: www.pavedroad.io
+    roadctlVersion: alphav1
+  creationTimestamp: "2019-11-25T18:35:10Z"
+  labels:
+    app.kubernetes.io/managed-by: skaffold-v1.0.1
+    pavedroad.service: films
+    skaffold.dev/builder: local
+    skaffold.dev/cleanup: "true"
+    skaffold.dev/deployer: kubectl
+    skaffold.dev/docker-api-version: "1.39"
+    skaffold.dev/run-id: ccdbe5a2-0751-4a61-889c-af4cf2aa2c35
+    skaffold.dev/tag-policy: git-commit
+    skaffold.dev/tail: "true"
+  name: films
+  namespace: default
+  resourceVersion: "995950"
+  selfLink: /api/v1/namespaces/default/services/films
+  uid: ddd6715e-f040-455f-965c-259604b6c669
+spec:
+  clusterIP: 10.152.183.85
+  ports:
+  - name: "8081"
+    port: 8081
+    protocol: TCP
+    targetPort: 8081
+  selector:
+    pavedroad.service: films
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

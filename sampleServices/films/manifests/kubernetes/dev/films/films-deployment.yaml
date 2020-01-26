@@ -1,0 +1,53 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: films
+spec:
+  replicas: 3
+  strategy: {}
+  selector:
+    matchLabels:
+      pavedroad.service: films
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        pavedroad.service: films
+    spec:
+      initContainers:
+      - image: busybox:1.28
+        name: wait-for-cockroach
+        command: ['sh', '-c', 'until nslookup roach-ui; do echo waiting for roach-ui; sleep 2; done;']
+      - image: localhost:32000/acme-demo/filmsinitdb:0.0
+        env:
+        - name: COCKROACH_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: cockroach-configmap
+              key: host-ip
+        name: filmsdbinit
+      containers:
+      - image: localhost:32000/acme-demo/films:0.0
+        env:
+        - name: HTTP_IP_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: films-configmap
+              key: ip
+        - name: HTTP_IP_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: films-configmap
+              key: port
+        - name: APP_DB_IP
+          valueFrom:
+            configMapKeyRef:
+              name: films-configmap
+              key: database-ip
+        name: films
+        ports:
+        - containerPort: 8081
+        resources: {}
+      restartPolicy: Always
+status: {}

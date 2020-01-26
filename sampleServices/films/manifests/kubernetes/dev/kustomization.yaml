@@ -1,0 +1,11 @@
+
+bases:
+  - db
+  - films
+
+commonLabels:
+  pavedroad.env: dev
+
+commonAnnotations:
+  pavedroad.kustomize.base: films/manifests/kubernetes/dev
+  pavedroad.kustomize.bases: "films,db"

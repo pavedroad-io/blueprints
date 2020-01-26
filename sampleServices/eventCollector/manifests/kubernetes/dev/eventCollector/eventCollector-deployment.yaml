@@ -1,0 +1,41 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eventCollector
+spec:
+  replicas: 3
+  strategy: {}
+  selector:
+    matchLabels:
+      pavedroad.service: eventCollector
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        pavedroad.service: eventCollector
+    spec:
+      containers:
+      - image: localhost:32000/mirantis/eventCollector:0.0
+        env:
+        - name: HTTP_IP_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: eventCollector-configmap
+              key: ip
+        - name: HTTP_IP_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: eventCollector-configmap
+              key: port
+        - name: APP_DB_IP
+          valueFrom:
+            configMapKeyRef:
+              name: eventCollector-configmap
+              key: database-ip
+        name: eventCollector
+        ports:
+        - containerPort: 8081
+        resources: {}
+      restartPolicy: Always
+status: {}
