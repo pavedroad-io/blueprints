@@ -5,7 +5,9 @@ prInitFile=".pr_git_initialize_file"
 ghToken="GH_ACCESS_TOKEN"
 tplDir=".templates"
 gitIgnore=".gitignore"
+preSuccess=".pr_preflight_check"
 needGHTOKEN='
+
 A GitHub Personal Access Token (PAT) is requried
 
 Please see
@@ -129,12 +131,14 @@ initTemplates()
 	then
 		if [ ! -d "$tplDir" ] 
 		then
-			(roadctl get templates --init)
+			roadctl get templates --init
+			echo '{"status":"success"}' > $preSuccess
 		fi
 	else
 		if [ ! -d "$defaultDirectory/$tplDir" ] 
 		then
 			(cd $defaultDirectory;roadctl get templates --init)
+			(cd $defaultDirectory;echo '{"status":"success"}' > $preSuccess)
 		fi
 	fi
 }
