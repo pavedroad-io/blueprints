@@ -118,7 +118,8 @@ Generated files are prefixed with the name you define for your microservice.  Fo
 ## Rest API
 
 Rest APIs follow the Kubernetes convention.  You define the API version
-and namespace in your definitions file.
+and namespace in your definitions file, for the following output format:
+e.g. /api/1.0.0/pavedroad.io\/eventCollector\/\[resource name]
 
 ```bash
 /api/version/namespace/name/resource
