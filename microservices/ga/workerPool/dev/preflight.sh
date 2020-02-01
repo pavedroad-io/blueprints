@@ -1,4 +1,4 @@
-{{define "preflight.sh"}}#!/bin/bash
+{{define "dev/preflight.sh"}}#!/bin/bash
 
 defaultDirectory="."
 prInitFile=".pr_git_initialize_file"
