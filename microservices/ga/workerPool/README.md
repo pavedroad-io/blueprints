@@ -29,6 +29,30 @@ independent channels. Each worker executes as its own goroutine.
                                        +-----------+
 ```
 
+## dev/preflight.sh
+
+*New in version v6.0.0alpha for roadctl*
+
+The preflight.sh script ensures that the following required components
+are installed:
+
+- An initialized git repository exists
+- The user.name and user.email are set in your git configuration
+- A GitHub Personal Access Token is available in the GH_ACCESS_TOKEN env variable
+- A .gitignore with entries to exclude the .templates directory
+- An initialized templates repository
+
+It doesn't generate a git tag; pick your own. Once preflight.sh 
+successfully executes, a ".pr_preflight_check" is created.  Until this
+file exists, Make will always attempt to run preflight.sh.
+
+If you are running a version prior to v6.0.0alpha, you may run preflight.sh 
+by hand in the top level of your go micro-service package with.
+
+```bash
+dev/preflight.sh
+```
+
 ## Go interfaces
 
 A go interface acts a lot like an object-oriented class with no variables.
@@ -132,6 +156,7 @@ This template generates the following endpoints:
 /api/version/namespace/name/microservice-name/metrics
 /api/version/namespace/name/microservice-name/jobs
 /api/version/namespace/name/microservice-name/scheduler
+/api/version/namespace/name/microservice-name/management
 ```
 
 The liveness and readiness endpoints provide hooks for customizing
@@ -145,7 +170,7 @@ scheduler.
 The build system requires git source code management.  If the directory you choose to generate your service is not under git control, do the following after executing your template.
     git init
     vi .gitignore
-    # add .templates/*
+    # add .templates/
     # save your .gitignore
     git add *
     git commit
