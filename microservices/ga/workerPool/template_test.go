@@ -4,15 +4,11 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
-	_ "io/ioutil"
-	"log"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"reflect"
 	_ "strconv"
 	"strings"
 	"testing"
@@ -23,80 +19,448 @@ const (
 	Updated         string = "updated"
 	Created         string = "created"
 	Active          string = "active"
-  {{.NameExported}}URL string = "/api/v1/namespace/pavedroad.io/{{.Name}}/%s"
+	Namespace     string = {{.Namespaces}}
+	Service       string = {{.Name}}
+	ManagementURL string = "/api/v1/namespace/" + Namespace + "/" + Service + "/{{.Management}}"
+	JobURL        string = "/api/v1/namespace/" + Namespace + "/" + Service + "/jobs"
+	JobListURL    string = "/api/v1/namespace/" + Namespace + "/" + Service + "/jobsLIST"
+	ScheduleURL   string = "/api/v1/namespace/" + Namespace + "/" + Service + "/scheduler"
+	ReadyURL      string = "/api/v1/namespace/" + Namespace + "/" + Service + "/{{.Readiness}}"
+	LiveURL       string = "/api/v1/namespace/" + Namespace + "/" + Service + "/{{.Liveness}}"
+	MetricsURL    string = "/api/v1/namespace/" + Namespace + "/" + Service + "/{{.Metrics}}"
 )
 
 var new{{.NameExported}}JSON=`{{.PostJSON}}`
-	"eventcollectoruuid": "6e3d1e83-c8f1-40a1-a805-6562269ec2c9",
-	"id": "t7H7hSmX0J8YrbX",
-	"title": "UXMn5RCYpoyUGQr",
-	"updated": "2020-01-08T14:15:19-08:00",
-	"created": "2020-01-08T14:15:19-08:00",
-	"metadata": {
-		"author": "9kG9C7z0chmCxRP",
-		"genre": "LdHXEtDs64XChvF",
-		"rating": "nDghhlloENUZD3Y"
-	}
-}`
 
 var a {{.NameExported}}App
+var testSampleCode = true
 
 func TestMain(m *testing.M) {
 	a = {{.NameExported}}App{}
+
+	JobTestMain()
+
 	a.Initialize()
+	go a.Run(httpconf.listenString)
 
-	clearDB()
-	ensureTableExists()
-
-	code := m.Run()
-
-	clearTable()
-
-	os.Exit(code)
+	// Wait for server to start
+	time.Sleep(1 * time.Second)
+	defer testExit()
+	defer os.Exit(m.Run())
 }
 
-func ensureTableExists() {
-	if _, err := a.DB.Exec(tableCreationQuery); err != nil {
-		fmt.Println("Table check failed:", err)
-		log.Fatal(err)
-	}
-
-	if _, err := a.DB.Exec(indexCreate); err != nil {
-		fmt.Println("Table check failed:", err)
-		log.Fatal(err)
-	}
+func testExit() {
+	data := "{\"command\": \"shutdown_now\", \"field\": \"\", \"field_value\": 0}"
+	req, _ := http.NewRequest("PUT", ManagementURL, strings.NewReader(data))
+	_ = executeRequest(req)
 }
 
-func clearTable() {
-	a.DB.Exec("DELETE FROM {{.OrgSQLSafe}}.{{.NameExported}}")
-}
-
-func clearDB() {
-	a.DB.Exec("DROP DATABASE IF EXISTS {{.OrgSQLSafe}}")
-	a.DB.Exec("CREATE DATABASE {{.OrgSQLSafe}}")
-}
-
-const tableCreationQuery = `
-CREATE TABLE IF NOT EXISTS {{.OrgSQLSafe}}.{{.Name}} (
-    {{.NameExported}}UUID UUID DEFAULT uuid_v4()::UUID PRIMARY KEY,
-    {{.Name}} JSONB
-);`
-
-
-const indexCreate = `
-CREATE INDEX IF NOT EXISTS {{.Name}}Idx ON {{.OrgSQLSafe}}.{{.Name}} USING GIN ({{.Name}});`
-
-
-func TestEmptyTable(t *testing.T) {
-	clearTable()
-
-	req, _ := http.NewRequest("GET", "/api/v1/namespace/pavedroad.io/{{.Name}}LIST", nil)
+func TestSchedule(t *testing.T) {
+	// Get the list of jobs
+	req, _ := http.NewRequest("GET", ScheduleURL, nil)
 	response := executeRequest(req)
-
 	checkResponseCode(t, http.StatusOK, response.Code)
 
-	if body := response.Body.String(); body != "[]" {
-		t.Errorf("Expected an empty array. Got %s", body)
+	// This code requires knowledge about the type of scheduler
+	// So make it conditional
+	if testSampleCode {
+		putdata := "{\"schedule_type\": \"Constant interval scheduler\", \"send_interval_seconds\": 30}"
+		req, _ = http.NewRequest("PUT", ScheduleURL, strings.NewReader(putdata))
+		response = executeRequest(req)
+		checkResponseCode(t, http.StatusOK, response.Code)
+
+		req, _ = http.NewRequest("DELETE", ScheduleURL, strings.NewReader(putdata))
+		response = executeRequest(req)
+		checkResponseCode(t, http.StatusOK, response.Code)
+
+		postdata := "{\"schedule_type\": \"Constant interval scheduler\", \"send_interval_seconds\": 5}"
+		req, _ = http.NewRequest("POST", ScheduleURL, strings.NewReader(postdata))
+		response = executeRequest(req)
+		checkResponseCode(t, http.StatusCreated, response.Code)
+	}
+	return
+}
+
+func TestReady(t *testing.T) {
+
+	if !a.Ready {
+		a.Ready = true
+	}
+
+	expect := "{\"Ready\": true}"
+
+	req, _ := http.NewRequest("GET", ReadyURL, nil)
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+	if response.Body.String() != expect {
+		t.Errorf("Expected %s; Got %v\n", expect, response.Body.String())
+	}
+
+	a.Ready = false
+	expect = "{\"Ready\": false}"
+
+	req, _ = http.NewRequest("GET", ReadyURL, nil)
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusServiceUnavailable, response.Code)
+	if response.Body.String() != expect {
+		t.Errorf("Expected %s; Got %v\n", expect, response.Body.String())
+	}
+
+	// Reset to proper status
+	a.Ready = true
+	return
+}
+
+func TestLive(t *testing.T) {
+
+	if !a.Live {
+		a.Live = true
+	}
+
+	expect := "{\"Live\": true}"
+	req, _ := http.NewRequest("GET", LiveURL, nil)
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+	if response.Body.String() != expect {
+		t.Errorf("Expected %s; Got %v\n", expect, response.Body.String())
+	}
+
+	a.Live = false
+	expect = "{\"Live\": false}"
+
+	req, _ = http.NewRequest("GET", LiveURL, nil)
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusServiceUnavailable, response.Code)
+	if response.Body.String() != expect {
+		t.Errorf("Expected %s; Got %v\n", expect, response.Body.String())
+	}
+
+	// Reset to proper status
+	a.Live = true
+	return
+}
+
+func TestMetric(t *testing.T) {
+
+	expect1 := "scheduler"
+	expect2 := "dispatcher"
+
+	req, _ := http.NewRequest("GET", MetricsURL, nil)
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+	if !strings.Contains(response.Body.String(), expect1) {
+		t.Errorf("Expected %s; Got %v\n", expect1, response.Body.String())
+	}
+	if !strings.Contains(response.Body.String(), expect2) {
+		t.Errorf("Expected %s; Got %v\n", expect2, response.Body.String())
+	}
+}
+
+func TestOpenAccessLog(t *testing.T) {
+	// Make it set default name
+	f := openAccessLogFile("")
+	if f == nil {
+		t.Errorf("Expected *os.Files; Got %v\n", f)
+	}
+	_ = os.Remove("access.log")
+
+	f = openAccessLogFile("/no permissions")
+	if f != nil {
+		t.Errorf("Expected nil; Got %v\n", f)
+	}
+
+	f = openAccessLogFile("/tmp/test.log")
+	if f == nil {
+		t.Errorf("Expected type *os.File; Got nil\n")
+	}
+	_ = os.Remove("/tmp/test.log")
+}
+
+func TestOpenErrorLog(t *testing.T) {
+	// Make it set default name
+	expect := "error.log"
+	_ = openErrorLogFile("")
+	if _, err := os.Stat(expect); os.IsNotExist(err) {
+		t.Errorf("Expected default name error.log; Got %v\n", err)
+	}
+
+	_ = os.Remove(expect)
+
+	e := openErrorLogFile("/no permissions")
+	if e == nil {
+		t.Errorf("Expected %v; Got nil\n", e)
+	}
+
+	expect = "/tmp/test.log"
+	e = openErrorLogFile(expect)
+	if e != nil {
+		t.Errorf("Expected type nil; Got err %v\n", e)
+	}
+	_ = os.Remove(expect)
+}
+
+func TestRollLog(t *testing.T) {
+	testFile := "/tmp/foo.log"
+	_, e := os.Create(testFile)
+	if e != nil {
+		t.Errorf("Failed to create %v; Got err %v\n", testFile, e)
+	}
+
+	f, e := rollLogIfExists(testFile)
+	if e != nil {
+		t.Errorf("Failed to roll log %v; Got err %v\n", testFile, e)
+	}
+	_ = os.Remove(testFile)
+
+	if f == testFile {
+		t.Errorf("Expected new file name; Got %v\n", f)
+	}
+	_ = os.Remove(f)
+
+	return
+}
+
+func TestInitEnv(t *testing.T) {
+	os.Setenv("HTTP_IP_ADDR", "0.0.0.0")
+	os.Setenv("HTTP_IP_PORT", "10000")
+	os.Setenv("HTTP_READ_TIMEOUT", "60")
+	os.Setenv("HTTP_WRITE_TIMEOUT", "30")
+	os.Setenv("HTTP_SHUTDOWN_TIMEOUT", "30")
+	os.Setenv("HTTP_LOG", "foobar.log")
+
+	a.initializeEnvironment()
+
+	expected := "0.0.0.0"
+	if httpconf.ip != expected {
+		t.Errorf("Expected IP %v; Got %v\n", expected, httpconf.ip)
+	}
+
+	expected = "10000"
+	if httpconf.port != expected {
+		t.Errorf("Expected PORT %v; Got %v\n", expected, httpconf.port)
+	}
+
+	expected = "foobar.log"
+	if httpconf.logPath != expected {
+		t.Errorf("Expected log %v; Got %v\n", expected, httpconf.logPath)
+	}
+
+	expectedInt := 60
+	if int(httpconf.readTimeout.Seconds()) != expectedInt {
+		t.Errorf("Expected read timeout %v; Got %v\n", expected, httpconf.port)
+	}
+
+	expectedInt = 30
+	if int(httpconf.shutdownTimeout.Seconds()) != expectedInt {
+		t.Errorf("Expected shutdown timeout%v; Got %v\n", expected, httpconf.port)
+	}
+
+	expectedInt = 30
+	if int(httpconf.writeTimeout.Seconds()) != expectedInt {
+		t.Errorf("Expected write timeout %v; Got %v\n", expected, httpconf.port)
+	}
+
+	os.Unsetenv("HTTP_IP_ADDR")
+	os.Unsetenv("HTTP_IP_PORT")
+	os.Unsetenv("HTTP_LOG")
+
+	// Test error path
+	os.Setenv("HTTP_READ_TIMEOUT", "A")
+	os.Setenv("HTTP_WRITE_TIMEOUT", "B")
+	os.Setenv("HTTP_SHUTDOWN_TIMEOUT", "C")
+
+	a.initializeEnvironment()
+
+	return
+}
+
+func TestJob(t *testing.T) {
+
+	// Get the list of jobs
+	req, _ := http.NewRequest("GET", JobListURL, nil)
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var jl []listJobsResponse
+	payload, e := ioutil.ReadAll(response.Body)
+	if e != nil {
+		t.Errorf("{\"error\": \"ioutil.ReadAll failed\", \"Error\": \"%v\"}", e.Error())
+	}
+
+	e = json.Unmarshal(payload, &jl)
+	if e != nil {
+		t.Errorf("jobsList Unmarsahl failed for payload %v jobs; Error %v\n", payload, e)
+	}
+
+	if len(jl) <= 0 {
+		t.Errorf("jobsList return %v jobs; Wanted 4\n", len(jl))
+		return
+	}
+
+	// Test getting a job
+	req, _ = http.NewRequest("GET", JobURL+"/"+jl[0].ID, nil)
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var jd map[string]interface{}
+	payload, e = ioutil.ReadAll(response.Body)
+	if e != nil {
+		t.Errorf("{\"error\": \"ioutil.ReadAll failed\", \"Error\": \"%v\"}", e.Error())
+	}
+
+	e = json.Unmarshal(payload, &jd)
+	if e != nil {
+		t.Errorf("jobsGet Unmarsahl failed for payload %v jobs; Error %v\n", payload, e)
+	}
+
+	// We know that the interface requires an id and a type
+	// So we can test for those
+	v, ok := jd["id"].(string)
+	if !ok {
+		t.Errorf("job id not found\n")
+	}
+	if v == "" {
+		t.Errorf("job id is required but is empty\n")
+	}
+
+	v, ok = jd["type"].(string)
+	if !ok {
+		t.Errorf("job type not found\n")
+	}
+	if v == "" {
+		t.Errorf("job type is required but is empty\n")
+	}
+
+	// Create a new job
+	nj := "{\"id\": \"\", \"url\": \"https://cat-fact.herokuapp.com/facts\", \"type\": \"\"}"
+	req, _ = http.NewRequest("POST", JobURL, strings.NewReader(nj))
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusCreated, response.Code)
+
+	if !strings.Contains(response.Body.String(), "success") {
+		t.Errorf("Create Job: expected success; Got false\n")
+	}
+
+	// Update a job
+	// It reads the UUID from Post data, may want to change that
+	uj := "{\"id\": \"" + jl[0].ID + "\", \"url\": \"https://geek-jokes.sameerkumar.website/api\", \"type\": \"\"}"
+	req, _ = http.NewRequest("PUT", JobURL+"/"+jl[0].ID, strings.NewReader(uj))
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	if !strings.Contains(response.Body.String(), "success") {
+		t.Errorf("Update Job: expected success; Got false\n")
+	}
+
+	// Delete the job
+	// The update above results in new ID, so use the second record
+	req, _ = http.NewRequest("DELETE", JobURL+"/"+jl[1].ID, nil)
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	if !strings.Contains(response.Body.String(), "success") {
+		t.Errorf("Delete Job: expected success; Got false\n")
+	}
+
+}
+
+func TestManagementGet(t *testing.T) {
+	er := "{\"commands\":[{\"name\":\"set\",\"data_type\":\"int\",\"command_type\":\"config\",\"description\":\"Sets the value of a configurable field, see fields below\"},{\"name\":\"stop_scheduler\",\"data_type\":\"string\",\"command_type\":\"command\",\"description\":\"Stops the scheduler from send new jobs\"},{\"name\":\"start_scheduler\",\"data_type\":\"string\",\"command_type\":\"command\",\"description\":\"Starts the scheduler running again.  If running has no affect\"},{\"name\":\"stop_workers\",\"data_type\":\"string\",\"command_type\":\"command\",\"description\":\"Shutdown the worker pool letting jobs inflight complete\"},{\"name\":\"start_workers\",\"data_type\":\"string\",\"command_type\":\"command\",\"description\":\"Starts the worker pool if stopped\"},{\"name\":\"shutdown\",\"data_type\":\"string\",\"command_type\":\"command\",\"description\":\"Graceful shutdown\"},{\"name\":\"shutdown_now\",\"data_type\":\"string\",\"command_type\":\"command\",\"description\":\"Hard shutdown with SIGKILL\"}],\"fields\":[\"graceful_shutdown_seconds\",\"hard_shutdown_seconds\",\"number_of_workers\",\"scheduler_channel_size\",\"result_channel_size\"]}"
+
+	req, _ := http.NewRequest("GET", ManagementURL, nil)
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	if body := response.Body.String(); body != er {
+		t.Errorf("Expected %s. Got %s", er, body)
+	}
+}
+
+//postdata5 := "{\"command\": \"shutdown\", \"field\": \"\", \"field_value\": 0}"
+//postdata6 := "{\"command\": \"shutdown_now\", \"field\": \"\", \"field_value\": 0}"
+func TestManagementPutSafe(t *testing.T) {
+	tc := make(map[string]string)
+	tc["stop_scheduler"] = "{\"command\": \"stop_scheduler\", \"field\": \"\", \"field_value\": 0}"
+	tc["start_scheduler"] = "{\"command\": \"start_scheduler\", \"field\": \"\", \"field_value\": 0}"
+	tc["stop_workers"] = "{\"command\": \"stop_workers\", \"field\": \"\", \"field_value\": 0}"
+	tc["start_workers"] = "{\"command\": \"start_workers\", \"field\": \"\", \"field_value\": 0}"
+	tc["set_graceful_shutdown"] = "{\"command\": \"set\", \"field\": \"graceful_shutdown_seconds\", \"field_value\": 5}"
+	tc["set_hard_shutdown_seconds"] = "{\"command\": \"set\", \"field\": \"hard_shutdown_seconds\", \"field_value\": 5}"
+	tc["number_of_workers"] = "{\"command\": \"set\", \"field\": \"number_of_workers\", \"field_value\": 10}"
+	tc["set_hard_shutdown_seconds0"] = "{\"command\": \"set\", \"field\": \"hard_shutdown_seconds\", \"field_value\": 0}"
+	tc["bad_command"] = "{\"command\": \"foobar\", \"field\": \"hard_shutdown_seconds\", \"field_value\": 0}"
+	tc["bad_json"] = "{\"command\": foobar, \"field\": \"hard_shutdown_seconds\", \"field_value\": 0}"
+
+	// TODO: These are not implemented in dispatcher yet
+	tc["scheduler_channel_size"] = "{\"command\": \"set\", \"field\": \"scheduler_channel_size\", \"field_value\": 10}"
+	tc["result_channel_size"] = "{\"command\": \"set\", \"field\": \"result_channel_size\", \"field_value\": 10}"
+
+	req, _ := http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["stop_scheduler"]))
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["start_scheduler"]))
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["stop_workers"]))
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["start_workers"]))
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	// 400 if already running test that next
+	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["start_workers"]))
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+	er := "{\"Status\": \"5 already running\"}"
+	if body := response.Body.String(); body != er {
+		t.Errorf("Expected %s. Got %s", er, body)
+	}
+
+	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["set_graceful_shutdown"]))
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	er = "{\"Status\": \"graceful_shutdown_seconds changed from 30 to 5\"}"
+	if body := response.Body.String(); body != er {
+		t.Errorf("Expected %s. Got %s", er, body)
+	}
+
+	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["set_hard_shutdown_seconds"]))
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+	er = "{\"Status\": \"hard_shutdown_seconds changed from 0 to 5\"}"
+	if body := response.Body.String(); body != er {
+		t.Errorf("Expected %s. Got %s", er, body)
+	}
+
+	// Set it back to 0 so we exit tests quickly
+	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["set_hard_shutdown_seconds0"]))
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	// send some bad JSON to test marshal error
+	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["bad_command"]))
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+	er = "{\"Status\": \"Command foobar not implemented\"}"
+	if body := response.Body.String(); body != er {
+		t.Errorf("Expected %s. Got %s", er, body)
+	}
+
+	// send a bad command
+	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["bad_json"]))
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusBadRequest, response.Code)
+
+	er = "{\"error\": \"json.Unmarshal failed\", \"Error\": \"invalid character 'o' in literal false (expecting 'a')\"}"
+	if body := response.Body.String(); body != er {
+		t.Errorf("Expected %s. Got %s", er, body)
 	}
 }
 
@@ -112,205 +476,4 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 		t.Errorf("Expected response code %d. Got %d\n", expected, actual)
 	}
 }
-
-// TestGetWithBadUserUUID
-// Get a users with an invalid UUID, should return 400
-// and that it is an invalid UUID
-//
-func TestGetWithBadUserUUID(t *testing.T) {
-	clearTable()
-
-	req, _ := http.NewRequest("GET",
-		"/api/v1/namespace/pavedroad.io/{{.Name}}/43ae99c9", nil)
-	response := executeRequest(req)
-
-	checkResponseCode(t, http.StatusBadRequest, response.Code)
-
-	var m map[string]string
-	json.Unmarshal(response.Body.Bytes(), &m)
-	if m["error"] != "400: invalid UUID: 43ae99c9" {
-		t.Errorf("Expected the 'error' key of the response to be set to '400: invalid UUID: 43ae99c9'. Got '%s'", m["error"])
-	}
-}
-
-// TestGetWrongUUID
-// Is a valid UUID, but with leading zeros
-// This will not be found and should return a 304
-//
-func TestGetWrongUUID(t *testing.T) {
-	clearTable()
-  nt := New{{.NameExported}}()
-  add{{.NameExported}}(nt)
-  badUid := "00000000-d01d-4c09-a4e7-59026d143b89"
-
-	statement := fmt.Sprintf({{.NameExported}}URL, badUid)
-
-	req, _ := http.NewRequest("GET", statement, nil)
-	response := executeRequest(req)
-
-	checkResponseCode(t, http.StatusNotFound, response.Code)
-}
-// TestCreate
-// Use sample data from new{{.NameExported}}JSON) to create
-// a new record.
-// TODO:
-//  need to assert tests for subattributes being present
-//
-func TestCreate{{.NameExported}}(t *testing.T) {
-	clearTable()
-
-	payload := []byte(new{{.NameExported}}JSON)
-
-	req, _ := http.NewRequest("POST", "/api/v1/namespace/pavedroad.io/{{.Name}}", bytes.NewBuffer(payload))
-	response := executeRequest(req)
-
-	checkResponseCode(t, http.StatusCreated, response.Code)
-
-	var m map[string]interface{}
-	//var md map[string]interface{}
-	json.Unmarshal(response.Body.Bytes(), &m)
-
-	//Test we can decode the data
-	cs, ok := m["created"].(string)
-	if ok {
-		c, err := time.Parse(time.RFC3339, cs)
-		if err != nil {
-			t.Errorf("Parse failed on parse created time Got '%v'", c)
-		}
-	} else {
-		t.Errorf("Expected created of string type Got '%v'", reflect.TypeOf(m["Created"]))
-	}
-
-	us, ok := m["updated"].(string)
-	if ok {
-		u, err := time.Parse(time.RFC3339, us)
-		if err != nil {
-			t.Errorf("Parse failed on parse updated time Got '%v'", u)
-		}
-	} else {
-		t.Errorf("Expected updated of string type Got '%v'", reflect.TypeOf(m["Updated"]))
-	}
-}
-
-func TestMarshall{{.NameExported}}(t *testing.T) {
-	nt := New{{.NameExported}}()
-	_, err := json.Marshal(nt)
-	if err != nil {
-		t.Errorf("Marshal of {{.NameExported}} failed: Got '%v'", err)
-	}
-}
-
-// add{{.NameExported}}
-// Inserts a new user into the database and returns the UUID
-// for the record that was created
-//
-func add{{.NameExported}}(t *{{.Name}}) (string) {
-
-  statement := fmt.Sprintf("INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.Name}}UUID", new{{.NameExported}}JSON)
-  rows, er1 := a.DB.Query(statement)
-
-	if er1 != nil {
-		log.Printf("Insert failed error %s", er1)
-		return ""
-	}
-
-	defer rows.Close()
-
-  for rows.Next() {
-    err := rows.Scan(&t.{{.NameExported}}UUID)
-    if err != nil {
-      return ""
-    }
-  }
-
-  return t.{{.NameExported}}UUID
-}
-
-// New{{.NameExported}}
-// Create a new instance of {{.NameExported}}
-// Iterate over the struct setting random values
-// 
-func New{{.NameExported}}() (t *{{.Name}}) {
-	var n {{.Name}}
-  json.Unmarshal([]byte(new{{.NameExported}}JSON), &n) 
-	return &n
-}
-
-//test getting a {{.Name}}
-func TestGet{{.NameExported}}(t *testing.T) {
-	clearTable()
-	nt := New{{.NameExported}}()
-	uid := add{{.NameExported}}(nt)
-	statement := fmt.Sprintf({{.NameExported}}URL, uid)
-
-	req, err := http.NewRequest("GET", statement, nil)
-  if err != nil {
-		panic(err)
-  }
-
-	response := executeRequest(req)
-
-	checkResponseCode(t, http.StatusOK, response.Code)
-}
-// TestUpdate{{.NameExported}}
-func TestUpdate{{.Name}}(t *testing.T) {
-	clearTable()
-	nt := New{{.NameExported}}()
-	uid := add{{.NameExported}}(nt)
-
-	statement := fmt.Sprintf({{.NameExported}}URL, uid)
-	req, _ := http.NewRequest("GET", statement, nil)
-	response := executeRequest(req)
-
-	json.Unmarshal(response.Body.Bytes(), &nt)
-
-	ut := nt
-
-	//Update the new struct
-	//ut.Active = "eslaf"
-
-	jb, err := json.Marshal(ut)
-	if err != nil {
-		panic(err)
-	}
-
-	req, _ = http.NewRequest("PUT", statement, strings.NewReader(string(jb)))
-	response = executeRequest(req)
-
-	checkResponseCode(t, http.StatusOK, response.Code)
-
-	var m map[string]interface{}
-	json.Unmarshal(response.Body.Bytes(), &m)
-
-//	if m["active"] != "eslaf" {
-//		t.Errorf("Expected active to be eslaf. Got %v", m["active"])
-//	}
-}
-
-func TestDelete{{.Name}}(t *testing.T) {
-	clearTable()
-	nt := New{{.NameExported}}()
-	uid := add{{.NameExported}}(nt)
-
-	statement := fmt.Sprintf({{.NameExported}}URL, uid)
-	req, _ := http.NewRequest("DELETE", statement, nil)
-	response := executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
-
-	req, _ = http.NewRequest("GET", statement, nil)
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusNotFound, response.Code)
-}
-
-/*
-func TestDump{{.NameExported}}(t *testing.T) {
-	nt := New{{.NameExported}}()
-
-  err := dumpUser(*nt)
-
-	if err != nil {
-		t.Errorf("Expected erro to be nill. Got %v", err)
-	}
-}
-*/
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

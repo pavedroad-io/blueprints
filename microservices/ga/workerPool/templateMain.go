@@ -60,7 +60,7 @@ type {{.NameExported}}App struct {
 	Dispatcher dispatcher
 
 	// Scheduler creates and forwards jobs to dispatcher
-	Scheduler  Scheduler
+	Scheduler Scheduler
 
 	// Live http server is start
 	Live bool
@@ -76,13 +76,13 @@ type {{.NameExported}}App struct {
 
 // HTTP server configuration
 type httpConfig struct {
-	ip							string
-	port						string
+	ip              string
+	port            string
 	shutdownTimeout time.Duration
-	readTimeout			time.Duration
-	writeTimeout		time.Duration
-	listenString		string
-	logPath					string
+	readTimeout     time.Duration
+	writeTimeout    time.Duration
+	listenString    string
+	logPath         string
 	diagnosticsFile string
 	accessFile      string
 }
