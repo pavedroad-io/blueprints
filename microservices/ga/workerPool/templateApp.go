@@ -66,7 +66,7 @@ func (a *{{.NameExported}}App) Initialize() {
 func (a *{{.NameExported}}App) Run(addr string) {
 
 	log.Println("Listing at: " + addr)
-	// Wrap router with w3C logging
+	// Wrap router with W3C logging
 
 	lf, _ := os.OpenFile("logs/access.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
 
@@ -119,10 +119,10 @@ func (a *{{.NameExported}}App) initializeEnvironment() {
 	envVar = os.Getenv("HTTP_READ_TIMEOUT")
 	if envVar != "" {
 		to, err := strconv.Atoi(envVar)
-		if err == nil {
+		if err != nil {
 			log.Printf("failed to convert HTTP_READ_TIMEOUT: %s to int", envVar)
 		} else {
-			httpconf.readTimeout = time.Duration(to) * time.Second
+			httpconf.readTimeout = (time.Second * time.Duration(to))
 		}
 		log.Printf("Read timeout: %d", httpconf.readTimeout)
 	}
@@ -130,7 +130,7 @@ func (a *{{.NameExported}}App) initializeEnvironment() {
 	envVar = os.Getenv("HTTP_WRITE_TIMEOUT")
 	if envVar != "" {
 		to, err := strconv.Atoi(envVar)
-		if err == nil {
+		if err != nil {
 			log.Printf("failed to convert HTTP_READ_TIMEOUT: %s to int", envVar)
 		} else {
 			httpconf.writeTimeout = time.Duration(to) * time.Second
@@ -143,9 +143,9 @@ func (a *{{.NameExported}}App) initializeEnvironment() {
 		if envVar != "" {
 			to, err := strconv.Atoi(envVar)
 			if err != nil {
-				httpconf.shutdownTimeout = time.Second * time.Duration(to)
+				log.Printf("failed to convert HTTP_SHUTDOWN_TIMEOUT: %s to int", envVar)
 			} else {
-				httpconf.shutdownTimeout = time.Second * httpconf.shutdownTimeout
+				httpconf.shutdownTimeout = time.Second * time.Duration(to)
 			}
 			log.Println("Shutdown timeout", httpconf.shutdownTimeout)
 		}
@@ -307,7 +307,7 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
 	// Pre-processing hook
 	listJobsPreHook(w, r, count, start)
 
-	 jl, e := a.Scheduler.GetScheduledJobs()
+	jl, e := a.Scheduler.GetScheduledJobs()
 
 	if e != nil {
 		respondWithError(w, http.StatusInternalServerError, e.Error())
@@ -329,27 +329,6 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
 
 // TODO: decide do kill it or do something with it
 func (a *{{.NameExported}}App) listSchedule(w http.ResponseWriter, r *http.Request) {
-
-	count, _ := strconv.Atoi(r.FormValue("count"))
-	start, _ := strconv.Atoi(r.FormValue("start"))
-
-	if count > 10 || count < 1 {
-		count = 10
-	}
-	if start < 0 {
-		start = 0
-	}
-
-	// Pre-processing hook
-	listSchedulePreHook(w, r, count, start)
-
-	  /*
-	jl, e := a.Scheduler.GetSchedule()
-	*/
-
-	// Post-processing hook
-	listSchedulePostHook(w, r)
-
 	respondWithJSON(w, http.StatusOK, "{}")
 }
 
@@ -426,10 +405,11 @@ func (a *{{.NameExported}}App) getLiveness(w http.ResponseWriter, r *http.Reques
 	getLivenessPreHook(w, r)
 
 	if !a.Live {
-		respondWithError(w, http.StatusServiceUnavailable, "{\"Live\": false}")
+		respondWithByte(w, http.StatusServiceUnavailable, []byte("{\"Live\": false}"))
+		return
 	}
 
-	respondWithJSON(w, http.StatusOK, a.Live)
+	respondWithByte(w, http.StatusOK, []byte("{\"Live\": true}"))
 }
 
 {{.GetSwaggerDoc}}
@@ -449,10 +429,11 @@ func (a *{{.NameExported}}App) getReadiness(w http.ResponseWriter, r *http.Reque
 	getReadinessPreHook(w, r)
 
 	if !a.Ready {
-		respondWithError(w, http.StatusServiceUnavailable, "{\"Ready\": false}")
+		respondWithByte(w, http.StatusServiceUnavailable, []byte("{\"Ready\": false}"))
+		return
 	}
 
-	respondWithJSON(w, http.StatusOK, a.Ready)
+	respondWithByte(w, http.StatusOK, []byte("{\"Ready\": true}"))
 }
 
 {{.GetSwaggerDoc}}
@@ -539,7 +520,8 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 	e = json.Unmarshal(payload, &requestedCommand)
 	if e != nil {
 		msg := fmt.Sprintf("{\"error\": \"json.Unmarshal failed\", \"Error\": \"%v\"}", e.Error())
-		respondWithByte(w, http.StatusInternalServerError, []byte(msg))
+		respondWithByte(w, http.StatusBadRequest, []byte(msg))
+		return
 	}
 
 	status, respBody, e := a.Dispatcher.ProcessManagementRequest(requestedCommand)
@@ -558,7 +540,6 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 
 	// Special case for shutting down
 	if requestedCommand.Command == "shutdown" {
-		// Give it 1 second to be sent
 		time.Sleep(time.Duration(a.Dispatcher.conf.gracefulShutdown) * time.Second)
 		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
 	}
@@ -566,7 +547,6 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 	// Special case for hard kill
 	// We've sent the reply
 	if requestedCommand.Command == "shutdown_now" {
-		// Give it 1 second to be sent
 		time.Sleep(time.Duration(a.Dispatcher.conf.hardShutdown) * time.Second)
 		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
 	}
@@ -703,8 +683,8 @@ func (a *{{.NameExported}}App) createSchedule(w http.ResponseWriter, r *http.Req
 
 	// Post-processing hook
 	createSchedulePostHook(w, r)
-
-	respondWithByte(w, status, respBody)
+	// We are using update that will return a 200, change status to a 201
+	respondWithByte(w, http.StatusCreated, respBody)
 }
 
 {{.PutSwaggerDoc}}
@@ -798,41 +778,43 @@ func openAccessLogFile(accesslogfile string) *os.File {
 
 	if accesslogfile == "" {
 		accesslogfile = "access.log"
-		log.Println("Access log file name not declared using errors.log")
+		log.Println("Access log file name not declared using access.log")
 	}
 
-	rollLogIfExists(accesslogfile)
+	_, _ = rollLogIfExists(accesslogfile)
 
 	lf, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
 
 	if err != nil {
-		log.Fatal("Error opening access log file: os.OpenFile:", err)
+		log.Println("Error opening access log file: os.OpenFile:", err)
 		return nil
 	}
 
 	return lf
 }
 
-func openErrorLogFile(errorlogfile string) {
+func openErrorLogFile(errorlogfile string) error {
 	if errorlogfile == "" {
-		errorlogfile = "errors.log"
+		errorlogfile = "error.log"
 		log.Println("Error log file name not declared using errors.log")
 	}
 
-	rollLogIfExists(errorlogfile)
+	_, _ = rollLogIfExists(errorlogfile)
 
 	lf, err := os.OpenFile(errorlogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
 
 	if err != nil {
-		log.Fatal("Error opening error log file: os.OpenFile:", err)
+		log.Println("Error opening error log file: os.OpenFile:", err)
+		return err
 	}
 	log.SetOutput(lf)
+	return nil
 }
 
-func rollLogIfExists(logfilename string) {
+func rollLogIfExists(logfilename string) (string, error) {
 
 	if _, err := os.Stat(logfilename); os.IsNotExist(err) {
-		return
+		return "", err
 	}
 	var newFileName string
 	tn := time.Now()
@@ -846,10 +828,12 @@ func rollLogIfExists(logfilename string) {
 
 	err := os.Rename(logfilename, newFileName)
 	if err != nil {
-		log.Printf("Rename logfile %v to %v failed with error %v\n",
+		msg := fmt.Sprintf("Rename logfile %v to %v failed with error %v\n",
 			logfilename, newFileName, err.Error())
+		log.Printf(msg)
+		return "", err
 	}
 
-	return
+	return newFileName, nil
 
 }{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

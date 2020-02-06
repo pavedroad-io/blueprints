@@ -13,8 +13,8 @@ ARTIFACTS := $(PROJDIR)/artifacts
 BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
-GITTEST := .git/HEAD
 FOSSATEST := .fossa.ymml
+PREFLIGHT := .pr_preflight_check
 
 # Go related variables.
 GOBASE := $(shell cd ../../;pwd)
@@ -188,12 +188,10 @@ $(DOCS):
 $(LOGS):
 	$(shell mkdir -p $(LOGS))
 
-$(GITTEST):
-	@echo "git init"
-	git init
-	git add README.md
-	git commit -m "initial commit"
-	git tag -a {{.Version}} -m "Initial Commit for version: {{.Version}}"
+## Preflight ensure all requirements are met
+## Once they are the $(PREFLIGH) file will be created
+$(PREFLIGHT):
+	dev/preflight.sh
 
 {{.FossaBuildSection}}
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

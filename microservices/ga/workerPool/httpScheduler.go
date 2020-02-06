@@ -4,9 +4,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
-	"log"
 	"os"
 	"sync"
 	"time"
@@ -25,33 +25,33 @@ const (
 
 // Metrics constants
 const (
-	schedulerIterations							= "scheduler_iterations"
-	jobsSent												= "jobs_sent"
-	jobListSize											= "job_list_size"
-	resultsReceived									= "results_received"
-	currentJobChannelUtilization		= "current_job_channel_utilization"
-	currentJobChannelCapacity				= "current_job_channel_capacity"
+	schedulerIterations             = "scheduler_iterations"
+	jobsSent                        = "jobs_sent"
+	jobListSize                     = "job_list_size"
+	resultsReceived                 = "results_received"
+	currentJobChannelUtilization    = "current_job_channel_utilization"
+	currentJobChannelCapacity       = "current_job_channel_capacity"
 	currentResultChannelUtilization = "current_result_channel_utilization"
-	currentResultChannelCapacit			= "current_result_channel_capacity"
-	numberOfJobTimedOut							= "number_of_jobs_sent"
-	averageJobProcessingTime				= "average_job_processing_time"
+	currentResultChannelCapacit     = "current_result_channel_capacity"
+	numberOfJobTimedOut             = "number_of_jobs_sent"
+	averageJobProcessingTime        = "average_job_processing_time"
 )
 
 type httpScheduler struct {
-	jobList								[]*httpJob
-	schedulerJobChan			chan Job			 // Channel to read jobs from
-	schedulerResponseChan chan Result		 // Channel to write repose to
-	schedulerDone					chan bool			 // Shutdown initiated by application
-	schedulerInterrupt		chan os.Signal // Shutdown initiated by OS
-	metrics								httpSchedulerMetrics
-	mux										*sync.Mutex
-	schedule							httpSchedule
+	jobList               []*httpJob
+	schedulerJobChan      chan Job       // Channel to read jobs from
+	schedulerResponseChan chan Result    // Channel to write repose to
+	schedulerDone         chan bool      // Shutdown initiated by application
+	schedulerInterrupt    chan os.Signal // Shutdown initiated by OS
+	metrics               httpSchedulerMetrics
+	mux                   *sync.Mutex
+	schedule              httpSchedule
 }
 
 // httpSchedule holds the type of scheduler and it's configuration
 
 type httpSchedule struct {
-	ScheduleType				string `json:"schedule_type"`
+	ScheduleType        string `json:"schedule_type"`
 	SendIntervalSeconds int64  `json:"send_interval_seconds"`
 	ResponseTimeJobs    int    `json:"response_time_jobs"`
 }
@@ -59,10 +59,10 @@ type httpSchedule struct {
 // httpSchedulerMetrics hold metrics about the Scheduler, Jobs, and Results
 // We export attributes we want included in the JSON output
 type httpSchedulerMetrics struct {
-	StartTime time.Time				`json:"start_time"`
-	UpTime		time.Duration		`json:"up_time"`
-	Counters	map[string]int	`json:"counters"`
-	mux				*sync.Mutex
+	StartTime time.Time      `json:"start_time"`
+	UpTime    time.Duration  `json:"up_time"`
+	Counters  map[string]int `json:"counters"`
+	mux       *sync.Mutex
 }
 
 func (s *httpScheduler) MetricToJSON() ([]byte, error) {
@@ -118,6 +118,7 @@ func (s *httpScheduler) UpdateJobList(newJobList []*httpJob) {
 // A []listJobsResponse is a single job but returned as a list
 //
 // swagger:response listJobResponse
+// TODO: Move this to dispatcher, it is generic
 type listJobsResponse struct {
 	// in: body
 
@@ -330,7 +331,7 @@ func (s *httpScheduler) CreateSchedule(jsonBlob []byte) (httpStatusCode int, jso
 
 	msg := fmt.Sprintf("{\"Status\": \"Success\", \"New interval seconds\": %v}",
 		s.schedule.SendIntervalSeconds)
-	return http.StatusOK, []byte(msg), nil
+	return http.StatusCreated, []byte(msg), nil
 }
 
 func (s *httpScheduler) DeleteSchedule() (httpStatusCode int, jsonb []byte, err error) {
