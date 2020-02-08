@@ -28,11 +28,6 @@ spec:
             configMapKeyRef:
               name: {{.Name}}-configmap
               key: port
-        - name: APP_DB_IP
-          valueFrom:
-            configMapKeyRef:
-              name: {{.Name}}-configmap
-              key: database-ip
         name: {{.Name}}
         ports:
         - containerPort: 8081

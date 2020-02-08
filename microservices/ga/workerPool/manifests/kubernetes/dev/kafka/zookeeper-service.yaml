@@ -1,0 +1,18 @@
+{{define "manifests/kubernetes/dev/kafka/zookeeper-service.yaml"}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper
+  labels:
+    app: kafka
+    component: zookeeper
+spec:
+  ports:
+  - port: 2181
+    name: zookeeper-port
+    targetPort: 2181
+    protocol: TCP
+  selector:
+    app: kafka
+    component: zookeeper
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

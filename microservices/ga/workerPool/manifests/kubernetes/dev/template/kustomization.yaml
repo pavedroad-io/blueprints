@@ -14,7 +14,6 @@ commonAnnotations:
 configMapGenerator:
 - name: {{.Name}}-configmap
   literals:
-  - kafka-ip=kafka-ui
   - ip=0.0.0.0
   - port=8081
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

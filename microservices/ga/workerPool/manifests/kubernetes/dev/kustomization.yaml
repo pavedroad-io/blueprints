@@ -1,12 +1,19 @@
 {{ define "manifests/kubernetes/dev/kustomization.yaml"}}
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: {{.Namespace}}
+
 bases:
-  - kafka
-  - {{.Name}}
+- kafka
+- {{.Name}}
+
+resources:
+- namespace.yaml
 
 commonLabels:
   pavedroad.env: dev
 
 commonAnnotations:
   pavedroad.kustomize.base: {{.Name}}/manifests/kubernetes/dev
-  pavedroad.kustomize.bases: "{{.Name}},kafka"
-{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+  pavedroad.kustomize.bases: {{.Name}},kafka
+{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
