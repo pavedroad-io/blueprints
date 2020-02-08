@@ -19,7 +19,7 @@ PREFLIGHT := .pr_preflight_check
 # Go related variables.
 GOBASE := $(shell cd ../../;pwd)
 GOPATH := $(GOBASE)
-export GOPATH = $(GOBASE)
+export DOCKER_IP = `(dev/getdockerip.hs)`
 GOBIN := $(GOBASE)/bin
 GOFILES := $(wildcard *.go)
 GOLINT := $(shell which golint)
