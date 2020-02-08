@@ -28,4 +28,4 @@ spec:
           value: "1"
         - name: ZOOKEEPER_SERVER_1
           value: zookeeper
-{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

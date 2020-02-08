@@ -15,4 +15,4 @@ spec:
   selector:
     app: kafka
     component: kafka-broker
-{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

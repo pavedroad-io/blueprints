@@ -15,4 +15,4 @@ spec:
   selector:
     app: kafka
     component: zookeeper
-{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

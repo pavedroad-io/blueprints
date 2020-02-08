@@ -1,4 +1,3 @@
-{{define "docs/kafka.md"}}
 # Apache Kafka
 
 ## Docker via docker-compose
@@ -15,7 +14,7 @@ The script dev/getdockerip.sh can be used to set the DOCKER_IP expected by the c
 export DOCKER_IP=`(dev/getdockerip.sh)`
 
 # Start
-$ docker-compose -f manifests/kakfa.yaml up -d
+$ docker-compose -f manifests/kafka.yaml up -d
 Starting manifests_zookeeper_1 ... done
 Starting manifests_kafka_1     ... done
 
@@ -35,7 +34,7 @@ test
 $ CTRL-D
 
 # stop the service
-$ docker-compose -f manifests/kakfa.yaml down
+$ docker-compose -f manifests/kafka.yaml down
 Stopping manifests_kafka_1     ... done
 Stopping manifests_zookeeper_1 ... done
 Removing manifests_kafka_1     ... done
@@ -62,4 +61,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 ```
-{{end}}
+
+
+
+

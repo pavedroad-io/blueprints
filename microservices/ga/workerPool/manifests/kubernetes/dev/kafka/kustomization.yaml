@@ -6,4 +6,4 @@ resources:
   - kafka-broker-service.yaml
   - zookeeper-deployment.yaml
   - zookeeper-service.yaml
-{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

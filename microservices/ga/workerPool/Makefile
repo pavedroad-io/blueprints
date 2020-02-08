@@ -114,11 +114,11 @@ go-clean:
 ## check: Start services and execute static code analysis and tests
 {{.CheckBuildTarget}}
 	@echo "  >  starting kafka..."
-	docker-compose -f manifests/kakfa.yaml up -d
+	docker-compose -f manifests/kafka.yaml up -d
 	@echo "  >  running to tests..."
 	go test -coverprofile=$(GOCOVERAGE) -v ./...
 	@echo "  >  stoping kafka..."
-	docker-compose -f manifests/kakfa.yaml down
+	docker-compose -f manifests/kafka.yaml down
 
 sonar-scanner: $(ARTIFACTS)
 	sonarcloud.sh
