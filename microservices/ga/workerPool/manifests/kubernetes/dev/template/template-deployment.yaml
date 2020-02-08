@@ -28,15 +28,10 @@ spec:
             configMapKeyRef:
               name: {{.Name}}-configmap
               key: port
-        - name: APP_DB_IP
-          valueFrom:
-            configMapKeyRef:
-              name: {{.Name}}-configmap
-              key: database-ip
         name: {{.Name}}
         ports:
         - containerPort: 8081
         resources: {}
       restartPolicy: Always
 status: {}
-{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

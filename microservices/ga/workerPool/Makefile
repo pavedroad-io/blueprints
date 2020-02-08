@@ -19,7 +19,7 @@ PREFLIGHT := .pr_preflight_check
 # Go related variables.
 GOBASE := $(shell cd ../../;pwd)
 GOPATH := $(GOBASE)
-export GOPATH = $(GOBASE)
+export DOCKER_IP = `(dev/getdockerip.hs)`
 GOBIN := $(GOBASE)/bin
 GOFILES := $(wildcard *.go)
 GOLINT := $(shell which golint)
@@ -113,8 +113,12 @@ go-clean:
 
 ## check: Start services and execute static code analysis and tests
 {{.CheckBuildTarget}}
+	@echo "  >  starting kafka..."
+	docker-compose -f manifests/kafka.yaml up -d
 	@echo "  >  running to tests..."
 	go test -coverprofile=$(GOCOVERAGE) -v ./...
+	@echo "  >  stoping kafka..."
+	docker-compose -f manifests/kafka.yaml down
 
 sonar-scanner: $(ARTIFACTS)
 	sonarcloud.sh

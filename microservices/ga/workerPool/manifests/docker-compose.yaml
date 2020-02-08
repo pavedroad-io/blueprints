@@ -8,4 +8,4 @@ services:
      - "8081"
     ports: 
      - 8081:8081
-{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

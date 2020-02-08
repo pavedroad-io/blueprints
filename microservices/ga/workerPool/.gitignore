@@ -13,7 +13,6 @@
 *.out
 
 /builds/*
-/docs/*
 /vendor/*
 /volumes/*
 /artifacts/*
