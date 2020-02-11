@@ -1,0 +1,10 @@
+
+version: '3'
+
+services:
+  eventcollector:
+    image: mirantis/eventcollector
+    expose:
+     - "8081"
+    ports: 
+     - 8081:8081
