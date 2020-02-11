@@ -17,17 +17,19 @@ const (
 )
 
 // TestMain handles setup required before tests execution
-func TestMain(t *testing.T) {
+func JobTestMain() {
 	// Start a server to test against
 	http.HandleFunc(EPString, testEndPoint)
 	go startServer()
 
 	// Wait for server to start
 	time.Sleep(1 * time.Second)
+
 	return
 }
 
 func startServer() {
+	fmt.Println("start httpJob Server")
 	e := http.ListenAndServe(ServerString, nil)
 	if e != nil {
 		fmt.Println(e)
