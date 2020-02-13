@@ -27,15 +27,15 @@ const (
 )
 
 var newFilmsJSON=`{
-	"filmsuuid": "7545e80d-8758-41b0-98a8-4476da49b5ac",
-	"id": "gWAfKJvIvCYgRfD",
-	"title": "WCzeGnMuETejBkC",
-	"updated": "2019-12-18T09:33:44-08:00",
-	"created": "2019-12-18T09:33:44-08:00",
+	"filmsuuid": "2671ffe4-bf52-4cfb-b934-db2a72fd1b6f",
+	"id": "KQ6LCtga6qRG0SR",
+	"title": "RpF46YlrR5I016g",
+	"updated": "2020-02-12T12:02:13-08:00",
+	"created": "2020-02-12T12:02:13-08:00",
 	"metadata": {
-		"author": "pVncA5odR19wAdJ",
-		"genre": "ncKGOa8vkUFmoaG",
-		"rating": "Gz3QVGA1ZuAaQdt"
+		"author": "n3F2rKqEAQSkEdD",
+		"genre": "4L0SW7JKEZMg57J",
+		"rating": "TDA1JCAVZVKkfGJ"
 	}
 }`
 
@@ -176,10 +176,10 @@ func TestCreateFilms(t *testing.T) {
 	if ok {
 		c, err := time.Parse(time.RFC3339, cs)
 		if err != nil {
-			t.Errorf("Parse failed on parse creataed time Got '%v'", c)
+			t.Errorf("Parse failed on parse created time Got '%v'", c)
 		}
 	} else {
-		t.Errorf("Expected creataed of string type Got '%v'", reflect.TypeOf(m["Created"]))
+		t.Errorf("Expected created of string type Got '%v'", reflect.TypeOf(m["Created"]))
 	}
 
 	us, ok := m["updated"].(string)
