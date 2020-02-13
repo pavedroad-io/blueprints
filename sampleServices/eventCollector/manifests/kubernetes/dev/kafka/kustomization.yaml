@@ -1,9 +1,0 @@
-
-resources:
-  - kafka-deployment.yaml
-  - kafka-service.yaml
-
-configMapGenerator:
-- name: kafka-configmap
-  literals:
-  - host-ip=roach-ui
