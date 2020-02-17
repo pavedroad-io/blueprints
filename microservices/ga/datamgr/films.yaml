@@ -35,7 +35,7 @@ community:
 info:
   api-version: 1.0.0
   id: datamgr
-  name: users
+  name: films
   organization: acme-demo
   release-status: alpha
   version: 1.0.0
@@ -78,7 +78,7 @@ project:
       partitions: 3
       replication: 1
     volumes: []
-  description: Microservice for managing a back end persistent store for an object
+  description: Manage database of films
   top_level_domain: "api.pavedroad.io"
   scheduler_name: ""
   integrations:
@@ -90,7 +90,7 @@ project:
     name: fossa
     enable: true
   - sonar-cloud-config:
-      key: pavedroad-io_users
+      key: PavedRoad_films
       login: 3faaf04fd0f66a33ced5dea109847fa3dc6d40a4
       options:
         badges:
@@ -200,21 +200,23 @@ tables:
     name: created
     type: time
   parent-tables: ""
-  table-name: users
+  table-name: films
   table-type: jsonb
 - columns:
   - constraints: ""
-    mapped-name: id
+    mapped-name: author
     modifiers: ""
-    name: id
+    name: author
     type: string
-  parent-tables: users
-  table-name: metadata
-- columns:
   - constraints: ""
-    mapped-name: key
+    mapped-name: genre
     modifiers: ""
-    name: key
+    name: genre
     type: string
-  parent-tables: metadata
-  table-name: test
+  - constraints: ""
+    mapped-name: rating
+    modifiers: ""
+    name: rating
+    type: string
+  parent-tables: films
+  table-name: metadata

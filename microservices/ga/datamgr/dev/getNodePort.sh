@@ -3,12 +3,12 @@
 
 getNodePort()
 {
-  kubectl get svc $name -o json | jq '.spec.ports[0].nodePort'
+  kubectl get svc $name -n $namespace -o json | jq '.spec.ports[0].nodePort'
 }
 
 usage()
 {
-  echo "getNodePort service-name"
+  echo "getNodePort service-name namespace"
 }
 
 #### Main
@@ -19,7 +19,13 @@ then
   exit
 fi
 
-name="$1"
+if [ "$2" == "" ]
+then
+  namespace="default"
+else
+	namespace="$2"
+fi
+
 
 getNodePort
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
