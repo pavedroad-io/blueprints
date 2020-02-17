@@ -15,11 +15,16 @@ DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
 GITTEST := .git/HEAD
 FOSSATEST := .fossa.ymml
+PREFLIGHT := .pr_preflight_check
 
 # Go related variables.
 GOBASE := $(shell cd ../../;pwd)
 GOPATH := $(GOBASE)
 export GOPATH = $(GOBASE)
+
+#unexport Go modules needed if it is set true globally
+unexport GO111MODULE
+
 GOBIN := $(GOBASE)/bin
 GOFILES := $(wildcard *.go)
 GOLINT := $(shell which golint)
@@ -43,10 +48,10 @@ LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD) -X=main.GitT
 
 .PHONY: check build compile sonar-scanner
 
-all: $(GITTEST) $(FOSSATEST) compile check
+{{.AllBuildTarget}}
 
 ## compile: Compile the binary.
-compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS)
+compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc
 	@echo "  Compiling"
 	@-$(MAKE) -s build
 
@@ -58,7 +63,7 @@ clean:
 	@-$(MAKE) go-clean
 
 ## build: Build the binary for linux / mac x86 and amd
-build: go-get api-doc
+build: go-get
 	@echo "  >  Building binary..."
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
 # make this conditional on build GOARCH
@@ -112,7 +117,7 @@ go-clean:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go clean
 
 ## check: Start services and execute static code analysis and tests
-check: lint sonar-scanner $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
+{{.CheckBuildTarget}}
 	@echo "  >  Starting cockroach DB..."
 	docker-compose -f manifests/docker-db-only.yaml up -d
 	@echo "  >  Waiting cockroach DB is ready..."
@@ -123,7 +128,7 @@ check: lint sonar-scanner $(ARTIFACTS) $(LOGS) $(ASSETS) $(DOCS)
 	docker-compose -f manifests/docker-db-only.yaml down
 
 sonar-scanner: $(ARTIFACTS)
-	sonarcloud.sh
+	./sonarcloud.sh
 
 ## show-coverage: Show go code coverage in browser
 show-coverage:
@@ -146,8 +151,7 @@ lint: $(GOFILES)
 	$(shell (export GOPATH=$(GOPATH);gosec -fmt=sonarqube -tests -out $(GOSECREPORT) -exclude-dir=.templates ./...))
 	@echo "  >  running go vet... > $(GOVETREPORT)"
 	$(shell (export GOPATH=$(GOPATH);go vet ./... 2> $(GOVETREPORT)))
-	@echo "  >  running FOSSA license scan."
-	@FOSSA_API_KEY=$(FOSSA_API_KEY) fossa analyze
+{{.FossaLintSection}}
 
 ## fmt: Run gofmt on all code
 fmt: $(GOFILES)
@@ -195,13 +199,10 @@ $(DOCS):
 $(LOGS):
 	$(shell mkdir -p $(LOGS))
 
-$(GITTEST):
-	@echo "git init"
-	git init
-	git add README.md
-	git commit -m "initial commit"
-	git tag -a {{.Version}} -m "Initial Commit for version: {{.Version}}"
+## Preflight ensure all requirements are met
+## Once they are the $(PREFLIGH) file will be created
+$(PREFLIGHT):
+	dev/preflight.sh
 
-$(FOSSATEST):
-	fossa init
-{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+{{.FossaBuildSection}}
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

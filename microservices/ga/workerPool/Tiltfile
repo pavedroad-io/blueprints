@@ -1,0 +1,3 @@
+{{define "TiltFile"}}k8s_yaml(kustomize('manifests/kubernetes/dev'))
+
+docker_build('localhost:32000/{{.Organization}}/{{.Name}}', '.', dockerfile='manifests/Dockerfile'){{end}}

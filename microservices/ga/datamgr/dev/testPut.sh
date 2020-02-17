@@ -3,11 +3,12 @@
 host=127.0.0.1
 port=8081
 service="{{.Name}}"
+namespace="{{.Namespace}}"
 uuid=""
 
 getUUID()
 {
-  uuid=`curl -H "Content-Type: application/json" -s http://$host:$port/api/v1/namespace/pavedroad.io/$service"LIST" | jq -r '.[0].uuid'`
+  uuid=`curl -H "Content-Type: application/json" -s http://$host:$port/api/v1/$namespace/$namespace/$service"LIST" | jq -r '.[0].uuid'`
   echo "UUID for user test is :  $uuid"
 }
 
@@ -16,7 +17,7 @@ put()
 curl -H "Content-Type: application/json" \
      -X PUT \
      -d @$servicePutData.json \
-     -v http://$host:$port/api/v1/namespace/pavedroad.io/$service/$uuid
+     -v http://$host:$port/api/v1/namespace/$namespace/$service/$uuid
 }
 
 usage()
@@ -31,7 +32,7 @@ while [ "$1" != "" ]; do
   case $1 in
     -k | --k8s ) shift
       host="$(./getk8sip.sh)"
-      port="$(./getNodePort.sh $service)"
+      port="$(./getNodePort.sh $service $namespace)"
       echo $host
       echo $port
       ;;
