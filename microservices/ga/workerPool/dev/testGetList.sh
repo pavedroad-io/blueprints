@@ -21,7 +21,7 @@ while [ "$1" != "" ]; do
   case $1 in
     -k | --k8s ) shift
       host="$(./getk8sip.sh)"
-      port="$(./getNodePort.sh $service)"
+      port="$(./getNodePort.sh $service $namespace)"
       ;;
   -h | --help ) usage
     exit
