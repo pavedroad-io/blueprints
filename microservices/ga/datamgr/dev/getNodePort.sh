@@ -19,6 +19,8 @@ then
   exit
 fi
 
+name="$1"
+
 if [ "$2" == "" ]
 then
   namespace="default"

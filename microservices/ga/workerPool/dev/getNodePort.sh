@@ -19,6 +19,8 @@ then
   exit
 fi
 
+name="$1"
+
 if [ "$2" == "" ]
 then
   namespace="default"
@@ -28,4 +30,4 @@ fi
 
 
 getNodePort
-{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}
