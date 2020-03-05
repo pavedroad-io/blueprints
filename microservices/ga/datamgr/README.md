@@ -2,7 +2,10 @@
 # Working with your new {{.NameExported}} microservice
 
 ## git
-The build system requires git source code management.  If the directory you choose to generate your service is not under git control, do the following after executing your template.
+The build system requires git source code management.
+If the directory you choose to generate your service is not under git control,
+do the following after executing your template:
+
     git init
     vi .gitignore
     # add .templates/*
@@ -13,32 +16,38 @@ The build system requires git source code management.  If the directory you choo
 ### Versioning information
 The make file sets three versioning variables; VERSION, BUILD, and GIT_TAG.  These are passed go the go compiler and printed when the -v flag is passed on the command line.  Output is formatted as JSON.
 
-    films -v
+    $ films -v
     {"Version": "1.0.0", "Build": "8755e7f", "GitTag": "v0.0alpha"}
 
 VERSION := 1.0.0
 ----------------
-The version variable is set based on the value you enter in your definitions file
+The version variable is set based on the value you enter in your definitions file.
 
 BUILD := $(shell git rev-parse --short HEAD)
 --------------------------------------------
-The build is set to the commit id of your current HEAD
+The build is set to the commit ID of your current git HEAD.
 
 GIT_TAG := $(shell git describe)
 --------------------------------
 GIT_TAG set using the most recent tag if any.  You can add a tag with:
+
     git tag -a "mytag" -m "message about the tag."
 Git push doesn't include tags.  To push tags to the origin use:
+
     git push origin --tag
 
 ## roadctl
-The roadctl is modeled after kubectl. Use roadctl help for a list of top
-level commands.  This may be different for a specific command or it's 
-sub-commands.
+The roadctl command is modeled after kubectl.
+Use "roadctl help" for a list of top level commands.
+This may be different for a specific command or it's sub-commands.
 
 ### Top level help
-roadctl help
-roadctl allows you to work with the PavedRoad CNCF low-code environment and the associated CI/CD pipeline
+    roadctl help
+
+General help output:
+
+```
+roadctl allows you to work with the PavedRoad CNCF low-code environment and the associated CI
 
   Usage: roadctl [command] [TYPE] [NAME] [flags]
 
@@ -46,62 +55,76 @@ roadctl allows you to work with the PavedRoad CNCF low-code environment and the 
   NAME is the name of a resource
   flags specify options
 
-    Usage:
-      roadctl [command]
-    
-    Available Commands:
-      apply       Apply configuration to named resource
-      config      manage roadctl global configuration options
-      create      create a new resource
-      delete      delete a resource
-      deploy      deploy a service
-      describe    describe provides detailed information about a resource
-      doc         Generate documentation for your service
-      edit        edit the configuration for the specified resource
-      events      View events
-      explain     return documentation about a resource
-      get         get an existing object
-      help        Help about any command
-      logs        return logs for a resource
-      replace     Delete and recreate the named resource
-      version     Print the current version
-    
-    Flags:
-          --config string   Config file (default is $HOME/.roadctl.yaml)
-          --debug string    Debug level: info(default)|warm|error|critical (default "d")
-      --format string   Output format: text(default)|json|yaml (default "f")
-  -h, --help            help for roadctl
+Usage:
+  roadctl [command]
+
+Available Commands:
+  apply       Apply configuration to named resource
+  completion  Generate completion scripts on stdout
+  config      manage roadctl global configuration options
+  create      create a new resource
+  delete      delete a resource
+  deploy      deploy a service
+  describe    describe provides detailed information about a resource
+  doc         Generate documentation for your service
+  edit        edit the configuration for the specified resource
+  events      View events
+  explain     return documentation about a resource
+  get         get an existing object
+  help        Help about any command
+  init        Initialize roadctl development environment
+  logs        return logs for a resource
+  replace     Delete and recreate the named resource
+  version     Print the current version
+
+Flags:
+      --config string      Config file (default is $HOME/.roadctl.yaml)
+      --debug string       Debug level: info(default)|warm|error|critical (default "info")
+      --format string      Output format: text(default)|json|yaml (default "text")
+  -h, --help               help for roadctl
+      --password string    HTTP basic auth password
+      --templates string   Set the location of the directory holding roadctl templates
+      --token string       OAUTH access token
+      --user string        HTTP basic auth user name
 
 Use "roadctl [command] --help" for more information about a command.
+```
 
 ### Specific command
-roadctl get --help
+    roadctl get --help
+
+Specific help output:
+
+```
 Return summary information about an existing resource
 
 Usage:
   roadctl get [flags]
 
 Flags:
-  -h, --help          help for get
-  -i, --init          Initialize template repository
-  -r, --repo string   Change default repository for templates (default "https://github.pavedroad-io/templates")
+  -h, --help   help for get
 
 Global Flags:
-      --config string   Config file (default is $HOME/.roadctl.yaml)
-      --debug string    Debug level: info(default)|warm|error|critical (default "d")
-      --format string   Output format: text(default)|json|yaml (default "f")
+      --config string      Config file (default is $HOME/.roadctl.yaml)
+      --debug string       Debug level: info(default)|warm|error|critical (default "info")
+      --format string      Output format: text(default)|json|yaml (default "text")
+      --password string    HTTP basic auth password
+      --templates string   Set the location of the directory holding roadctl templates
+      --token string       OAUTH access token
+      --user string        HTTP basic auth user name
+```
 
 ## Generating your service
-The roadctl CLI is used to create new services.  It has two 
-fundamental concepts:
-- templates: Contain logic need to generate a service
-- definitions: Define your custom logic, integrations, 
-               and organizational information
+The roadctl CLI is used to create new services.
+It has two fundamental concepts:
 
-A sample definitions is available to help you get started
+- templates: Contain logic need to generate a service
+- definitions: Define your custom logic, integrations, and organizational information
+
+A sample definitions is available to help you get started.
 
 ### Initialize template repository
-    roadctl get templates --init
+    roadctl init
 
 ### List available templates
     roadctl get templates
@@ -109,14 +132,17 @@ A sample definitions is available to help you get started
 ### Create a copy of the sample definition
     roadctl describe templates datamgr > myservice.yaml
 
-### Get devotions of attributes in your service.yaml
-    roadctl explain templates datamgr > myservice.yaml
+Note: edit myservice.yaml to customize your create below.
+
+### Get definitions of attributes in your myservice.txt
+    roadctl explain templates datamgr > myservice.txt
 
 ### Create your microservice
-    roadctl create templates --template datamgr --definition myservice.yaml
+    roadctl create templates datamgr -f myservice.yaml
 ### Build and test
-Executing make will compilte and test your service.  Optionally, you
-can do `make compile` followed by `make check`
+Executing make will compile and test your service.
+Optionally, you can do `make compile` followed by `make check`.
+
     make
 
 ## Directories
@@ -136,10 +162,11 @@ can do `make compile` followed by `make check`
 
 ## SQL
 To get an SQL prompt, use:
-	bin/sql.sh
+
+    /bin/sql.sh
 
 ## dev/testXXXXX.sh scripts
-The following scripts work with your local docker images using 
+The following scripts work with your local docker images using
 docker-compose or with the local microk8s cluster.  By default they
 use the local docker image.  To use the microk8s cluster, use the -k
 command line option/flag.
@@ -151,51 +178,56 @@ command line option/flag.
 - dev/testGetList.sh
 
 ## make
-Use **make help** to get a list of options
-make help
+Use **make help** to get a list of options:
 
-    Choose a command run in films:
-    
-    compile         Compile the binary.
-    clean           Remove dep, vendor, binary(s), and execute go clean
-    build           Build the binary for linux / mac x86 and amd
-    deploy          Deploy image to repository and k8s cluster
-    install         Install packages or main
-    check           Start services and execute static code analysis and tests
-    show-coverage   Show go code coverage in browser
-    show-test       Show sonarcloud test report
-    show-devkit     Show documentation for Devkit
-    fmt             Run gofmt on all code
-    simplify        Run gofmt with simplify option
-    k8s-start       Start local microk8s server and update configurations
-    k8s-stop        Stop local k8s cluster and delete skaffold deployments
-    k8s-status      Print the status of the local cluster up or down
-    help            Print possible commands
+    make help
 
-## skaffold CI/CD
+Help output:
+
+```
+  Choose a command run in films:
+
+  compile         Compile the binary.
+  clean           Remove dep, vendor, binary(s), and execute go clean
+  build           Build the binary for linux / mac x86 and amd
+  deploy          Deploy image to repository and k8s cluster
+  install         Install packages or main
+  check           Start services and execute static code analysis and tests
+  show-coverage   Show go code coverage in browser
+  show-test       Show sonarcloud test report
+  show-devkit     Show documentation for Devkit
+  fmt             Run gofmt on all code
+  simplify        Run gofmt with simplify option
+  k8s-start       Start local microk8s server and update configurations
+  k8s-stop        Stop local k8s cluster and delete skaffold deployments
+  k8s-status      Print the status of the local cluster up or down
+  help            Print possible commands
+```
+
+## Skaffold CI/CD
 Skaffold is integrated into your project.  You can use the following commands:
 
 ### development mode
-Monitors source code and when it changes builds and push's a new image
+Monitors source code and when it changes builds and pushes a new image
 
 ```bash
 skaffold dev -f manifests/skaffold.yaml
 ```
 ### run
-Builds and push image once when executed
+Build and push the image when executed
 
 ```bash
 skaffold run -f manifests/skaffold.yaml
 ```
-  
+
 ### delete
 Deletes all deployed resources
 
 ```bash
 skaffold delete -f manifests/skaffold.yaml
 ```
-  
-## Linter's
+
+## Linters
 Three lint applications are integrated to assist in code reviews.
 
 - Go lint checks for conformance with effective go programming recommendations and Go code review suggestions.
@@ -241,7 +273,7 @@ the following tools are included:
 
 Support for SonarCloud is pre-integrated in the generated Makefile.
 
-You need to set a valid sonarcloud token before executing make in 
+You need to set a valid sonarcloud token before executing make in
 your .bashrc file:
 
 export SONARCLOUD_TOKEN=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -277,7 +309,7 @@ export FOSSA_API_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXX
 
 Go to https://app.fossa.com.  Then login with your GitHub account.
 
-Next, go to https://app.fossa.com/account/settings/integrations/api_tokens.  
+Next, go to https://app.fossa.com/account/settings/integrations/api_tokens.
 Use the "Add another Token" button to create your token.
 
 

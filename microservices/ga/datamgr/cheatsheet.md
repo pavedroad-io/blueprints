@@ -2,11 +2,11 @@
 
 # Basic constructs
 
-                daemonsets <---> jobs <---> side cars 
+                DaemonSets <---> jobs <---> side cars 
 
        service <---> deployment <---> replicate controller <---> pod
 
-                        persistentvolumeclaims
+                        PersistentVolumeClaims
 
            ---------------- Execute on ------------------
 
@@ -14,7 +14,7 @@
 
              ---------------- Storage ------------------
 
-                         persistentvolumes
+                          PersistentVolumes
              
            ---------------- Managed by  ------------------
 
@@ -34,7 +34,7 @@
 
 - [Replicate controller](https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/) manages scaling pods to the desired number specified
 
-- [pods](https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/) Support running stateless conainers
+- [pods](https://kubernetes.io/docs/concepts/workloads/pods/pod-overview/) Support running stateless containers
 
 -
 
@@ -60,10 +60,10 @@
 
 # Resources
 
-Can be accessed using their short name or full name.  Multiple resources can be requested depending on the kubernetes service/control being used.
+Can be accessed using their short name or full name.  Multiple resources can be requested depending on the Kubernetes service/control being used.
 
 ```bash
-kubectl get po,deploy,svc 
+kubectl get pod,deploy,svc 
 ```
 
 |Short Name   	|Full Name   	|Short Name   	| Full Name   	|
@@ -71,7 +71,7 @@ kubectl get po,deploy,svc
 |csr  |certificatesigningrequests |cs |componentstatuses|
 |cm  |configmaps  |ds |daemonsets |
 |deploy |deployments  |ep |endpoints|
-|ev |evnets  |hpa |horizontalpodautoscalers|
+|ev |events  |hpa |horizontalpodautoscalers|
 |ing |ingresses  |limits |limitranges|
 |no |nodes  |ns |namespaces|
 |pvc |persistentvolumeclaims  |pv |persistentvolumes|
@@ -158,7 +158,7 @@ status: {}
 $ kubectl create -f dnsutil.yaml 
 pod/dnsutils created
 
-$ kubectl get po -o wide
+$ kubectl get pod -o wide
 NAME                        READY   STATUS    RESTARTS   AGE    IP           NODE     NOMINATED NODE   READINESS GATES
 dnsutils-74bdc55779-zbf5r   1/1     Running   0          5m1s   10.1.1.167   ubuntu   <none>           <none>
 
@@ -177,7 +177,7 @@ $ kubectl logs dnsutils-74bdc55779-zbf5r
 ```bash
 $ kubectl logs -f dnsutils-74bdc55779-zbf5r
 
-CTRL-C to exit
+Ctrl-C to exit
 ```
 
 # Get logs from prior instance of container
@@ -187,7 +187,7 @@ $ kubectl logs -p dnsutils-74bdc55779-zbf5r
 
 # Get detailed pod history
 ```bash
-$ kubectl get po -o yaml
+$ kubectl get pod -o yaml
 apiVersion: v1
 items:
 - apiVersion: v1
@@ -234,7 +234,7 @@ items:
 
 # Get just the container status
 ```bash
-$ kubectl get po -o json | jq ".items[0].status.containerStatuses"
+$ kubectl get pod -o json | jq ".items[0].status.containerStatuses"
 [
   {
     "containerID": "containerd://35f035e758ba069a41067306b93fd7e94e6d49959951ced1b2db655f3423a593",
@@ -254,9 +254,9 @@ $ kubectl get po -o json | jq ".items[0].status.containerStatuses"
 ]
 ```
 
-# Get just the lifecyle events
+# Get just the life cycle events
 ```bash
-$ kubectl get po -o json | jq ".items[0].status.conditions"
+$ kubectl get pod -o json | jq ".items[0].status.conditions"
 [
   {
     "lastProbeTime": null,
@@ -285,11 +285,11 @@ $ kubectl get po -o json | jq ".items[0].status.conditions"
 ]
 ```
 
-## Getting specific colums and sorting
+## Getting specific columns and sorting
 
 ### Note -A options includes all namespaces
 ```bash
-$ kubectl get po -o wide --sort-by=.spec.nodeName -A
+$ kubectl get pod -o wide --sort-by=.spec.nodeName -A
 NAMESPACE            NAME                                   READY   STATUS    RESTARTS   AGE   IP           NODE     NOMINATED NODE   READINESS GATES
 container-registry   registry-6c99589dc-vtwwp               1/1     Running   97         73d   10.1.1.155   ubuntu   <none>           <none>
 default              dnsutils-74bdc55779-zbf5r              1/1     Running   0          28m   10.1.1.167   ubuntu   <none>           <none>
@@ -321,8 +321,8 @@ ubuntu   Ready    <none>   77d   v1.16.3   192.168.150.146   <none>        Ubunt
 Use run command with --tail to watch the deployment progress
 
 ### Note: You need to run make before executing skaffold run
-### Run will build the docker containers.  That requies a copy
-### of the films microserice in the local directory.  Make
+### Run will build the docker containers.  That requires a copy
+### of the films microservice in the local directory.  Make
 ### will ensure that happens
 
 ```bash
@@ -376,7 +376,7 @@ $
 
 ## Get summary information for deployment
 Here we ask for status of the pods, deployments, and services.  This does
-not show our backend database, it uses different labels and selectors.
+not show our back end database, it uses different labels and selectors.
 
 You can ask for the service and deployments using just the name, aka films.
 Since the pods each have a unique hash, it won't match.  Using the label
@@ -384,7 +384,7 @@ selector always works.
 
 
 ```bash
-$ kubectl get po,svc,deploy -l pavedroad.service=films
+$ kubectl get pod,svc,deploy -l pavedroad.service=films
 NAME                        READY   STATUS    RESTARTS   AGE
 pod/films-7b47d6bdb-gzpf4   1/1     Running   0          35s
 pod/films-7b47d6bdb-k8bgs   1/1     Running   0          35s
@@ -417,7 +417,7 @@ Note: There is no service deploy.  That means access external
       to the cluster is not allowed.
 
 ```bash
-$ kubectl get po,svc,deploy -l pavedroad.service=roach-ui
+$ kubectl get pod,svc,deploy -l pavedroad.service=roach-ui
 NAME                            READY   STATUS    RESTARTS   AGE
 pod/roach-ui-5fd4c76975-hplk5   1/1     Running   0          10m
 
@@ -450,7 +450,7 @@ What to look for?
 Next, use describe on one of the containers
 
 ```bash
-$ kubectl describe po films-7b47d6bdb-gzpf4
+$ kubectl describe pod films-7b47d6bdb-gzpf4
 Name:         films-7b47d6bdb-gzpf4
 Namespace:    default
 Priority:     0
@@ -506,9 +506,9 @@ root@films-7b47d6bdb-gzpf4:/pavedroad/logs# CTRL-D
 ```
 ## Manifest
 
-All docker, docker-compose, and kubernetes manifest are located in 
-the manifests directory. The kubernetes folder has directories for
-each defined enviornment: dev, staging, test, and production.
+All docker, docker-compose, and Kubernetes manifests are located in 
+the manifests directory. The Kubernetes folder has directories for
+each defined environment: dev, staging, test, and production.
 
 ```
 manifests/
@@ -535,18 +535,18 @@ manifests/
 ```
 
 ## Skaffold manifest
-In addtion to api and kind, there aer two major sections build and deploy.
+In addition to api and kind, there are two major sections build and deploy.
 
 Build:
 
-Build provides a list of repositories, and a list of artfacts. Each artifact
+Build provides a list of repositories, and a list of artifacts. Each artifact
 points to a docker file and includes the repository server to publish to.
 
 It can also includes a tagPolicy, if omitted, the git commit hash is used.
 
 Deploy:
 
-Deployments are made using kustomize and kubectl.  Details on kustomzie follow
+Deployments are made using kustomize and kubectl.  Details on kustomize follow
 below.
 
 ```bash
@@ -570,7 +570,7 @@ deploy:
 ```
 
 # Kustomize
-The top level of each enviornment contains a kustomization.yaml.  
+The top level of each environment contains a kustomization.yaml.  
 The top kustomization.yaml file also include a list of other locations
 needed to build this deployment.  Each of those locations can define
 there own kustomization.yaml file.  Those locations can be:
@@ -603,7 +603,7 @@ it will process.  Manifests will not be included, even if the are in the
 directory, if they are not listed under resources.
 
 It then includes a configMapGenerater.  This generator generates a configMap
-using the name specfied by name:.  And includes key/value pairs defined in
+using the name specified by name:.  And includes key/value pairs defined in
 the literals section.
 
 manifests/kubernetes/dev/db/kustomization.yaml
@@ -687,7 +687,7 @@ $kubectl apply -f https://k8s.io/examples/admin/dns/busybox.yaml
 pod/busybox created
 
 # Wait for pod to be ready
-$ kubectl get po busybox
+$ kubectl get pod busybox
 NAME      READY   STATUS    RESTARTS   AGE
 busybox   1/1     Running   0          97s
 
@@ -707,7 +707,7 @@ nameserver 10.152.183.10
 options ndots:5
 
 # Make sure DNS pod is running
-$ kubectl get po -n kube-system -l k8s-app=kube-dns -o wide
+$ kubectl get pod -n kube-system -l k8s-app=kube-dns -o wide
 NAME                      READY   STATUS    RESTARTS   AGE   IP           NODE     NOMINATED NODE   READINESS GATES
 coredns-f7867546d-4fh7b   1/1     Running   97         73d   10.1.1.156   ubuntu   <none>           <none>
 
@@ -800,7 +800,7 @@ Address 1: 185.199.108.153
 CTRL-D to exit
 
 # Delete the debug container
-$ kubectl delete po busybox
+$ kubectl delete pod busybox
 pod "busybox" deleted
 
 # Using dnsutils, get support for dig
@@ -836,12 +836,12 @@ root@dnsutils:/#
 CTRL-D to exit
 
 # Note STATUS == Completed, we told it as we told it --restart=Never
-$ kubectl get po
+$ kubectl get pod
 NAME       READY   STATUS      RESTARTS   AGE
 dnsutils   0/1     Completed   0          2m23s
 
 # Delete it
-$ kubectl delete po dnsutils
+$ kubectl delete pod dnsutils
 pod "dnsutils" deleted
 
 # Without --restart option
@@ -852,7 +852,7 @@ root@dnsutils-74bdc55779-52n9j:/#
 root@dnsutils-74bdc55779-52n9j:/# exit
 
 # See the pod name is different now
-$ kubectl get po
+$ kubectl get pod
 NAME                        READY   STATUS    RESTARTS   AGE
 dnsutils-74bdc55779-52n9j   1/1     Running   1          34s
 
@@ -914,7 +914,7 @@ With digest
 $ docker image ls --all --digests localhost:32000/films*
 ```
 
-Delet images by digest
+Delete images by digest
 
 ```bash
 $ docker image rm -f digest
@@ -966,14 +966,14 @@ kubectl get cm -n kube-system coredns -o json | jq '[.metadata.name, .metadata.n
 
 ### Get the first element
 ```bash
-$ kubectl get po -o json -A | jq '.items[0].metadata.name'
+$ kubectl get pod -o json -A | jq '.items[0].metadata.name'
 "registry-6c99589dc-vtwwp"
 ```
 
 ### Get the second
 
 ```bash
-$ kubectl get po -o json -A | jq '.items[1].metadata.name'
+$ kubectl get pod -o json -A | jq '.items[1].metadata.name'
 "dnsutils-74bdc55779-zbf5r"
 ```
 
@@ -981,7 +981,7 @@ $ kubectl get po -o json -A | jq '.items[1].metadata.name'
 ## Get all
 
 ```bash
-$ kubectl get po -o json -A | jq '.items[].metadata.name'
+$ kubectl get pod -o json -A | jq '.items[].metadata.name'
 "registry-6c99589dc-vtwwp"
 "dnsutils-74bdc55779-zbf5r"
 "coredns-f7867546d-4fh7b"
@@ -999,12 +999,12 @@ desired data.
 
 
 ```bash
-$ kubectl get po -o json -A | jq '.items[0:2] | .[].metadata.name'
+$ kubectl get pod -o json -A | jq '.items[0:2] | .[].metadata.name'
 "registry-6c99589dc-vtwwp"
 "dnsutils-74bdc55779-zbf5r"
 ```
 
-## Dealing with speical characters
+## Dealing with special characters
 Add quotes or brackets
 
 .["foo$"] or ."foo$"

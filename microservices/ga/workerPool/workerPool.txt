@@ -145,9 +145,9 @@ project <object>
         scheduler_name <string>
 				This templates requires the user to create a scheduler
 				that sends jobs to the dispatcher that allocates work
-				amongst the available workes.  A generic scheduler is
+				amongst the available workers.  A generic scheduler is
 				defined using Go interfaces.  This attributes maps your
-				implmentation into the worker pool pattern.
+				implementation into the worker pool pattern.
 
         description <string>
         A description of this micro service.  It is used
