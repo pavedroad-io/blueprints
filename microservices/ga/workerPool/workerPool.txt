@@ -1,7 +1,7 @@
 DESCRIPTION:
 
 The workerPool template provide a low-code environment for creating a
-micro service that implement a pool of workers using goroutines. Once
+microservice that implement a pool of workers using goroutines. Once
 you have generated your initial code, see the README.md file for more
 specifics.
 
@@ -9,7 +9,7 @@ To generate a definitions file you can use:
 
 roadctl describe templates workerPool > mydefinitions.yaml
 
-Data attributes are defined in the Tables field and tables can 
+Data attributes are defined in the Tables field and tables can
 be nested.  All records are automatically assigned a UUID that
 acts as the key.
 
@@ -39,7 +39,7 @@ info <Object>
 
 community <object>
      For Open Source projects, the community object specifies which web pages
-     and files are included into the repository.  This includes linking to 
+     and files are included into the repository.  This includes linking to
      social accounts such as slack, twitter, or linked in.
 
      description <string>
@@ -58,7 +58,7 @@ community <object>
       example, shared CI/CD templates
 
       MD5 <string>
-      An MD5 hash that is used to validate resource retrieved 
+      An MD5 hash that is used to validate resource retrieved
       via URL.
 
 
@@ -76,7 +76,7 @@ project <object>
 				Go configuration and compilation options
 
 				  namespace <string>
-					Kubernetes namespace to deploy this micro-service 
+					Kubernetes namespace to deploy this microservice
 					into, if omitted, pavedroad is used.
 
 				  liveness <string>
@@ -96,7 +96,7 @@ project <object>
 					of this service, if omitted, management is used.
 
         dependencies <array>
-        A list of images required to run this micro service.
+        A list of images required to run this microservice.
 				It includes Dockerfile options as required, and
 				configuration data.
 
@@ -133,7 +133,7 @@ project <object>
 						brokers.
 
         description <string>
-        A description of this micro service.  It is used
+        A description of this microservice.  It is used
         in CI integration's and documentation
 
         top_level_domain <string>
@@ -150,7 +150,7 @@ project <object>
 				implementation into the worker pool pattern.
 
         description <string>
-        A description of this micro service.  It is used
+        A description of this microservice.  It is used
         in CI integration's and documentation
 
         integrations <array>
@@ -158,7 +158,7 @@ project <object>
         Individual options are specific to a given integration.
         All integration's include a list of "badges" to include
         in the generated README.md and documentation files.
-        
+
           name <string>
 					The name for this integration
 
@@ -215,8 +215,8 @@ project <object>
           example, shared CI/CD templates
 
           MD5 <string>
-          An MD5 hash that is used to validate resource retrieved 
+          An MD5 hash that is used to validate resource retrieved
           via URL.
 
 tables <object>
-  Not used in this micro-service
+  Not used in this microservice

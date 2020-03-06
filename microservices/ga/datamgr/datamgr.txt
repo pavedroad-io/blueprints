@@ -1,15 +1,15 @@
 DESCRIPTION:
 
 The datamgr template provide a low-code or no-code environment
-for creating a micro service that manages a data base object.
-You customize the micro service to your use case by creating a 
+for creating a microservice that manages a data base object.
+You customize the microservice to your use case by creating a
 definitions file.
 
 To generate a definitions file you can use:
 
 roadctl describe templates datamgr > mydefinitions.yaml
 
-Data attributes are defined in the Tables field and tables can 
+Data attributes are defined in the Tables field and tables can
 be nested.  All records are automatically assigned a UUID that
 acts as the key.
 
@@ -39,7 +39,7 @@ info <Object>
 
 community <object>
      For Open Source projects, the community object specifies which web pages
-     and files are included into the repository.  This includes linking to 
+     and files are included into the repository.  This includes linking to
      social accounts such as slack, twitter, or linked in.
 
      description <string>
@@ -58,7 +58,7 @@ community <object>
       example, shared CI/CD templates
 
       MD5 <string>
-      An MD5 hash that is used to validate resource retrieved 
+      An MD5 hash that is used to validate resource retrieved
       via URL.
 
 
@@ -76,7 +76,7 @@ project <object>
 				Go configuration and compilation options
 
 				  namespace <string>
-					Kubernetes namespace to deploy this micro-service 
+					Kubernetes namespace to deploy this microservice
 					into, if omitted, pavedroad is used.
 
 				  liveness <string>
@@ -96,7 +96,7 @@ project <object>
 					of this service, if omitted, management is used.
 
         dependencies <array>
-        A list of images required to run this micro service.
+        A list of images required to run this microservice.
 				It includes Dockerfile options as required, and
 				configuration data.
 
@@ -133,7 +133,7 @@ project <object>
 						brokers.
 
         description <string>
-        A description of this micro service.  It is used
+        A description of this microservice.  It is used
         in CI integration's and documentation
 
         top_level_domain <string>
@@ -146,7 +146,7 @@ project <object>
 				Not used in this template.
 
         description <string>
-        A description of this micro service.  It is used
+        A description of this microservice.  It is used
         in CI integration's and documentation
 
         integrations <array>
@@ -154,7 +154,7 @@ project <object>
         Individual options are specific to a given integration.
         All integration's include a list of "badges" to include
         in the generated README.md and documentation files.
-        
+
           name <string>
 					The name for this integration
 
@@ -211,7 +211,7 @@ project <object>
           example, shared CI/CD templates
 
           MD5 <string>
-          An MD5 hash that is used to validate resource retrieved 
+          An MD5 hash that is used to validate resource retrieved
           via URL.
 
 tables <object>
@@ -234,7 +234,7 @@ tables <object>
     Automatically set to snake case of the name field
 
     modifiers <string>
-    JSON tag modifiers used when calling JSON Marshall 
+    JSON tag modifiers used when calling JSON Marshall
     methods
 
     name <string>

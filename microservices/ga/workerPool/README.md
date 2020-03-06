@@ -47,7 +47,7 @@ successfully executes, a ".pr_preflight_check" is created.  Until this
 file exists, Make will always attempt to run preflight.sh.
 
 If you are running a version prior to v0.6.0alpha, you may run preflight.sh
-by hand in the top level of your go micro-service package with:
+by hand in the top level of your go microservice package with:
 
 ```bash
 dev/preflight.sh
