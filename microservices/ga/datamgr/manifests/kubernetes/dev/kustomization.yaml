@@ -1,7 +1,15 @@
 {{ define "manifests/kubernetes/dev/kustomization.yaml"}}
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: {{.Namespace}}
+
 bases:
   - db
   - {{.Name}}
+
+resources:
+  - namespace.yaml
 
 commonLabels:
   pavedroad.env: dev
@@ -9,4 +17,4 @@ commonLabels:
 commonAnnotations:
   pavedroad.kustomize.base: {{.Name}}/manifests/kubernetes/dev
   pavedroad.kustomize.bases: "{{.Name}},db"
-{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}
