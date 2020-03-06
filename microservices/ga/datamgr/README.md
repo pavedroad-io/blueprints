@@ -1,20 +1,32 @@
 {{define "README.md"}}
 # Working with your new {{.NameExported}} microservice
 
-## git
-The build system requires git source code management.
-If the directory you choose to generate your service is not under git control,
-do the following after executing your template:
+## Preflighting
 
-    git init
-    vi .gitignore
-    # add .templates/*
-    # save your .gitignore
-    git add *
-    git commit
+*New in version v0.6.0alpha for roadctl*
+
+The preflight.sh script ensures that the following required components
+are installed:
+
+- An initialized git repository exists
+- The user.name and user.email are set in your git configuration
+- A GitHub Personal Access Token is available in the GH_ACCESS_TOKEN env variable
+- A .gitignore file with entries
+- An initialized templates repository
+
+It doesn't generate a git tag; pick your own. Once preflight.sh
+successfully executes, a ".pr_preflight_check" is created.  Until this
+file exists, Make will always attempt to run preflight.sh.
+
+If you are running a version prior to v0.6.0alpha, you may run preflight.sh
+by hand in the top level of your go micro-service package with:
+
+```bash
+dev/preflight.sh
+```
 
 ### Versioning information
-The make file sets three versioning variables; VERSION, BUILD, and GIT_TAG.  These are passed go the go compiler and printed when the -v flag is passed on the command line.  Output is formatted as JSON.
+The make file sets three versioning variables; VERSION, BUILD, and GIT_TAG.  These are passed go the go compiler and printed when the -v flag is passed on the command line.  Output is formatted as JSON:
 
     $ films -v
     {"Version": "1.0.0", "Build": "8755e7f", "GitTag": "v0.0alpha"}
@@ -61,19 +73,19 @@ Usage:
 Available Commands:
   apply       Apply configuration to named resource
   completion  Generate completion scripts on stdout
-  config      manage roadctl global configuration options
-  create      create a new resource
-  delete      delete a resource
-  deploy      deploy a service
-  describe    describe provides detailed information about a resource
+  config      Manage roadctl global configuration options
+  create      Create a new resource
+  delete      Delete a resource
+  deploy      Deploy a service
+  describe    Describe provides detailed information about a resource
   doc         Generate documentation for your service
-  edit        edit the configuration for the specified resource
+  edit        Edit the configuration for the specified resource
   events      View events
-  explain     return documentation about a resource
-  get         get an existing object
+  explain     Return documentation about a resource
+  get         Get an existing object
   help        Help about any command
   init        Initialize roadctl development environment
-  logs        return logs for a resource
+  logs        Return logs for a resource
   replace     Delete and recreate the named resource
   version     Print the current version
 
