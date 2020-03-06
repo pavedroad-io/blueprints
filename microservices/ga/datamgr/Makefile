@@ -14,7 +14,7 @@ BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
 GITTEST := .git/HEAD
-FOSSATEST := .fossa.ymml
+FOSSATEST := .fossa.yml
 PREFLIGHT := .pr_preflight_check
 
 # Go related variables.
@@ -36,7 +36,7 @@ GOSECREPORT := $(ARTIFACTS)/gosec.out
 GOVETREPORT := $(ARTIFACTS)/govet.out
 GOTESTREPORT := https://sonarcloud.io/dashboard?id={{.SonarPrefix}}{{.Name}}
 
-GIT_TAG := $(shell git describe)
+GIT_TAG := $(shell git describe 2> /dev/null)
 
 SHELL := /bin/bash
 
