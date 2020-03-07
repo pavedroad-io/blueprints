@@ -184,17 +184,17 @@ help: Makefile
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 	@echo
 
-## docker-build: build docker images for use with docker-compose
+## docker-build: Build docker images for use with docker-compose
 docker-build:
 	docker build -f manifests/Dockerfile -t acme-demo/users .
 	docker build -f manifests/Dockerfile -t acme-demo/usersinitdb .
 
-## up: start service using docker-compose
+## up: Start service using docker-compose
 up:
 	docker-compose -f manifests/docker-compose.yaml up -d
 
 
-## down: stop service using docker-compose
+## down: Stop service using docker-compose
 down:
 	docker-compose -f manifests/docker-compose.yaml down
 
