@@ -8,6 +8,10 @@ services:
      - "8081"
     ports: 
      - 8081:8081
+    environment:
+     - HTTP_IP_ADDR=0.0.0.0
+     - HTTP_IP_PORT=8081
+     - APP_DB_IP=manifests_roach-ui_1
   roach-ui:
     image: cockroachdb/cockroach
     command: start --insecure

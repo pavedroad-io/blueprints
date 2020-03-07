@@ -184,6 +184,20 @@ help: Makefile
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 	@echo
 
+## docker-build: Build docker images for use with docker-compose
+docker-build:
+	docker build -f manifests/Dockerfile -t acme-demo/users .
+	docker build -f manifests/Dockerfile -t acme-demo/usersinitdb .
+
+## up: Start service using docker-compose
+up:
+	docker-compose -f manifests/docker-compose.yaml up -d
+
+
+## down: Stop service using docker-compose
+down:
+	docker-compose -f manifests/docker-compose.yaml down
+
 $(ASSETS):
 	$(shell mkdir -p $(ASSETS))
 
@@ -199,8 +213,8 @@ $(DOCS):
 $(LOGS):
 	$(shell mkdir -p $(LOGS))
 
-## Preflight ensure all requirements are met
-## Once they are the $(PREFLIGH) file will be created
+# Preflight: ensure all requirements are met
+# Once they are the $(PREFLIGH) file will be created
 $(PREFLIGHT):
 	dev/preflight.sh
 

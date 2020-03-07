@@ -214,6 +214,10 @@ Help output:
   k8s-stop        Stop local k8s cluster and delete skaffold deployments
   k8s-status      Print the status of the local cluster up or down
   help            Print possible commands
+  docker-build    Build docker images for use with docker-compose
+  up              Start service using docker-compose
+  down            Stop service using docker-compose
+
 ```
 
 ## Skaffold CI/CD
