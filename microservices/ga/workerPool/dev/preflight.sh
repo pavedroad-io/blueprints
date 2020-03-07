@@ -2,24 +2,8 @@
 
 defaultDirectory="."
 prInitFile=".pr_git_initialize_file"
-ghToken="GH_ACCESS_TOKEN"
-tplDir=".templates"
 gitIgnore=".gitignore"
 preSuccess=".pr_preflight_check"
-needGHTOKEN='
-
-A GitHub Personal Access Token (PAT) is requried
-
-Please see
-
-https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
-
-then use
-
-$ export GH_ACCESS_TOKEN=your_pat
-
-before continuing
-'
 
 makeInitFile()
 {
@@ -39,19 +23,19 @@ initRepo()
 {
 	if [[ "$defaultDirectory" == "." ]]
 	then
-		git rev-parse --is-inside-work-tree
+		(git rev-parse --is-inside-work-tree > /dev/null)
 		if [ $? -eq 0 ]
 		then
-				return "already git repo"
+			exit 0
 		fi
-		git init
+		(git init > /dev/null)
 	else
-		(cd $defaultDirectory;git rev-parse --is-inside-work-tree)
+		(cd $defaultDirectory;git rev-parse --is-inside-work-tree > /dev/null)
 		if [ $? -eq 0 ]
 		then
-				return
+			exit 0
 		fi
-		(cd $defaultDirectory;git init)
+		(cd $defaultDirectory;git init > /dev/null)
 	fi
 }
 
@@ -64,6 +48,14 @@ addFile()
 		(cd $defaultDirectory;git add $prInitFile)
 	fi
   echo "adding: $prInitFile"
+}
+
+checkPreflight()
+{
+  if [[ -f "$preSuccess" ]]
+  then
+    exit 0
+  fi
 }
 
 commit()
@@ -111,60 +103,8 @@ gitCheck()
 {
 	checkUser
 	checkEmail
+	echo '{"status":"success"}' > $preSuccess
 	checkRepository
-}
-
-githubCheck()
-{
-	if [[ -z "${GH_ACCESS_TOKEN}" ]]
-	then
-				echo "$needGHTOKEN"
-				exit -1
-	else
-				return
-	fi
-}
-
-initTemplates()
-{
-	if [[ "$defaultDirectory" == "." ]]
-	then
-		if [ ! -d "$tplDir" ] 
-		then
-			roadctl get templates --init
-			echo '{"status":"success"}' > $preSuccess
-		fi
-	else
-		if [ ! -d "$defaultDirectory/$tplDir" ] 
-		then
-			(cd $defaultDirectory;roadctl get templates --init)
-			(cd $defaultDirectory;echo '{"status":"success"}' > $preSuccess)
-		fi
-	fi
-}
-
-gitIgnoreCheck()
-{
-	if [[ "$defaultDirectory" == "." ]]
-	then
-		if [ ! -f "$gitIgnore" ] 
-		then
-		  touch $gitIgnore
-		fi
-		echo "#Ignore PR templates" >> .gitignore
-		echo ".templates/" >> .gitignore
-		echo "*.un~" >> .gitignore
-		git add $gitIgnore
-	else
-		if [ ! -f "$defaultDirectory/$gitIgnore" ] 
-		then
-			(cd $defaultDirectory;touch $gitIgnore)
-		fi
-		(cd $defaultDirectory;echo "#Ignore PR templates" >> .gitignore)
-		(cd $defaultDirectory;echo ".templates/" >> .gitignore)
-		(cd $defaultDirectory;echo "*.un~" >> .gitignore)
-		(cd $defaultDirectory;git add $gitIgnore)
-	fi
 }
 
 usage()
@@ -187,8 +127,6 @@ while [ "$1" != "" ]; do
 	esac
 done
 
-gitIgnoreCheck
+checkPreflight
 gitCheck
-githubCheck
-initTemplates
 {{end}}
