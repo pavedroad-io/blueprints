@@ -286,13 +286,15 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
   htmlData, err := ioutil.ReadAll(r.Body)
   if err != nil {
     log.Println(err)
-    os.Exit(1)
+    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	return
   }
 
   err = json.Unmarshal(htmlData, &{{.Name}})
   if err != nil {
     log.Println(err)
-    os.Exit(1)
+    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	return
   }
 
   ct := time.Now().UTC()

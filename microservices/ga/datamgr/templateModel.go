@@ -64,8 +64,8 @@ func (t *{{.Name}}) update{{.NameExported}}(db *sql.DB, key string) error {
 
   jb, err := json.Marshal(t)
   if err != nil {
-    log.Println("marshal failed")
-    panic(err)
+    log.Printf("update{{.Name}} json.Marshal failed; Got (%v)\n", err.Error())
+    return(err)
   }
 
   statement := fmt.Sprintf(update, jb, key)
@@ -83,7 +83,9 @@ func (t *{{.Name}}) update{{.NameExported}}(db *sql.DB, key string) error {
 func (t *{{.Name}}) create{{.NameExported}}(db *sql.DB) (string, error) {
   jb, err := json.Marshal(t)
   if err != nil {
-    panic(err)
+	msg := fmt.Sprintf("create{{.Name}} json.Marshal failed; Got (%v)\n", err.Error())
+    log.Printf(msg)
+    return msg, err
   }
 
   statement := fmt.Sprintf("INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.NameExported}}UUID", jb)
@@ -171,7 +173,7 @@ func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) err
   switch err := row.Scan(&uid, &jb); err {
 
   case sql.ErrNoRows:
-    m := fmt.Sprintf("404:name %s does not exist", key)
+    m := fmt.Sprintf("404:Name %s does not exist", key)
     return errors.New(m)
   case nil:
     err = json.Unmarshal(jb, t)
@@ -182,8 +184,8 @@ func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) err
     t.{{.NameExported}}UUID = uid
     break
   default:
-    //Some error to catch
-    panic(err)
+	  log.Printf("500:get{{.Name}} Select failed; Got (%v)\n", err.Error())
+    return(err)
   }
 
   return nil
