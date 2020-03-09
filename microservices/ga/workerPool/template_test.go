@@ -5,12 +5,14 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	_ "strconv"
+	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -30,28 +32,67 @@ const (
 	MetricsURL    string = "/api/v1/namespace/" + Namespace + "/" + Service + "/{{.Metrics}}"
 )
 
+var mo managementCommands
+var mr managementRequest
+var fp FieldParm
+
 var new{{.NameExported}}JSON=`{{.PostJSON}}`
 
 var a {{.NameExported}}App
-var testSampleCode = true
+
+/*
+   *******
+   testSampleCode should be defaulted to false.
+   Only change to true if you fully understand the
+   potential impact.
+   *******
+*/
+var testSampleCode = false
 
 func TestMain(m *testing.M) {
+        Mmutex = new(sync.Mutex)
 	a = {{.NameExported}}App{}
 
-	JobTestMain()
+        mo = managementCommands{}
+        mr = managementRequest{}
+        fp = FieldParm{}
 
+	      // Setup logging
+        e := openErrorLogFile(httpconf.logPath + httpconf.diagnosticsFile)
+        if e != nil {
+                printError(e)
+                os.Exit(0)
+        }
+
+        log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	//JobTestMain()
 	a.Initialize()
+
+	Mwg.Add(1)
 	go a.Run(httpconf.listenString)
 
 	// Wait for server to start
-	time.Sleep(1 * time.Second)
-	defer testExit()
+	time.Sleep(5 * time.Second)
+	JobTestMain()
 	defer os.Exit(m.Run())
+	defer testExit()
+	Mwg.Wait()
 }
 
 func testExit() {
-	data := "{\"command\": \"shutdown_now\", \"field\": \"\", \"field_value\": 0}"
-	req, _ := http.NewRequest("PUT", ManagementURL, strings.NewReader(data))
+        mr.CommandName = "shutdown_now"
+        mr.Resource = resDispatcher
+        mr.CommandType = "command"
+        mr.Fields = make(map[string]FieldParm)
+
+        mrd, e := json.Marshal(&mr)
+        if e != nil {
+                fmt.Println("Couldn't set command for shutdown_now")
+        }
+        mrds := string(mrd)
+
+	req, _ := http.NewRequest("PUT", ManagementURL, strings.NewReader(mrds))
 	_ = executeRequest(req)
 }
 
@@ -59,7 +100,7 @@ func TestSchedule(t *testing.T) {
 	// Get the list of jobs
 	req, _ := http.NewRequest("GET", ScheduleURL, nil)
 	response := executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+	checkResponseCode(t, http.StatusOK, response.Code,"Job List")
 
 	// This code requires knowledge about the type of scheduler
 	// So make it conditional
@@ -67,93 +108,100 @@ func TestSchedule(t *testing.T) {
 		putdata := "{\"schedule_type\": \"Constant interval scheduler\", \"send_interval_seconds\": 30}"
 		req, _ = http.NewRequest("PUT", ScheduleURL, strings.NewReader(putdata))
 		response = executeRequest(req)
-		checkResponseCode(t, http.StatusOK, response.Code)
+		checkResponseCode(t, http.StatusOK, response.Code,"interval_seconds 30")
 
 		req, _ = http.NewRequest("DELETE", ScheduleURL, strings.NewReader(putdata))
 		response = executeRequest(req)
-		checkResponseCode(t, http.StatusOK, response.Code)
+		checkResponseCode(t, http.StatusOK, response.Code,"delete shedule")
 
 		postdata := "{\"schedule_type\": \"Constant interval scheduler\", \"send_interval_seconds\": 5}"
 		req, _ = http.NewRequest("POST", ScheduleURL, strings.NewReader(postdata))
 		response = executeRequest(req)
-		checkResponseCode(t, http.StatusCreated, response.Code)
+		checkResponseCode(t, http.StatusCreated, response.Code,"interval_seconds 5")
 	}
 	return
 }
 
 func TestReady(t *testing.T) {
 
-	if !a.Ready {
-		a.Ready = true
+	if !a.DispatcherReady {
+		a.DispatcherReady = true
 	}
 
-	expect := "{\"Ready\": true}"
+	expect := "true"
 
 	req, _ := http.NewRequest("GET", ReadyURL, nil)
 	response := executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
-	if response.Body.String() != expect {
-		t.Errorf("Expected %s; Got %v\n", expect, response.Body.String())
+	checkResponseCode(t, http.StatusOK, response.Code,"dispatcher ready")
+	expect2 := strings.ToLower(response.Body.String())
+	if !strings.Contains(expect2, expect) {
+		t.Errorf("dispatcher ready expected %s; Got %v\n", expect, expect2)
 	}
 
-	a.Ready = false
-	expect = "{\"Ready\": false}"
+	a.DispatcherReady = false
+	expect = "false"
 
 	req, _ = http.NewRequest("GET", ReadyURL, nil)
 	response = executeRequest(req)
-	checkResponseCode(t, http.StatusServiceUnavailable, response.Code)
-	if response.Body.String() != expect {
-		t.Errorf("Expected %s; Got %v\n", expect, response.Body.String())
-	}
+	checkResponseCode(t, http.StatusServiceUnavailable, response.Code,"dispatcher not ready")
+
+ expect2 = strings.ToLower(response.Body.String())
+        if !strings.Contains(expect2, expect) {
+                t.Errorf("dispatcher not ready expected %s; Got %v\n", expect, expect2)
+        }
 
 	// Reset to proper status
-	a.Ready = true
+	a.DispatcherReady = true
 	return
 }
 
 func TestLive(t *testing.T) {
+       if !a.LiveHTTPSever {
+                a.LiveHTTPSever = true
+        }
 
-	if !a.Live {
-		a.Live = true
-	}
+        expect := "true"
+        req, _ := http.NewRequest("GET", LiveURL, nil)
+        response := executeRequest(req)
+        checkResponseCode(t, http.StatusOK, response.Code, "live HTTPServer")
 
-	expect := "{\"Live\": true}"
-	req, _ := http.NewRequest("GET", LiveURL, nil)
-	response := executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
-	if response.Body.String() != expect {
-		t.Errorf("Expected %s; Got %v\n", expect, response.Body.String())
-	}
+        expect2 := strings.ToLower(response.Body.String())
+        if !strings.Contains(expect2, expect) {
+               t.Errorf("live HTTPServer expected %s; Got %v\n", expect, expect2)
+        }
 
-	a.Live = false
-	expect = "{\"Live\": false}"
+        a.LiveHTTPSever = false
+        expect = "false"
 
-	req, _ = http.NewRequest("GET", LiveURL, nil)
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusServiceUnavailable, response.Code)
-	if response.Body.String() != expect {
-		t.Errorf("Expected %s; Got %v\n", expect, response.Body.String())
-	}
+        req, _ = http.NewRequest("GET", LiveURL, nil)
+        response = executeRequest(req)
+        checkResponseCode(t, http.StatusServiceUnavailable, response.Code, "not live HTTPServer")
+       expect2 = strings.ToLower(response.Body.String())
+        if !strings.Contains(expect2, expect) {
+                t.Errorf("not live HTTPServer expected %s; Got %v\n", expect, expect2)
+        }
 
-	// Reset to proper status
-	a.Live = true
-	return
+        // Reset to proper status
+        a.LiveHTTPSever = true
+        return
 }
 
 func TestMetric(t *testing.T) {
+        expect1 := "scheduler"
+        expect2 := "dispatcher"
 
-	expect1 := "scheduler"
-	expect2 := "dispatcher"
+        req, _ := http.NewRequest("GET", MetricsURL, nil)
+        response := executeRequest(req)
+        checkResponseCode(t, http.StatusOK, response.Code, "metrics")
 
-	req, _ := http.NewRequest("GET", MetricsURL, nil)
-	response := executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
-	if !strings.Contains(response.Body.String(), expect1) {
-		t.Errorf("Expected %s; Got %v\n", expect1, response.Body.String())
-	}
-	if !strings.Contains(response.Body.String(), expect2) {
-		t.Errorf("Expected %s; Got %v\n", expect2, response.Body.String())
-	}
+        expect3 := strings.ToLower(response.Body.String())
+        if !strings.Contains(expect3, expect1) {
+                t.Errorf("metrics: expected %s; Got %v\n", expect1, expect3)
+        }
+        if !strings.Contains(expect3, expect2) {
+               t.Errorf("metrics: expected %s; Got %v\n", expect2, expect3)
+        }
+
 }
 
 func TestOpenAccessLog(t *testing.T) {
@@ -221,247 +269,433 @@ func TestRollLog(t *testing.T) {
 }
 
 func TestInitEnv(t *testing.T) {
-	os.Setenv("HTTP_IP_ADDR", "0.0.0.0")
-	os.Setenv("HTTP_IP_PORT", "10000")
-	os.Setenv("HTTP_READ_TIMEOUT", "60")
-	os.Setenv("HTTP_WRITE_TIMEOUT", "30")
-	os.Setenv("HTTP_SHUTDOWN_TIMEOUT", "30")
-	os.Setenv("HTTP_LOG", "foobar.log")
+       //Do not change in the middle of a test.
+        //These values are set to intialize the system
+        //changes are not anticipated during run time
 
-	a.initializeEnvironment()
+        time.Sleep(5 * time.Second)
 
-	expected := "0.0.0.0"
-	if httpconf.ip != expected {
-		t.Errorf("Expected IP %v; Got %v\n", expected, httpconf.ip)
-	}
+        curIp := httpconf.ip
+        curPort := httpconf.port
+        curRt := httpconf.readTimeout.Seconds()
+        curWt := httpconf.writeTimeout.Seconds()
+        curSt := httpconf.shutdownTimeout.Seconds()
+        curLp := httpconf.logPath
 
-	expected = "10000"
-	if httpconf.port != expected {
-		t.Errorf("Expected PORT %v; Got %v\n", expected, httpconf.port)
-	}
+       curRtS := strconv.FormatFloat(curRt, 'f', 0, 64)
+        curStS := strconv.FormatFloat(curSt, 'f', 0, 64)
+        curWtS := strconv.FormatFloat(curWt, 'f', 0, 64)
 
-	expected = "foobar.log"
-	if httpconf.logPath != expected {
-		t.Errorf("Expected log %v; Got %v\n", expected, httpconf.logPath)
-	}
+        envIp := os.Getenv("HTTP_IP_ADDR")
+        envPort := os.Getenv("HTTP_IP_PORT")
+        envRto := os.Getenv("HTTP_READ_TIMEOUT")
+        envWto := os.Getenv("HTTP_WRITE_TIMEOUT")
+        envSto := os.Getenv("HTTP_SHUTDOWN_TIMEOUT")
+        envLog := os.Getenv("HTTP_LOG")
 
-	expectedInt := 60
-	if int(httpconf.readTimeout.Seconds()) != expectedInt {
-		t.Errorf("Expected read timeout %v; Got %v\n", expected, httpconf.port)
-	}
+        os.Setenv("HTTP_IP_ADDR", curIp)
+       os.Setenv("HTTP_IP_PORT", curPort)
+        os.Setenv("HTTP_READ_TIMEOUT", curRtS)
+        os.Setenv("HTTP_WRITE_TIMEOUT", curWtS)
+        os.Setenv("HTTP_SHUTDOWN_TIMEOUT", curStS)
+        os.Setenv("HTTP_LOG", curLp)
 
-	expectedInt = 30
-	if int(httpconf.shutdownTimeout.Seconds()) != expectedInt {
-		t.Errorf("Expected shutdown timeout%v; Got %v\n", expected, httpconf.port)
-	}
+        //set up same environment
+        a.initializeEnvironment()
 
-	expectedInt = 30
-	if int(httpconf.writeTimeout.Seconds()) != expectedInt {
-		t.Errorf("Expected write timeout %v; Got %v\n", expected, httpconf.port)
-	}
+        //expected := "0.0.0.0"
+        if httpconf.ip != curIp {
+                t.Errorf("Expected IP %v; Got %v\n", curIp, httpconf.ip)
+        }
 
-	os.Unsetenv("HTTP_IP_ADDR")
-	os.Unsetenv("HTTP_IP_PORT")
-	os.Unsetenv("HTTP_LOG")
+        //expected = "10000"
+        if httpconf.port != curPort {
+                t.Errorf("Expected PORT %v; Got %v\n", curPort, httpconf.port)
+        }
 
-	// Test error path
-	os.Setenv("HTTP_READ_TIMEOUT", "A")
-	os.Setenv("HTTP_WRITE_TIMEOUT", "B")
-	os.Setenv("HTTP_SHUTDOWN_TIMEOUT", "C")
+        //expected = "foobar.log"
+        if httpconf.logPath != curLp {
+                t.Errorf("Expected log %v; Got %v\n", curLp, httpconf.logPath)
+        }
 
-	a.initializeEnvironment()
+	        //expectedInt := 60
+        if httpconf.readTimeout.Seconds() != curRt {
+                t.Errorf("Expected read timeout %v; Got %v\n", curRt, httpconf.readTimeout.Seconds())
+        }
 
-	return
+        //expectedInt = 30
+        if httpconf.shutdownTimeout.Seconds() != curSt {
+                t.Errorf("Expected shutdown timeout%v; Got %v\n", curSt, httpconf.shutdownTimeout.Seconds())
+        }
+
+        //expectedInt = 30
+       if httpconf.writeTimeout.Seconds() != curWt {
+                t.Errorf("Expected write timeout %v; Got %v\n", curWt, httpconf.writeTimeout.Seconds())
+        }
+
+        os.Unsetenv("HTTP_IP_ADDR")
+        os.Unsetenv("HTTP_IP_PORT")
+        os.Unsetenv("HTTP_LOG")
+
+        // Test error path
+        os.Setenv("HTTP_READ_TIMEOUT", "A")
+        os.Setenv("HTTP_WRITE_TIMEOUT", "B")
+        os.Setenv("HTTP_SHUTDOWN_TIMEOUT", "C")
+        //Errors from this is written to log
+        a.initializeEnvironment()
+
+        os.Unsetenv("HTTP_READ_TIMEOUT")
+        os.Unsetenv("HTTP_WRITE_TIMEOUT")
+        os.Unsetenv("HTTP_SHUTDOWN_TIMEOUT")
+
+        if envIp != "" {
+                os.Setenv("HTTP_IP_ADDR", envIp)
+
+        }
+        if envPort != "" {
+               os.Setenv("HTTP_IP_PORT", envPort)
+
+        }
+        if envRto != "" {
+                os.Setenv("HTTP_READ_TIMEOUT", envRto)
+
+        }
+        if envWto != "" {
+                os.Setenv("HTTP_WRITE_TIMEOUT", envWto)
+
+        }
+        if envSto != "" {
+                os.Setenv("HTTP_SHUTDOWN_TIMEOUT", envSto)
+        }
+        if envLog != "" {
+                os.Setenv("HTTP_LOG", envLog)
+
+        }
+
+        return
 }
 
 func TestJob(t *testing.T) {
 
-	// Get the list of jobs
-	req, _ := http.NewRequest("GET", JobListURL, nil)
-	response := executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+      // Get the list of jobs
+        req, _ := http.NewRequest("GET", JobListURL, nil)
+        response := executeRequest(req)
+        checkResponseCode(t, http.StatusOK, response.Code, "job list")
 
-	var jl []listJobsResponse
-	payload, e := ioutil.ReadAll(response.Body)
-	if e != nil {
-		t.Errorf("{\"error\": \"ioutil.ReadAll failed\", \"Error\": \"%v\"}", e.Error())
-	}
+        var jl []listJobsResponse
+        payload, e := ioutil.ReadAll(response.Body)
+        if e != nil {
+                t.Errorf("{\"error\": \"ioutil.ReadAll failed\", \"Error\": \"%v\"}", e.Error())
+        }
 
-	e = json.Unmarshal(payload, &jl)
-	if e != nil {
-		t.Errorf("jobsList Unmarsahl failed for payload %v jobs; Error %v\n", payload, e)
-	}
+        e = json.Unmarshal(payload, &jl)
+        if e != nil {
+                t.Errorf("jobsList Unmarsahl failed for payload %v jobs; Error %v\n", payload, e)
+        }
 
-	if len(jl) <= 0 {
-		t.Errorf("jobsList return %v jobs; Wanted 4\n", len(jl))
-		return
-	}
+        if len(jl) <= 0 {
+                t.Errorf("jobsList return %v jobs; Wanted 5\n", len(jl))
+                return
+        }
 
-	// Test getting a job
-	req, _ = http.NewRequest("GET", JobURL+"/"+jl[0].ID, nil)
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+        // Test getting a job
+        req, _ = http.NewRequest("GET", JobURL+"/"+jl[0].ID, nil)
+response = executeRequest(req)
+        checkResponseCode(t, http.StatusOK, response.Code, "job by ID")
 
-	var jd map[string]interface{}
-	payload, e = ioutil.ReadAll(response.Body)
-	if e != nil {
-		t.Errorf("{\"error\": \"ioutil.ReadAll failed\", \"Error\": \"%v\"}", e.Error())
-	}
+        var jd map[string]interface{}
+        payload, e = ioutil.ReadAll(response.Body)
+        if e != nil {
+                t.Errorf("{\"error\": \"ioutil.ReadAll failed\", \"Error\": \"%v\"}", e.Error())
+        }
 
-	e = json.Unmarshal(payload, &jd)
-	if e != nil {
-		t.Errorf("jobsGet Unmarsahl failed for payload %v jobs; Error %v\n", payload, e)
-	}
+        e = json.Unmarshal(payload, &jd)
+        if e != nil {
+              t.Errorf("jobsGet Unmarsahl failed for payload %v jobs; Error %v\n", payload, e)
+        }
 
-	// We know that the interface requires an id and a type
-	// So we can test for those
-	v, ok := jd["id"].(string)
-	if !ok {
-		t.Errorf("job id not found\n")
-	}
-	if v == "" {
-		t.Errorf("job id is required but is empty\n")
-	}
+        // We know that the interface requires an id and a type
+        // So we can test for those
+        v, ok := jd["id"].(string)
+        if !ok {
+                t.Errorf("job id not found\n")
+        }
+        if v == "" {
+               t.Errorf("job id is required but is empty\n")
+        }
 
-	v, ok = jd["type"].(string)
-	if !ok {
-		t.Errorf("job type not found\n")
-	}
-	if v == "" {
-		t.Errorf("job type is required but is empty\n")
-	}
+        v, ok = jd["type"].(string)
+        if !ok {
+                t.Errorf("job type not found\n")
+        }
+        if v == "" {
+                t.Errorf("job type is required but is empty\n")
+        }
+       // Create a new job
+        nj := "{\"id\": \"\", \"url\": \"https://cat-fact.herokuapp.com/facts\", \"type\": \"\", \"client_id\": \"\"}"
+        req, _ = http.NewRequest("POST", JobURL, strings.NewReader(nj))
+        response = executeRequest(req)
+        checkResponseCode(t, http.StatusCreated, response.Code, "create job")
 
-	// Create a new job
-	nj := "{\"id\": \"\", \"url\": \"https://cat-fact.herokuapp.com/facts\", \"type\": \"\"}"
-	req, _ = http.NewRequest("POST", JobURL, strings.NewReader(nj))
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusCreated, response.Code)
+        if !strings.Contains(response.Body.String(), "success") {
+                t.Errorf("Create Job: expected success; Got failed\n")
+        }
 
-	if !strings.Contains(response.Body.String(), "success") {
-		t.Errorf("Create Job: expected success; Got false\n")
-	}
+        // Update a job
+        // It reads the UUID from Get data, ID is used to find job
+       //ID is not updated. Can update url and client_id
+        uj := "{\"id\": \"" + jl[0].ID + "\", \"url\": \"https://geek-jokes.sameerkumar.website/api\", \"type\": \"\",\"client_id\": \"" + jl[0].ClientID + "\"}"
+        req, _ = http.NewRequest("PUT", JobURL+"/"+jl[0].ID, strings.NewReader(uj))
+        response = executeRequest(req)
+        checkResponseCode(t, http.StatusOK, response.Code, "update job")
 
-	// Update a job
-	// It reads the UUID from Post data, may want to change that
-	uj := "{\"id\": \"" + jl[0].ID + "\", \"url\": \"https://geek-jokes.sameerkumar.website/api\", \"type\": \"\"}"
-	req, _ = http.NewRequest("PUT", JobURL+"/"+jl[0].ID, strings.NewReader(uj))
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+        if !strings.Contains(response.Body.String(), "success") {
+                t.Errorf("Update Job: expected success; Got %v\n", response.Body.String())
+        }
+      // Delete a job
+        // Try another jobId
+        req, _ = http.NewRequest("DELETE", JobURL+"/"+jl[1].ID, nil)
+        response = executeRequest(req)
+        checkResponseCode(t, http.StatusOK, response.Code, "delete job")
 
-	if !strings.Contains(response.Body.String(), "success") {
-		t.Errorf("Update Job: expected success; Got false\n")
-	}
-
-	// Delete the job
-	// The update above results in new ID, so use the second record
-	req, _ = http.NewRequest("DELETE", JobURL+"/"+jl[1].ID, nil)
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
-
-	if !strings.Contains(response.Body.String(), "success") {
-		t.Errorf("Delete Job: expected success; Got false\n")
-	}
+        if !strings.Contains(response.Body.String(), "success") {
+                t.Errorf("Delete Job: expected success; Got: %v\n", response.Body.String())
+        }
 
 }
 
 func TestManagementGet(t *testing.T) {
-	er := "{\"commands\":[{\"name\":\"set\",\"data_type\":\"int\",\"command_type\":\"config\",\"description\":\"Sets the value of a configurable field, see fields below\"},{\"name\":\"stop_scheduler\",\"data_type\":\"string\",\"command_type\":\"command\",\"description\":\"Stops the scheduler from send new jobs\"},{\"name\":\"start_scheduler\",\"data_type\":\"string\",\"command_type\":\"command\",\"description\":\"Starts the scheduler running again.  If running has no affect\"},{\"name\":\"stop_workers\",\"data_type\":\"string\",\"command_type\":\"command\",\"description\":\"Shutdown the worker pool letting jobs inflight complete\"},{\"name\":\"start_workers\",\"data_type\":\"string\",\"command_type\":\"command\",\"description\":\"Starts the worker pool if stopped\"},{\"name\":\"shutdown\",\"data_type\":\"string\",\"command_type\":\"command\",\"description\":\"Graceful shutdown\"},{\"name\":\"shutdown_now\",\"data_type\":\"string\",\"command_type\":\"command\",\"description\":\"Hard shutdown with SIGKILL\"}],\"fields\":[\"graceful_shutdown_seconds\",\"hard_shutdown_seconds\",\"number_of_workers\",\"scheduler_channel_size\",\"result_channel_size\"]}"
+      //Only testing one command and one config from management commands
+        //All commands call the same routine, all config call the same
+        //config routine
+        oneCmd := "\"stop_job\":{\"description\":\"Stop running of a continuous job.\",\"resource\":\"Scheduler\",\"CmdParms\":{\"Job_UUID\":{\"data_type\":\"string\",\"param_order\":0}}}"
 
-	req, _ := http.NewRequest("GET", ManagementURL, nil)
-	response := executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+        oneFig := "\"hard_shutdown_seconds\":{\"data_type\":\"int\",\"resource\":\"Dispatcher\"}"
 
-	if body := response.Body.String(); body != er {
-		t.Errorf("Expected %s. Got %s", er, body)
-	}
+        //Get a list of the management commands
+       req, _ := http.NewRequest("GET", ManagementURL, nil)
+        response := executeRequest(req)
+        checkResponseCode(t, http.StatusOK, response.Code, "management list")
+
+        //if body := response.Body.String(); body != er {
+        body := response.Body.String()
+        if !strings.Contains(body, oneCmd) {
+                t.Errorf("Expected %s/n. Got %s", oneCmd, body)
+        }
+        if !strings.Contains(body, oneFig) {
+                t.Errorf("Expected %s/n. Got %s", oneFig, body)
+       }
+
+        payload, e := ioutil.ReadAll(response.Body)
+        if e != nil {
+                t.Errorf("{\"error\": \"ioutil. getManagement readAll failed\", \"Error\": \"%v\"}", e.Error())
+        }
+        //mo will have list of commands that can be tested
+        //note: this is required before in TestManagementPutSafe
+        e = json.Unmarshal(payload, &mo)
+        if e != nil {
+                t.Errorf("getManagement unmarsahl failed for payload %v ; Error %v\n", payload, e)
+      }
+
+        if len(mo.CommandNames) == 0 {
+                t.Errorf("command list return %v ; more expected\n", len(mo.CommandNames))
+                return
+        }
+        if len(mo.Fields) == 0 {
+                t.Errorf("config list return %v ; more expected\n", len(mo.Fields))
+                return
+        }
+
 }
 
-//postdata5 := "{\"command\": \"shutdown\", \"field\": \"\", \"field_value\": 0}"
-//postdata6 := "{\"command\": \"shutdown_now\", \"field\": \"\", \"field_value\": 0}"
 func TestManagementPutSafe(t *testing.T) {
-	tc := make(map[string]string)
-	tc["stop_scheduler"] = "{\"command\": \"stop_scheduler\", \"field\": \"\", \"field_value\": 0}"
-	tc["start_scheduler"] = "{\"command\": \"start_scheduler\", \"field\": \"\", \"field_value\": 0}"
-	tc["stop_workers"] = "{\"command\": \"stop_workers\", \"field\": \"\", \"field_value\": 0}"
-	tc["start_workers"] = "{\"command\": \"start_workers\", \"field\": \"\", \"field_value\": 0}"
-	tc["set_graceful_shutdown"] = "{\"command\": \"set\", \"field\": \"graceful_shutdown_seconds\", \"field_value\": 5}"
-	tc["set_hard_shutdown_seconds"] = "{\"command\": \"set\", \"field\": \"hard_shutdown_seconds\", \"field_value\": 5}"
-	tc["number_of_workers"] = "{\"command\": \"set\", \"field\": \"number_of_workers\", \"field_value\": 10}"
-	tc["set_hard_shutdown_seconds0"] = "{\"command\": \"set\", \"field\": \"hard_shutdown_seconds\", \"field_value\": 0}"
-	tc["bad_command"] = "{\"command\": \"foobar\", \"field\": \"hard_shutdown_seconds\", \"field_value\": 0}"
-	tc["bad_json"] = "{\"command\": foobar, \"field\": \"hard_shutdown_seconds\", \"field_value\": 0}"
 
 	// TODO: These are not implemented in dispatcher yet
+	/*
 	tc["scheduler_channel_size"] = "{\"command\": \"set\", \"field\": \"scheduler_channel_size\", \"field_value\": 10}"
 	tc["result_channel_size"] = "{\"command\": \"set\", \"field\": \"result_channel_size\", \"field_value\": 10}"
+*/
 
-	req, _ := http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["stop_scheduler"]))
-	response := executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+    //Do a bad command
+        mr.CommandName = "s`top_scheduler"
+        mr.Resource = resDispatcher
+        mr.CommandType = "command"
+        mr.Fields = make(map[string]FieldParm)
 
-	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["start_scheduler"]))
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+        mrd, e := json.Marshal(&mr)
+       if e != nil {
+                t.Errorf("Couldn't set command for: %s \n", "s`top_scheduler")
+        }
+        mrds := string(mrd)
+        req, _ := http.NewRequest("PUT", ManagementURL, strings.NewReader(mrds))
+        response := executeRequest(req)
+        checkResponseCode(t, http.StatusNotFound, response.Code, "s`top_scheduler")
 
-	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["stop_workers"]))
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+        time.Sleep(30 * time.Second)
+        _, isCn := mo.CommandNames["start_scheduler"]
+        if isCn {
+                mr.CommandName = "start_scheduler"
+                mrd, e = json.Marshal(&mr)
+                if e != nil {
+                        t.Errorf("marshal failed for start_scheduler: %v \n", e)
+                }
+                mrds = string(mrd)
+                fmt.Println("start_scheduler \n", mrds)
+                req, _ := http.NewRequest("PUT", ManagementURL, strings.NewReader(mrds))
 
-	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["start_workers"]))
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+		                response = executeRequest(req)
+                checkResponseCode(t, http.StatusNotImplemented, response.Code, "start_scheduler")
+        } else {
 
-	// 400 if already running test that next
-	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["start_workers"]))
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusBadRequest, response.Code)
+                t.Errorf("management list doesn't have start_scheduler")
 
-	er := "{\"Status\": \"5 already running\"}"
-	if body := response.Body.String(); body != er {
-		t.Errorf("Expected %s. Got %s", er, body)
-	}
+        }
 
-	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["set_graceful_shutdown"]))
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+        time.Sleep(30 * time.Second)
 
-	er = "{\"Status\": \"graceful_shutdown_seconds changed from 30 to 5\"}"
-	if body := response.Body.String(); body != er {
-		t.Errorf("Expected %s. Got %s", er, body)
-	}
+        _, isCn = mo.CommandNames["stop_workers"]
+        if isCn {
+               mr.CommandName = "stop_workers"
+                mrd, e = json.Marshal(&mr)
+                if e != nil {
+                        t.Errorf("marshal failed for stop_workers: %v \n", e)
+                }
+                mrds = string(mrd)
+                fmt.Println("stop_workers \n", mrds)
 
-	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["set_hard_shutdown_seconds"]))
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
-	er = "{\"Status\": \"hard_shutdown_seconds changed from 0 to 5\"}"
-	if body := response.Body.String(); body != er {
-		t.Errorf("Expected %s. Got %s", er, body)
-	}
+                req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(mrds))
+                response = executeRequest(req)
+               checkResponseCode(t, http.StatusOK, response.Code, "stop workers")
+        } else {
 
-	// Set it back to 0 so we exit tests quickly
-	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["set_hard_shutdown_seconds0"]))
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusOK, response.Code)
+                t.Errorf("Management list doesn't have stop_workers")
 
-	// send some bad JSON to test marshal error
-	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["bad_command"]))
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusBadRequest, response.Code)
+        }
 
-	er = "{\"Status\": \"Command foobar not implemented\"}"
-	if body := response.Body.String(); body != er {
-		t.Errorf("Expected %s. Got %s", er, body)
-	}
+        //long sleep time to see if all workers will stop
+        time.Sleep(60 * time.Second)
 
-	// send a bad command
-	req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(tc["bad_json"]))
-	response = executeRequest(req)
-	checkResponseCode(t, http.StatusBadRequest, response.Code)
+        _, isCn = mo.CommandNames["start_workers"]
+      if isCn {
+                mr.CommandName = "start_workers"
+                mrd, e = json.Marshal(&mr)
+                if e != nil {
+                        t.Errorf("marshal failed  fori start_workers: %v \n", e)
+                }
+                mrds = string(mrd)
+                fmt.Println("start_workers \n", mrds)
 
-	er = "{\"error\": \"json.Unmarshal failed\", \"Error\": \"invalid character 'o' in literal false (expecting 'a')\"}"
-	if body := response.Body.String(); body != er {
-		t.Errorf("Expected %s. Got %s", er, body)
-	}
+                req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(mrds))
+                response = executeRequest(req)
+                checkResponseCode(t, http.StatusOK, response.Code, "start_workers 1")
+
+                //long sleep time in case all workers didnt stop
+                time.Sleep(30 * time.Second)
+
+                // try start again, must do http.New
+                // expecting all workers to be up, so start should be forbidden
+                req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(mrds))
+                response = executeRequest(req)
+               checkResponseCode(t, http.StatusForbidden, response.Code, "start_workers again")
+        } else {
+
+                t.Errorf("management list doesn't have: start_workers")
+
+        }
+
+        time.Sleep(30 * time.Second)
+
+        _, isCn = mo.Fields["graceful_shutdown_seconds"]
+        if isCn {
+                mr.CommandName = "set"
+                mr.CommandType = "config"
+                fp.FieldValue = "20"
+                fp.DataType = "int"
+                mr.Fields["graceful_shutdown_seconds"] = fp
+                mrd, e = json.Marshal(&mr)
+                if e != nil {
+                        t.Errorf("marshal failed for graceful_shutdown_seconds: %v \n", e)
+                }
+                mrds = string(mrd)
+                fmt.Println("graceful_shutdown_seconds \n", mrds)
+                req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(mrds))
+                response = executeRequest(req)
+                checkResponseCode(t, http.StatusOK, response.Code, "graceful_shutdown_seconds")
+        } else {
+
+                t.Errorf("management list doesn't have graceful_shutdown_seconds")
+
+        }
+       time.Sleep(30 * time.Second)
+
+        _, isCn = mo.Fields["hard_shutdown_seconds"]
+        if isCn {
+                mr.Fields = make(map[string]FieldParm)
+                fp.FieldValue = "5"
+                mr.Fields["hard_shutdown_seconds"] = fp
+
+                mrd, e = json.Marshal(&mr)
+                if e != nil {
+                        t.Errorf("marshal failed for hard_shutdown_seconds %v \n", e)
+               }
+                mrds = string(mrd)
+                fmt.Println("hard_shutdown_seconds 5\n", mrds)
+                req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(mrds))
+                response = executeRequest(req)
+                checkResponseCode(t, http.StatusOK, response.Code, "hard_shutdown_seconds 5")
+
+                //TODO: fix this issue
+                mr.Fields = make(map[string]FieldParm)
+                fp.FieldValue = "0"
+                mr.Fields["hard_shutdown_seconds"] = fp
+                mrd, e = json.Marshal(&mr)
+                if e != nil {
+                        t.Errorf("marshal failed for hard_shutdown_seconds 0: %s \n", e)
+                }
+                mrds = string(mrd)
+                fmt.Println("hard_shutdown_seconds 0\n", mrds)
+                req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(mrds))
+
+                // Set it back to 0 so we exit tests quickly
+                response = executeRequest(req)
+               checkResponseCode(t, http.StatusOK, response.Code, "hard_shutdown_seconds 0")
+
+                // send some bad JSON data to test marshal error
+                //TODO: fix this issue
+                mr.Fields = make(map[string]FieldParm)
+                fp.FieldValue = "A"
+                mr.Fields["hard_shutdown_seconds"] = fp
+
+                mrd, e = json.Marshal(&mr)
+                if e != nil {
+                        t.Errorf("marshal failed for hard_shutdown_seconds A: %s \n", e)
+                }
+                mrds = string(mrd)
+                fmt.Println("hard_shutdown_seconds A\n", mrds)
+                req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(mrds))
+
+                response = executeRequest(req)
+                checkResponseCode(t, http.StatusBadRequest, response.Code, "hard_shutdown_seconds A")
+        } else {
+                t.Errorf("Management list doesn't have hard_shutdown_seconds")
+
+        }
+
+        // send a bad command
+        mr.Fields = make(map[string]FieldParm)
+        fp.FieldValue = "5"
+        mr.Fields["hard_lockdown_seconds"] = fp
+
+        mrd, e = json.Marshal(&mr)
+        if e != nil {
+                t.Errorf("marshal failed for hard_shutdown_seconds %v \n", e)
+      }
+        mrds = string(mrd)
+        fmt.Println("hard_lockdown_seconds 5\n", mrds)
+        req, _ = http.NewRequest("PUT", ManagementURL, strings.NewReader(mrds))
+
+        response = executeRequest(req)
+        checkResponseCode(t, http.StatusNotFound, response.Code, "hard_lockdown_seconds 5")
 }
 
 func executeRequest(req *http.Request) *httptest.ResponseRecorder {
@@ -471,9 +705,8 @@ func executeRequest(req *http.Request) *httptest.ResponseRecorder {
 	return rr
 }
 
-func checkResponseCode(t *testing.T, expected, actual int) {
+func checkResponseCode(t *testing.T, expected, actual int, testAt string) {
 	if expected != actual {
-		t.Errorf("Expected response code %d. Got %d\n", expected, actual)
+	t.Errorf("%s: expected response code %d. Got %d\n", testAt, expected, actual)
 	}
-}
-{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

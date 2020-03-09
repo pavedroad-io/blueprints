@@ -23,13 +23,14 @@ func JobTestMain() {
 	go startServer()
 
 	// Wait for server to start
-	time.Sleep(1 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	return
 }
 
 func startServer() {
 	fmt.Println("start httpJob Server")
+	fmt.Println("testing at:", ServerString)
 	e := http.ListenAndServe(ServerString, nil)
 	if e != nil {
 		fmt.Println(e)
@@ -45,8 +46,9 @@ func testEndPoint(w http.ResponseWriter, req *http.Request) {
 }
 
 func TestHTTPJob(t *testing.T) {
+	fmt.Println("TestHTTPJob")
 	j := newJob("http://" + ServerString + EPString)
-	r, e := j.Run()
+	r, e := j.Run(&Mwg)
 
 	if e != nil {
 		t.Errorf("j.Run() failed err = %v; Wanted nil\n", e)
@@ -64,8 +66,9 @@ func TestHTTPJob(t *testing.T) {
 }
 
 func TestHTTPJob_Metrics(t *testing.T) {
+	fmt.Println("TestHTTPJob_Metrics")
 	j := newJob("http://" + ServerString + EPString)
-	_, e := j.Run()
+	_, e := j.Run(&Mwg)
 
 	if e != nil {
 		t.Errorf("j.Run() failed err = %v; Wanted nil\n", e)

@@ -22,17 +22,25 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Initialize setups database connection object and the http server
+// Initialize setups the scheduler,dispatcher, the 
+// go routines, and the http server
 func (a *{{.NameExported}}App) Initialize() {
 
-	// set k8s probe
-	a.Live = false
-	a.Ready = false
+        a.Router = mux.NewRouter()
+        a.accessLog = openAccessLogFile(httpconf.logPath + httpconf.accessFile)
+  
+        a.managementOptions.Init()
+        // set k8s probe
+        a.LiveHTTPSever = false
+        a.DispatcherReady = false
+  
+        // Override defaults
+        a.initializeEnvironment()
 
-	// Override defaults
-	a.initializeEnvironment()
-
-	// Start the Dispatcher
+	// Start the scheduler
+	// Scheduler interface required for dispatcher.
+        // Only interface methods, see templateScheduler,
+        // available to a.Scheduler
 	a.Scheduler = &{{.SchedulerName}}{}
 
 	dConf := &dispatcherConfiguration{
@@ -44,33 +52,43 @@ func (a *{{.NameExported}}App) Initialize() {
 		hardShutdown:        HardShutdown,
 	}
 
-	a.Dispatcher.Init(dConf)
-	go a.Dispatcher.Run()
+	// Scheduler first
+        err := a.Scheduler.Init(&a.managementOptions)
+        if err != nil {
+                fmt.Println(err)
+                os.Exit(-1)
+        }
 
-	// Scheduler
-	err := a.Scheduler.Init()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(-1)
-	}
-	go a.Scheduler.Run()
+	 //Dispatcher next, scheduler need channels
+        a.Dispatcher.Init(dConf, &a.managementOptions)
+        Mwg.Add(1)
+        go a.Dispatcher.Run(&Mwg)
 
-	a.Ready = true
+	//New: was not present in my test.
 	// Start rest end points
-	httpconf.listenString = fmt.Sprintf("%s:%s", httpconf.ip, httpconf.port)
-	a.Router = mux.NewRouter()
-	a.initializeRoutes()
+//        httpconf.listenString = fmt.Sprintf("%s:%s", httpconf.ip, httpconf.port)
+
+        //Make sure routes are initialize before running Scheduler
+        a.initializeRoutes()
+
+        //Now run sceduler
+        Mwg.Add(1)
+        go a.Scheduler.Run(&Mwg)
+
+        a.DispatcherReady = true
+	Mmutex.Lock()
+        ChannelsReady = true
+	Mmutex.Unlock()
 }
 
 // Run start the HTTP server for Rest endpoints
 func (a *{{.NameExported}}App) Run(addr string) {
 
+	defer Mwg.Done()
 	log.Println("Listing at: " + addr)
 	// Wrap router with W3C logging
 
-	lf, _ := os.OpenFile("logs/access.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
-
-	loggedRouter := handlers.LoggingHandler(lf, a.Router)
+	loggedRouter := handlers.LoggingHandler(a.accessLog, a.Router)
 	srv := &http.Server{
 		Handler:      loggedRouter,
 		Addr:         addr,
@@ -78,13 +96,18 @@ func (a *{{.NameExported}}App) Run(addr string) {
 		ReadTimeout:  httpconf.readTimeout * time.Second,
 	}
 
+	Mwg.Add(1)
+
 	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
-		}
+		defer Mwg.Done()
+		//if err := srv.ListenAndServe(); err != nil {
+		//	log.Println(err)
+		//}
+		log.Fatal(srv.ListenAndServe())
+                fmt.Println("After ListenAndSerever ")
 	}()
 
-	a.Live = true
+        a.LiveHTTPSever = true
 
 	// Listen for SIGHUP
 	a.httpInterruptChan = make(chan os.Signal, 1)
@@ -97,189 +120,162 @@ func (a *{{.NameExported}}App) Run(addr string) {
 
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.
-	srv.Shutdown(ctx)
-	log.Println("shutting down")
+	err := srv.Shutdown(ctx)
+	if err == nil {
+                log.Println("Shutting Down...")
+        } else {
+                log.Println("Shutting Down...", err)
+        }
 	os.Exit(0)
 }
 
 // Get for environment variable overrides
 func (a *{{.NameExported}}App) initializeEnvironment() {
 	var envVar = ""
+       //string environment variables map
+        varStrToProc := map[string]*string{
+                "HTTP_IP_ADDR": &httpconf.ip,
+                "HTTP_IP_PORT": &httpconf.port,
+                "HTTP_LOG":     &httpconf.logPath,
+        }
 
-	envVar = os.Getenv("HTTP_IP_ADDR")
-	if envVar != "" {
-		httpconf.ip = envVar
-	}
+        //time environment variables map
+        varTimeToProc := map[string]*time.Duration{
+                "HTTP_READ_TIMEOUT":     &httpconf.readTimeout,
+                "HTTP_WRITE_TIMEOUT":    &httpconf.writeTimeout,
+                "HTTP_SHUTDOWN_TIMEOUT": &httpconf.shutdownTimeout,
+        }
 
-	envVar = os.Getenv("HTTP_IP_PORT")
-	if envVar != "" {
-		httpconf.port = envVar
-	}
+	       //Environment variable list to process
+        //Expand with case statement
+        varsToProc := [][]string{
+                []string{"HTTP_IP_ADDR", "string"},
+                []string{"HTTP_IP_PORT", "string"},
+                []string{"HTTP_READ_TIMEOUT", "time"},
+                []string{"HTTP_WRITE_TIMEOUT", "time"},
+                []string{"HTTP_SHUTDOWN_TIMEOUT", "time"},
+                []string{"HTTP_LOG", "string"},
+        }
 
-	envVar = os.Getenv("HTTP_READ_TIMEOUT")
-	if envVar != "" {
-		to, err := strconv.Atoi(envVar)
-		if err != nil {
-			log.Printf("failed to convert HTTP_READ_TIMEOUT: %s to int", envVar)
-		} else {
-			httpconf.readTimeout = (time.Second * time.Duration(to))
-		}
-		log.Printf("Read timeout: %d", httpconf.readTimeout)
-	}
+                for i := 0; i < len(varsToProc); i++ {
+                envVar = os.Getenv(varsToProc[i][0])
+                fmt.Println(varsToProc[i][0])
+                fmt.Println(envVar)
+                if envVar != "" {
+                        switch varTyp := varsToProc[i][1]; varTyp {
+                        case "string":
+                                *varStrToProc[varsToProc[i][0]] = envVar
+                        case "time":
+                                to, err := strconv.Atoi(envVar)
+                                if err != nil {
+                                        log.Printf("Failed to convert: %v, to int: %v", varsToProc[i][0], envVar)
+                                } else {
+                                        //toTm := (time.Duration(to) * time.Second)
+                                        chV := false
+                                        if to < 0 {
+                                                to = to * -1
+                                                chV = true
+                                        }
+                                        if to > MaxGraceSec {
+                                                to = MaxGraceSec
+                                                chV = true
+                                        }
+                                        if chV {
+                                                envVar = strconv.Itoa(to)
+                                        }
+                                        // *varTimeToProc[varsToProc[i][0]] = (time.Duration(to) * time.Second)
+                                        // toTm,_ := time.ParseDuration(envVar + "s")
+                                        //fmt.Println(toTm.Seconds())
+                                        *varTimeToProc[varsToProc[i][0]], _ = time.ParseDuration(envVar + "s")
+                                }
+                        default:
+                                log.Printf("Env. variable type  %v, not supported.", varTyp)
 
-	envVar = os.Getenv("HTTP_WRITE_TIMEOUT")
-	if envVar != "" {
-		to, err := strconv.Atoi(envVar)
-		if err != nil {
-			log.Printf("failed to convert HTTP_READ_TIMEOUT: %s to int", envVar)
-		} else {
-			httpconf.writeTimeout = time.Duration(to) * time.Second
-		}
-		log.Printf("Write timeout: %d", httpconf.writeTimeout)
-	}
-
-	envVar = os.Getenv("HTTP_SHUTDOWN_TIMEOUT")
-	if envVar != "" {
-		if envVar != "" {
-			to, err := strconv.Atoi(envVar)
-			if err != nil {
-				log.Printf("failed to convert HTTP_SHUTDOWN_TIMEOUT: %s to int", envVar)
-			} else {
-				httpconf.shutdownTimeout = time.Second * time.Duration(to)
-			}
-			log.Println("Shutdown timeout", httpconf.shutdownTimeout)
-		}
-	}
-
-	envVar = os.Getenv("HTTP_LOG")
-	if envVar != "" {
-		httpconf.logPath = envVar
-	}
-
+                        }
+                }
+        }
 }
 
 {{.AllRoutesSwaggerDoc}}
 func (a *{{.NameExported}}App) initializeRoutes() {
 
-	uri := {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + "LIST"
-	a.Router.HandleFunc(uri, a.listJobs).Methods("GET")
-	log.Println("GET: ", uri)
+      var uriPrefix string
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint + "LIST"
-	a.Router.HandleFunc(uri, a.listSchedule).Methods("GET")
-	log.Println("GET: ", uri)
+        uriPrefix = APIVersion + "/" + NamespaceID + "/" +
+                DefaultNamespace + "/" + ResourceType + "/"
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + EventCollectorKey
-	a.Router.HandleFunc(uri, a.getJob).Methods("GET")
-	log.Println("GET: ", uri)
+        uri := uriPrefix +
+                JobsEndPoint + "LIST"
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
-	a.Router.HandleFunc(uri, a.getSchedule).Methods("GET")
-	log.Println("GET: ", uri)
+        a.Router.HandleFunc(uri, a.listJobs).Methods("GET")
+        log.Println("Get: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorLivenessEndPoint
-	a.Router.HandleFunc(uri, a.getLiveness).Methods("GET")
-	log.Println("GET: ", uri)
+        uri = uriPrefix +
+                SchedulerEndPoint + "LIST"
+       a.Router.HandleFunc(uri, a.listSchedule).Methods("GET")
+        log.Println("Get: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorReadinessEndPoint
-	a.Router.HandleFunc(uri, a.getReadiness).Methods("GET")
-	log.Println("GET: ", uri)
+        uri = uriPrefix +
+                JobsEndPoint + Key
+        a.Router.HandleFunc(uri, a.getJob).Methods("GET")
+        log.Println("Get: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorMetricsEndPoint
-	a.Router.HandleFunc(uri, a.getMetrics).Methods("GET")
-	log.Println("GET: ", uri)
+        uri = uriPrefix +
+                SchedulerEndPoint
+        a.Router.HandleFunc(uri, a.getSchedule).Methods("GET")
+        log.Println("Get: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorManagementEndPoint
-	a.Router.HandleFunc(uri, a.getManagement).Methods("GET")
-	log.Println("GET: ", uri)
+	       uri = uriPrefix +
+                LivenessEndPoint
+        a.Router.HandleFunc(uri, a.getLiveness).Methods("GET")
+        log.Println("Get: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorManagementEndPoint
-	a.Router.HandleFunc(uri, a.putManagement).Methods("PUT")
-	log.Println("PUT: ", uri)
+        uri = uriPrefix +
+                ReadinessEndPoint
+        a.Router.HandleFunc(uri, a.getReadiness).Methods("GET")
+        log.Println("Get: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-		EventCollectorJobsEndPoint + EventCollectorKey
-	a.Router.HandleFunc(uri, a.updateJob).Methods("PUT")
-	log.Println("PUT: ", uri)
+        uri = uriPrefix +
+                MetricsEndPoint
+	       a.Router.HandleFunc(uri, a.getMetrics).Methods("GET")
+        log.Println("Get: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + EventCollectorKey
-	a.Router.HandleFunc(uri, a.deleteJob).Methods("DELETE")
-	log.Println("DELETE: ", uri)
+        //uri same for next getManagement,putManagement
+        uri = uriPrefix +
+                ManagementEndPoint
+        a.Router.HandleFunc(uri, a.getManagement).Methods("GET")
+        log.Println("GET: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint
-	a.Router.HandleFunc(uri, a.createJob).Methods("POST")
-	log.Println("POST: ", uri)
+        a.Router.HandleFunc(uri, a.putManagement).Methods("PUT")
+        log.Println("PUT: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
-	a.Router.HandleFunc(uri, a.updateSchedule).Methods("PUT")
-	log.Println("PUT: ", uri)
+        uri = uriPrefix +
+               JobsEndPoint
+        a.Router.HandleFunc(uri, a.createJob).Methods("POST")
+        log.Println("POST :", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
-	a.Router.HandleFunc(uri, a.deleteSchedule).Methods("DELETE")
-	log.Println("DELETE: ", uri)
+        //uri same for deleteJob to follow
+        uri = uriPrefix +
+                JobsEndPoint + Key
+        a.Router.HandleFunc(uri, a.updateJob).Methods("PUT")
+        log.Println("PUT: ", uri)
 
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
-	a.Router.HandleFunc(uri, a.createSchedule).Methods("POST")
-	log.Println("POST: ", uri)
+        //uri same as above updateJob
+        a.Router.HandleFunc(uri, a.deleteJob).Methods("DELETE")
+        log.Println("DELETE: ", uri)
+
+        uri = uriPrefix +
+                SchedulerEndPoint
+        a.Router.HandleFunc(uri, a.createSchedule).Methods("POST")
+        log.Println("POST:", uri)
+
+        //uri same for createSchedule
+        a.Router.HandleFunc(uri, a.updateSchedule).Methods("PUT")
+        log.Println("PUT :", uri)
+
+        //uri same for createSchedule above
+        a.Router.HandleFunc(uri, a.deleteSchedule).Methods("DELETE")
+        log.Println("Delete:", uri)
 
 	return
 }
@@ -404,7 +400,7 @@ func (a *{{.NameExported}}App) getLiveness(w http.ResponseWriter, r *http.Reques
 	// Pre-processing hook
 	getLivenessPreHook(w, r)
 
-	if !a.Live {
+	if !a.LiveHTTPSever {
 		respondWithByte(w, http.StatusServiceUnavailable, []byte("{\"Live\": false}"))
 		return
 	}
@@ -428,7 +424,7 @@ func (a *{{.NameExported}}App) getReadiness(w http.ResponseWriter, r *http.Reque
 	// Pre-processing hook
 	getReadinessPreHook(w, r)
 
-	if !a.Ready {
+	if !a.DispatcherReady {
 		respondWithByte(w, http.StatusServiceUnavailable, []byte("{\"Ready\": false}"))
 		return
 	}
@@ -483,7 +479,7 @@ func (a *{{.NameExported}}App) getMetrics(w http.ResponseWriter, r *http.Request
 //
 // Responses:
 //		default: genericError
-//				200: managementGetResponse
+//				200: managementCommands 
 func (a *{{.NameExported}}App) getManagement(w http.ResponseWriter, r *http.Request) {
 	// Pre-processing hook
 	getManagementPreHook(w, r)
@@ -491,7 +487,7 @@ func (a *{{.NameExported}}App) getManagement(w http.ResponseWriter, r *http.Requ
 	// Post-processing hook
 	getManagementPostHook(w, r)
 
-	respondWithJSON(w, http.StatusOK, a.Dispatcher.managementOptions)
+	respondWithJSON(w, http.StatusOK, a.managementOptions)
 }
 
 // put{{.Management}} swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.Management}} {{.Management}} put{{.Management}}
@@ -520,11 +516,11 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 	e = json.Unmarshal(payload, &requestedCommand)
 	if e != nil {
 		msg := fmt.Sprintf("{\"error\": \"json.Unmarshal failed\", \"Error\": \"%v\"}", e.Error())
-		respondWithByte(w, http.StatusBadRequest, []byte(msg))
+		respondWithByte(w, http.StatusInternalServerError, []byte(msg))
 		return
 	}
 
-	status, respBody, e := a.Dispatcher.ProcessManagementRequest(requestedCommand)
+	status, respBody, e := a.managementOptions.ProcessManagementRequest(requestedCommand)
 
 	if e != nil {
 		msg := fmt.Sprintf("{\"error\": \"Management command failed\", \"Error\": \"%v\"}", e.Error())
@@ -539,16 +535,26 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 	respondWithByte(w, status, respBody)
 
 	// Special case for shutting down
-	if requestedCommand.Command == "shutdown" {
+	if requestedCommand.CommandName == "shutdown"  && requestedCommand.Resource == resDispatcher{
+		//Await for a gracefulShutdown
 		time.Sleep(time.Duration(a.Dispatcher.conf.gracefulShutdown) * time.Second)
-		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		e = syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		if e != nil {
+                        msg := fmt.Sprintf("{\"error\": \"Shutting down with\", \"Error\": \"%v\"}", e.Error())
+                        log.Println("shutdown error:", msg)
+                }
 	}
 
 	// Special case for hard kill
 	// We've sent the reply
-	if requestedCommand.Command == "shutdown_now" {
+	if requestedCommand.CommandName == "shutdown_now" && requestedCommand.Resource == resDispatcher {
 		time.Sleep(time.Duration(a.Dispatcher.conf.hardShutdown) * time.Second)
-		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		e = syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+                 if e != nil {
+                        msg := fmt.Sprintf("{\"error\": \"Shutting down with\", \"Error\": \"%v\"}", e.Error())
+                        log.Println("shutdown_now error:", msg)
+                }
+
 	}
 
 	return
@@ -760,7 +766,12 @@ func respondWithError(w http.ResponseWriter, code int, message string) {
 func respondWithByte(w http.ResponseWriter, code int, payload []byte) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	w.Write(payload)
+	_,e := w.Write(payload)
+	if e != nil {
+                msg := fmt.Sprintf("{\"error\": \"payload error: \", \"Error\": \"%v\"}", e.Error())
+                log.Println("respondWithByte error:", msg)
+        }
+
 }
 
 // respondWithJSON will Marshal the payload
@@ -769,7 +780,12 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	w.Write(response)
+        _, e :=	w.Write(response)
+	if e != nil {
+                msg := fmt.Sprintf("{\"error\": \"response error: \", \"Error\": \"%v\"}", e.Error())
+                log.Println("respondWithJSON error:", msg)
+        }
+
 }
 
 func openAccessLogFile(accesslogfile string) *os.File {
@@ -783,12 +799,17 @@ func openAccessLogFile(accesslogfile string) *os.File {
 
 	_, _ = rollLogIfExists(accesslogfile)
 
-	lf, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
-
+	lf, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
 		log.Println("Error opening access log file: os.OpenFile:", err)
-		return nil
+		if err2 := lf.Close(); err2 != nil {
+                        log.Println("Error closing bad access log file: os.OpenFile:", err2)
+                        return nil
+                } else {
+                        lf, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+                        return lf
 	}
+}
 
 	return lf
 }
@@ -801,7 +822,7 @@ func openErrorLogFile(errorlogfile string) error {
 
 	_, _ = rollLogIfExists(errorlogfile)
 
-	lf, err := os.OpenFile(errorlogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+	lf, err := os.OpenFile(errorlogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 
 	if err != nil {
 		log.Println("Error opening error log file: os.OpenFile:", err)

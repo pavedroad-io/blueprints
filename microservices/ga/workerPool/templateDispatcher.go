@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"sync"
 	"syscall"
 	"time"
@@ -14,8 +16,8 @@ import (
 
 // Map counters to JSON friendly names
 const (
-	dispatcherJobsSent        = "jobs_sent"
-	dispatcherResultsReceived = "results_received"
+	dispatcherJobsSent        string = "jobs_sent"
+	dispatcherResultsReceived string = "results_received"
 )
 
 // Defaults for dispatcher and workers
@@ -35,7 +37,19 @@ const (
 
 	// HardShutdown sets the number of seconds to wait for work to complete
 	// durring a hard shutdown
-	HardShutdown int = 0
+	HardShutdown int = 1
+
+	//Maximum number of jobs to track by each worker
+        MaxJobTrack int = 100
+
+        //Maximum number of worker channels
+        MaxWorkers int = 10
+
+	 //Maximum number of seconds to wait for hard shutdown
+        MaxShutSec = 60
+
+        //Maximum number of seconds for gracefull sutdown
+        MaxGraceSec int = 90
 )
 
 // Management API
@@ -47,104 +61,121 @@ const (
 	resultChannelSize       string = "result_channel_size"
 )
 
-// managementGetResponse List of available command and field options
-//
-// swagger:response managementGetResponse
-type managementGetResponse struct {
-	// The error message
-	// in: body
-
-	// Commands is a list of valid commands that can be executed
-	Commands []mgtCommand `json:"commands"`
-	// Fields is a list of fields that can be changed
-	Fields []string `json:"fields"`
+func (d *dispatcher) stopScheduler() (httpStatusCode int, jsonb []byte, err error) {
+	d.metrics.mutex.Lock()
+        if ChannelsReady {
+		d.metrics.mutex.Unlock()
+                Mwg.Add(1)
+                go func() {
+                        //TODO: Must update for interupt to return
+                        defer Mwg.Done()
+                        d.schedulerDone <- true
+                }()
+	        d.metrics.mutex.Lock()
+                ChannelsReady = false
+		d.metrics.mutex.Unlock()
+                msg := fmt.Sprintf("{\"status\": \"scheduler stop initiated\"}")
+                return http.StatusOK, []byte(msg), nil
+        }
+	d.metrics.mutex.Unlock()
+        msg := fmt.Sprintf("{\"status\": \"must wait to stop scheduler\"}")
+        return http.StatusForbidden, []byte(msg), nil
 }
 
-// get404Response Not found
-//
-// swagger:response get404Response
-type get404Response struct {
-	// The 404 error message
-	// in: body
+func (d *dispatcher) startScheduler() (httpStatusCode int, jsonb []byte, err error) {
 
-	Body struct {
-		// Error message
-		Error string `json:"error"`
-
-		// UUID / key that was not found
-		UUID string `json:"uuid"`
-	}
+        return doNotImplemented(resDispatcher)
 }
 
-// genericError
-//
-// swagger:response genericError
-type genericError struct {
-	// in: body
-	// Error message
-	Body struct {
-		Error string `json:"error"`
-	} `json:"body"`
+func (d *dispatcher) stopWorkers() (httpStatusCode int, jsonb []byte, err error) {
+	d.metrics.mutex.Lock()
+        if !ChannelsReady {
+                d.metrics.mutex.Unlock()
+                msg := fmt.Sprintf("{\"status\": \"can't stop workers now\"}")
+                return http.StatusForbidden, []byte(msg), nil
+        }
+        fmt.Println("in stoping wrokers")
+        ChannelsReady = false
+	d.metrics.mutex.Unlock()
+        fmt.Println("in stoping wrokers, step 2")
+        Mwg.Add(len(d.workers))
+        for i := 0; i < len(d.workers); i++ {
+                go func(i int) {
+                        defer Mwg.Done()
+                        //      d.workerDone <- true
+                        //TODO: Must update for interupt for return
+                        fmt.Println("stopWorkers before chan:", i)
+                        d.workers[i].done <- true
+                        fmt.Println("stopWorkers done:", i)
+                }(i)
+        }
+       //TODO: More work required for the worker pool after stop
+        msg := fmt.Sprintf("{\"status\": \"worker stop initiated\"}")
+        return http.StatusOK, []byte(msg), nil
 }
 
-// genericResponse
-//
-// swagger:response genericResponse
-type genericResponse struct {
-	// in: body
-	Body struct {
-		// JSON body
-		JsonBody string `json:"json_body"`
-	} `json:"body"`
+func (d *dispatcher) startWorkers() (httpStatusCode int, jsonb []byte, err error) {
+        time.Sleep(5 * time.Second)
+	d.metrics.mutex.Lock()
+        if ChannelsReady {
+                //No prior worker stop requested, so return
+                msg := fmt.Sprintf("{\"status\": \" workers state %v is not expecetd\"}", ChannelsReady)
+		d.metrics.mutex.Unlock()
+                return http.StatusForbidden, []byte(msg), nil
+        }
+        if (d.conf.currentNumberOfWorkers + WorkersDown) > 0 {
+                fmt.Println("startWorkers still active:", (d.conf.currentNumberOfWorkers + WorkersDown))
+                msg := fmt.Sprintf("{\"status\": \" %v workers are still active\"}", (d.conf.currentNumberOfWorkers + WorkersDown))
+                return http.StatusForbidden, []byte(msg), nil
+        } else {
+               d.metrics.mutex.Lock() 
+                {
+
+                        d.workers = make([]*worker, 0, MaxWorkers)
+                        d.conf.currentNumberOfWorkers = 0
+                        WorkersDown = 0
+                }
+               d.metrics.mutex.Unlock()
+        }
+        fmt.Println("startWorkers, no more workers")
+        //d.createWorkerPool()
+        e := d.createWorkerPool(&Mwg)
+        if e != nil {
+                msg := fmt.Sprintf("{\"status\": \"couldn't start worker pool: %v\"}", e)
+                return http.StatusExpectationFailed, []byte(msg), nil
+        }
+        fmt.Println("startWorkers initated")
+	d.metrics.mutex.Lock()
+        ChannelsReady = true
+	d.metrics.mutex.Unlock()
+        msg := fmt.Sprintf("{\"status\": \"worker start initiated\"}")
+        return http.StatusOK, []byte(msg), nil
 }
 
-// metricsResponse
-//
-// swagger:response metricsResponse
-type metricsResponse struct {
-	// in: body
-	Body struct {
-		// Error message
-		SchedulerMetrics string `json:"scheduler_metrics"`
-		DispatherMetrics string `json:"dispather_metrics"`
-	} `json:"body"`
+func (d *dispatcher) shutdown() (httpStatusCode int, jsonb []byte, err error) {
+
+        //TODO: move this logic into api Shutdown() method ?
+        // Let the scheduler clean up if special logic is needed
+        // d.scheduler.Shutdown()
+        d.schedulerDone <- true
+        d.workerDone <- true
+        msg := fmt.Sprintf("{\"Status\": \"Shutdown complete\"}")
+        return http.StatusOK, []byte(msg), nil
+
 }
 
-// mgtCommand List of available command and field options
-//
-type mgtCommand struct {
-	// Name of the command
-	Name string `json:"name"`
+func (d *dispatcher) shutdownNow() (httpStatusCode int, jsonb []byte, err error) {
 
-	// Go data type
-	DataType string `json:"data_type"`
+        d.schedulerInterrupt <- syscall.SIGINT
+        d.workerInterrupt <- syscall.SIGINT
+        msg := fmt.Sprintf("{\"Status\": \"Shutdown_now complete.\"}")
+        return http.StatusOK, []byte(msg), nil
 
-	// Go data type
-	CommandType string `json:"command_type"`
-
-	// Description of what this command does
-	Description string `json:"description"`
-}
-
-// managementRequest user request to execute a management command
-//
-// swagger:response managementRequest
-type managementRequest struct {
-	// The error message
-	// in: body
-
-	// Commands is a list of valid commands that can be executed
-	Command string `json:"command"`
-
-	// Field to set
-	Field string `json:"field"`
-
-	// Value for field
-	Value int `json:"field_value"`
 }
 
 // worker is a go worker pool pattern
 type worker struct {
+         jobHist      map[uuid.UUID]string //Only noncontinuous jobs, showing ClientID
 	currentJob   Job
 	lastJob      Job
 	wg           sync.WaitGroup
@@ -152,36 +183,87 @@ type worker struct {
 	responseChan chan Result
 	interrupt    chan os.Signal
 	done         chan bool
+        jobCnt       int //Number of jobs sent to  this worker chan.
+        workerID     int //For monitoring work distribution
 }
 
 // Run starts listing for jobs to be processed
 // Read a job from the Job channel
 // Read the done channel to see if this worker should exit
 // Read the interrupt channel to see if this worker must exit
-func (w *worker) Run() error {
+func (w *worker) Run(mWg *sync.WaitGroup) error {
+      defer mWg.Done()
+        for {
+                //fmt.Println("Woker number:", w.workerID)
+                //No need to look for jobs if !ChannelsReady
+                //Trying to speed up worker stop
+		 Mmutex.Lock()
+                if ChannelsReady {
+			Mmutex.Unlock()
+                        select {
+                        case currentJob := <-w.jobChan:
+                                {
+                                        mWg.Add(1)
+                                        r, e := currentJob.Run(mWg)
 
-	for {
-		select {
-		case currentJob := <-w.jobChan:
-			r, e := currentJob.Run()
+                                        if e != nil {
+                                                log.Printf("Job: %v error: %v\n", currentJob.ID(), e.Error())
+                                        }
+                                        w.responseChan <- r
+                                        w.lastJob = currentJob
+                                        if !currentJob.IsContinuous() {
+                                                w.jobHist[currentJob.UUID()] = currentJob.GetClientID()
+                                        }
+                                        if w.jobCnt < MaxJobTrack {
+                                                w.jobCnt++
+                                        }
+                                }
+                        case <-w.done:
+                                {
+                                        //TODO: More work required to clean up workers
+                                        Mmutex.Lock()
+                                        WorkersDown = WorkersDown - 1
+                                        Mmutex.Unlock()
+                                        return nil
+                                }
+                       case <-w.interrupt:
+                                return nil
+                        default:
+                                {
+					Mmutex.Lock()
+                                        if !ChannelsReady {
+          				fmt.Println("Worker waiting on channels.")
 
-			if e != nil {
-				log.Printf("Job: %v error: %v\n", currentJob.ID(), e.Error())
+                                        }
+					Mmutex.Unlock()
+                                }
+                        }
+                } else {
+			Mmutex.Unlock()
+                        select {
+                       case <-w.done:
+                                {
+                                        Mmutex.Lock()
+                                        WorkersDown = WorkersDown - 1
+                                        Mmutex.Unlock()
+                                        return nil
+                                }
+                        case <-w.interrupt:
+                                return nil
+                        default:
+				{
+				 fmt.Println("Worker waiting......")
+                                 time.Sleep(5 * time.Second)
+                                 Mmutex.Lock()
+                                if ChannelsReady {
+                                       //In case worker started first
+				       fmt.Println("Channels ready for workers.")
+                                }
+				Mmutex.Unlock()
 			}
-			w.responseChan <- r
-			w.lastJob = currentJob
-
-		case done := <-w.done:
-			if done {
-				w.wg.Done()
-				return nil
-			}
-
-		case <-w.interrupt:
-			w.wg.Done()
-			return nil
-		}
-	}
+                        }
+                }
+        }
 }
 
 // dispatcherConfiguration options set during Initialize
@@ -196,9 +278,9 @@ type dispatcherConfiguration struct {
 	hardShutdown        int
 }
 
-// SetSane Verify and set sane configuration options
+// SetSame Verify and set sane configuration options
 // 	if not defined or exit if an option is mandatory
-func (dc *dispatcherConfiguration) SetSane(d *dispatcher) {
+func (dc *dispatcherConfiguration) SetSame(d *dispatcher) {
 	if dc.scheduler == nil {
 		fmt.Println("A scheduler is required")
 		os.Exit(-1)
@@ -249,24 +331,24 @@ type dispatcher struct {
 	workerInterrupt   chan os.Signal
 
 	// Management response
-	managementOptions managementGetResponse
+	managementOptions managementCommands
 
 	// Metrics counters
 	metrics dispatcherMetrics
 
-	mux sync.Mutex
+	mutex *sync.Mutex
 }
 
 type dispatcherMetrics struct {
 	StartTime time.Time      `json:"start_time"`
 	UpTime    time.Duration  `json:"up_time"`
 	Counters  map[string]int `json:"counters"`
-	mux       sync.Mutex
+	mutex     *sync.Mutex
 }
 
 func (d *dispatcher) MetricToJSON() ([]byte, error) {
-	d.metrics.mux.Lock()
-	defer d.metrics.mux.Unlock()
+	d.metrics.mutex.Lock()
+	defer d.metrics.mutex.Unlock()
 	jb, e := json.Marshal(d.metrics)
 	if e != nil {
 		fmt.Println(e)
@@ -276,36 +358,42 @@ func (d *dispatcher) MetricToJSON() ([]byte, error) {
 }
 
 func (d *dispatcher) MetricSetStartTime() {
-	d.metrics.mux.Lock()
+	d.metrics.mutex.Lock()
+	{
 	d.metrics.StartTime = time.Now()
 	ct := time.Now()
 	d.metrics.UpTime = ct.Sub(d.metrics.StartTime)
-	d.metrics.mux.Unlock()
+}
+	d.metrics.mutex.Unlock()
 }
 
 func (d *dispatcher) MetricUpdateUpTime() (uptime time.Duration) {
-	d.metrics.mux.Lock()
-	ct := time.Now()
+        ct := time.Now()
+	if d.metrics.mutex == nil {
+                return ct.Sub(time.Now())
+        }
+        
+	d.metrics.mutex.Lock()
 	d.metrics.UpTime = ct.Sub(d.metrics.StartTime)
-	d.metrics.mux.Unlock()
+	d.metrics.mutex.Unlock()
 	return d.metrics.UpTime
 }
 
 func (d *dispatcher) MetricInc(key string) {
-	d.metrics.mux.Lock()
+	d.metrics.mutex.Lock()
 	d.metrics.Counters[key]++
-	d.metrics.mux.Unlock()
+	d.metrics.mutex.Unlock()
 }
 
 func (d *dispatcher) MetricSet(key string, value int) {
-	d.metrics.mux.Lock()
+	d.metrics.mutex.Lock()
 	d.metrics.Counters[key] = value
-	d.metrics.mux.Unlock()
+	d.metrics.mutex.Unlock()
 }
 
 func (d *dispatcher) MetricValue(key string) int {
-	d.metrics.mux.Lock()
-	defer d.metrics.mux.Unlock()
+	d.metrics.mutex.Lock()
+	defer d.metrics.mutex.Unlock()
 	return d.metrics.Counters[key]
 }
 
@@ -314,11 +402,12 @@ func (d *dispatcher) MetricValue(key string) int {
 //	 Done channels allow go routines to be stopped by application
 //	 logic
 //   Interrupt channels handle OS interrupts
-func (d *dispatcher) Init(dc *dispatcherConfiguration) {
+func (d *dispatcher) Init(dc *dispatcherConfiguration, mo *managementCommands) {
 	d.conf = dc
-	dc.SetSane(d)
+	dc.SetSame(d)
 
 	d.metrics.Counters = make(map[string]int)
+	d.workers = make([]*worker, 0, MaxWorkers)
 
 	// Scheduler channels
 	d.schedulerJobChan = make(chan Job, d.conf.sizeOfJobChannel)
@@ -343,91 +432,109 @@ func (d *dispatcher) Init(dc *dispatcherConfiguration) {
 		d.schedulerDone,
 		d.schedulerInterrupt)
 
-	d.managementInit()
+	de := errors.New("Error Type")
+        errorInterface = reflect.ValueOf(de).Elem()
+
+	d.managementInit(mo)
+	d.mutex = new(sync.Mutex)
+        d.metrics.mutex = new(sync.Mutex)
+
 	d.MetricSetStartTime()
 
 	return
 }
 
 // managementInit() setup management commands and fields
-func (d *dispatcher) managementInit() {
+func (d *dispatcher) managementInit(mo *managementCommands) {
+        var funcPtr interface{}
+        var parmsList []string
 
-	newCMD := mgtCommand{Name: "set", DataType: "int", CommandType: "config",
-		Description: "Sets the value of a configurable field, see fields below"}
-	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+        //d.managementOptions.CommandNames =  make(map[string]MgtCommand)
+        parmsList = make([]string, 2, 2)
+        parmsList[0] = "ResourseName"
+        parmsList[1] = "ResourseValue"
 
-	newCMD = mgtCommand{Name: "stop_scheduler", DataType: "string",
-		CommandType: "command",
-		Description: "Stops the scheduler from send new jobs"}
-	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+        funcPtr = d.SetConfigVariable
 
-	newCMD = mgtCommand{Name: "start_scheduler", DataType: "string",
-		CommandType: "command",
-		Description: "Starts the scheduler running again.  If running has no affect"}
-	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+        mo.useCommand("set", "Sets the value of a configurable field, see d.managementOptions.Fields", resDispatcher, parmsList, funcPtr)
 
-	newCMD = mgtCommand{Name: "stop_workers", DataType: "string",
-		CommandType: "command",
-		Description: "Shutdown the worker pool letting jobs inflight complete"}
-	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+        parmsList = make([]string, 0, 5)
+        funcPtr = d.stopScheduler
 
-	newCMD = mgtCommand{Name: "start_workers", DataType: "string",
-		CommandType: "command",
-		Description: "Starts the worker pool if stopped"}
-	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+        mo.useCommand("stop_cheduler", "Stops the scheduler from sending new jobs.", resDispatcher, parmsList, funcPtr)
 
-	newCMD = mgtCommand{Name: "shutdown", DataType: "string",
-		CommandType: "command",
-		Description: "Graceful shutdown"}
-	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
+        funcPtr = d.startScheduler
+        mo.useCommand("start_scheduler", "Starts the scheduler running again.  If running has no affect.", resDispatcher, parmsList, funcPtr)
 
-	newCMD = mgtCommand{Name: "shutdown_now", DataType: "string",
-		CommandType: "command",
-		Description: "Hard shutdown with SIGKILL"}
-	d.managementOptions.Commands = append(d.managementOptions.Commands, newCMD)
 
-	d.managementOptions.Fields = append(d.managementOptions.Fields,
-		gracefulShutdownSeconds,
-		hardShutdownSeconds,
-		numberOfWorkers,
-		schedulerChannelSize,
-		resultChannelSize)
+        funcPtr = d.stopWorkers
+        mo.useCommand("stop_workers", "Shutdown the worker pool letting jobs inflight complete", resDispatcher, parmsList, funcPtr)
 
-	/* TODO: add hooks to allows Job and Scheduler to extend management API
-	d.managementOptions.Commands = append(d.managementOption.Command, s.AddSchedulerCommands())
-	d.managementOptions.Fields = append(d.managementOption.Fields, s.AddSchedulerFields())
+        funcPtr = d.startWorkers
+        mo.useCommand("start_workers", "Starts the worker pool if stopped", resDispatcher, parmsList, funcPtr)
 
-	d.managementOptions.Commands = append(d.managementOption.Command, s.AddJobCommands())
-	d.managementOptions.Fields = append(d.managementOption.Fields, s.AddJobFields())
-	*/
+        funcPtr = d.shutdown
+        mo.useCommand("shutdown", "Graceful shutdown", resDispatcher, parmsList, funcPtr)
+
+        funcPtr = d.shutdownNow
+        mo.useCommand("shutdown_now", "Hard shutdown with SIGKILL", resDispatcher, parmsList, funcPtr)
+
+        funcPtr = d.SetConfigVariable
+
+        //d.managementOptions.Fields = make(map[string]ConfigValue)
+
+        mo.setField(gracefulShutdownSeconds, "int", resDispatcher, funcPtr)
+        mo.setField(hardShutdownSeconds, "int", resDispatcher, funcPtr)
+        mo.setField(numberOfWorkers, "int", resDispatcher, funcPtr)
+        mo.setField(schedulerChannelSize, "int", resDispatcher, funcPtr)
+       mo.setField(resultChannelSize, "int", resDispatcher, funcPtr)
 }
 
-func (d dispatcher) Run() error {
-	d.createWorkerPool()
-	go d.Forwarder()
-	go d.Responder()
+/* DONE: added hooks to allows Job and Scheduler to extend management API
+*/
 
-	//wg.Wait()
-	return nil
+func (d dispatcher) Run(mWg *sync.WaitGroup) error {
+	defer mWg.Done()
+	e:= d.createWorkerPool(mWg)
+	if e == nil {
+		mWg.Add(2)
+        	go d.Forwarder(mWg)
+	        go d.Responder(mWg)
+	        return nil
+        }
+	return e
 }
 
-func (d dispatcher) Forwarder() {
+func (d dispatcher) Forwarder(mWg *sync.WaitGroup) {
+	defer mWg.Done()
 	for {
 		select {
 		case currentJob := <-d.schedulerJobChan:
 			d.MetricInc(dispatcherJobsSent)
 			d.workerJobChan <- currentJob
-		}
+		case <-d.workerDone:
+                        return
+                default:
+                        time.Sleep(1 * time.Second)
+                }
+
 	}
 }
 
-func (d dispatcher) Responder() {
+func (d dispatcher) Responder(mWg *sync.WaitGroup) {
+	defer mWg.Done()
 	log.Println("Dispatcher result channel started worker result -> scheduler  result")
 	for {
 		select {
 		case currentJobResponse := <-d.workerJobResponse:
+			{
 			d.MetricInc(dispatcherResultsReceived)
 			d.schedulerResultChan <- currentJobResponse
+		        }
+		case <-d.workerDone:
+                        return
+                default:
+                        time.Sleep(1 * time.Second)
 		}
 	}
 }
@@ -436,144 +543,149 @@ func (d *dispatcher) Shutdown() error {
 	return nil
 }
 
+func (d *dispatcher) doGracefulShutDown(value int) (httpStatusCode int, msg []byte, err error) {
+        if value < 0 {
+                value = value * -1
+        }
+        if value > MaxGraceSec {
+                value = MaxGraceSec
+        }
+
+        old := value
+        d.mutex.Lock()
+        {
+                old = d.conf.gracefulShutdown
+                d.conf.gracefulShutdown = value
+        }
+        d.mutex.Unlock()
+        rmsg := fmt.Sprintf("{\"Status\": \"%s changed from %d to %d\"}",
+                gracefulShutdownSeconds, old, value)
+        return http.StatusOK, []byte(rmsg), nil
+
+}
+
+func (d *dispatcher) doHardShutdownSeconds(value int) (httpStatusCode int, msg []byte, err error) {
+        if value < 0 {
+                value = value * -1
+        }
+        if value > MaxShutSec {
+                value = MaxShutSec
+        }
+        old := value
+        d.mutex.Lock()
+        {
+                old = d.conf.hardShutdown
+                d.conf.hardShutdown = value
+        }
+        d.mutex.Unlock()
+        rmsg := fmt.Sprintf("{\"Status\": \"%s changed from %d to %d\"}",
+                hardShutdownSeconds, old, value)
+        return http.StatusOK, []byte(rmsg), nil
+
+}
+
+func (d *dispatcher) doNumberOfWorkers(value int) (httpStatusCode int, msg []byte, err error) {
+        if value < 0 {
+                value = value * -1
+        }
+        if value > MaxWorkers {
+                value = MaxWorkers
+        }
+        old := value
+        d.mutex.Lock()
+        {
+                old = d.conf.numberOfWorkers
+                d.conf.numberOfWorkers = value
+        }
+        d.mutex.Unlock()
+
+        //TODO: grow or srink as necessary
+        rmsg := fmt.Sprintf("{\"Status\": \"%s changed from %d to %d\"}",
+                numberOfWorkers, old, value)
+        return http.StatusOK, []byte(rmsg), nil
+}
+
+func doNotImplemented(resourse string) (httpStatusCode int, msg []byte, err error) {
+        rmsg := fmt.Sprintf("{\"Status\": \"%s configuration is not yet implemented.\"}", resourse)
+        e := errors.New("not implemented")
+        return http.StatusNotImplemented, []byte(rmsg), e
+
+}
+
+func doUnkownCmd(resourse string) (httpStatusCode int, msg []byte, err error) {
+        rmsg := fmt.Sprintf("{\"Status\": \"%s is an unknown resourse.\"}", resourse)
+        e := errors.New("unknown resourse to configure")
+
+        return http.StatusNotFound, []byte(rmsg), e
+
+}
+
+
 // SetConfigVariable changegs the value of a given field
-func (d *dispatcher) SetConfigVariable(name string, value int) (msg []byte, err error) {
-	var rmsg string
+func (d *dispatcher) SetConfigVariable(name string, value int) (httpStatusCode int, msg []byte, err error) {
 
-	switch name {
-	case gracefulShutdownSeconds:
-		d.mux.Lock()
-		old := d.conf.gracefulShutdown
-		d.conf.gracefulShutdown = value
-		d.mux.Unlock()
-		rmsg = fmt.Sprintf("{\"Status\": \"%s changed from %d to %d\"}",
-			name, old, value)
-		return []byte(rmsg), nil
+	fmt.Println("In SetConfigVariable")
 
-	case hardShutdownSeconds:
-		d.mux.Lock()
-		old := d.conf.hardShutdown
-		d.conf.hardShutdown = value
-		d.mux.Unlock()
-		rmsg = fmt.Sprintf("{\"Status\": \"%s changed from %d to %d\"}",
-			name, old, value)
-		return []byte(rmsg), nil
+        switch name {
+        case gracefulShutdownSeconds:
+                return d.doGracefulShutDown(value)
 
-	case numberOfWorkers:
-		d.mux.Lock()
-		old := d.conf.numberOfWorkers
-		d.conf.numberOfWorkers = value
-		d.mux.Unlock()
+        case hardShutdownSeconds:
+                return d.doHardShutdownSeconds(value)
 
-		//TODO: grow or srink as necessary
-		rmsg = fmt.Sprintf("{\"Status\": \"%s changed from %d to %d\"}",
-			name, old, value)
-		return []byte(rmsg), nil
+        case numberOfWorkers:
+              return d.doNumberOfWorkers(value)
 
-	case schedulerChannelSize:
-		rmsg = fmt.Sprintf("{\"Status\": \"%s not implemented\"}", name)
-		e := errors.New("not implemented")
-		return []byte(rmsg), e
+        case schedulerChannelSize:
+                return doNotImplemented(name)
 
-	case resultChannelSize:
-		rmsg = fmt.Sprintf("{\"Status\": \"%s not implemented\"}", name)
-		e := errors.New("not implemented")
-		return []byte(rmsg), e
-	default:
-		rmsg = fmt.Sprintf("{\"Status\": \"%s unknown\"}", name)
-		e := errors.New("unknown set field")
-		return []byte(rmsg), e
-	}
-
+        case resultChannelSize:
+                return doNotImplemented(name)
+        default:
+                return doUnkownCmd(name)
+        }
 }
 
-// ProcessManagementRequest executes a management command
-func (d *dispatcher) ProcessManagementRequest(r managementRequest) (httpStatusCode int, jsonb []byte, err error) {
+func (d *dispatcher) createWorkerPool(mWg *sync.WaitGroup) error {
+	 currNumWorkers := len(d.workers)
+        if currNumWorkers > 0 {
+                log.Printf("Prior worker pool with  %d workers.\n", currNumWorkers)
+                return nil
+        }
 
-	switch r.Command {
-	case "set":
-		msg, e := d.SetConfigVariable(r.Field, r.Value)
+        d.mutex.Lock()
+        {
+                for i := 0; i < d.conf.numberOfWorkers; i++ {
+                        newWorker := worker{
+                               //                      wg:           d.wg,
+                                jobHist:      make(map[uuid.UUID]string),
+                                jobChan:      d.workerJobChan,
+                                responseChan: d.workerJobResponse,
+                                interrupt:    d.workerInterrupt,
+                                done:         make(chan bool, 1),
+                                workerID:     i,
+                        }
 
-		if e != nil {
-			return http.StatusBadRequest, []byte(msg), nil
-		}
-		return http.StatusOK, []byte(msg), nil
+                        //d.wg.Add(1)
+                        mWg.Add(1)
+                      // Keep track of each worker
+                        d.workers = append(d.workers, &newWorker)
 
-	case "stop_scheduler":
-		d.schedulerDone <- true
-		msg := fmt.Sprintf("{\"Status\": \"Scheduler stop initiated\"}")
-		return http.StatusOK, []byte(msg), nil
+                        go newWorker.Run(mWg)
+                }
+        }
+        d.mutex.Unlock()
 
-	case "start_scheduler":
-		// TODO: this will require changes to the scheduler interface
-		msg := fmt.Sprintf("{\"Status\": \"Scheduler start initiated\"}")
-		return http.StatusOK, []byte(msg), nil
+        d.conf.currentNumberOfWorkers = d.conf.numberOfWorkers
+        log.Printf("Worker pool created, %d workers\n", d.conf.numberOfWorkers)
+        return nil
 
-	case "stop_workers":
-		d.workerDone <- true
-		d.conf.currentNumberOfWorkers = 0
-		msg := fmt.Sprintf("{\"Status\": \"Worker stop initiated\"}")
-		return http.StatusOK, []byte(msg), nil
-
-	case "start_workers":
-		if d.conf.currentNumberOfWorkers > 0 {
-			msg := fmt.Sprintf("{\"Status\": \"%v already running\"}",
-				d.conf.currentNumberOfWorkers)
-			return http.StatusBadRequest, []byte(msg), nil
-		}
-
-		d.createWorkerPool()
-		msg := fmt.Sprintf("{\"Status\": \"Worker stop initiated\"}")
-		return http.StatusOK, []byte(msg), nil
-
-		//TODO: move this logic into Shutdown() method
-	case "shutdown":
-		// Let the scheduler clean up if special logic is needed
-		// d.scheduler.Shutdown()
-		d.schedulerDone <- true
-		d.workerDone <- true
-		msg := fmt.Sprintf("{\"Status\": \"Shutdown complete\"}")
-		return http.StatusOK, []byte(msg), nil
-
-	case "shutdown_now":
-		d.schedulerInterrupt <- syscall.SIGINT
-		d.workerInterrupt <- syscall.SIGINT
-		msg := fmt.Sprintf("{\"Status\": \"shutdown_now complete\"}")
-		return http.StatusOK, []byte(msg), nil
-
-	default:
-		msg := fmt.Sprintf("{\"Status\": \"Command %s not implemented\"}",
-			r.Command)
-		return http.StatusBadRequest, []byte(msg), nil
-	}
-
-	return 0, nil, nil
-}
-
-func (d *dispatcher) createWorkerPool() error {
-	for i := 0; i < d.conf.numberOfWorkers; i++ {
-		newWorker := worker{wg: d.wg,
-			jobChan:      d.workerJobChan,
-			responseChan: d.workerJobResponse,
-			interrupt:    d.workerInterrupt,
-			done:         d.workerDone}
-
-		d.wg.Add(1)
-
-		// Keep track of each worker
-		d.workers = append(d.workers, &newWorker)
-
-		go newWorker.Run()
-	}
-	d.conf.currentNumberOfWorkers = d.conf.numberOfWorkers
-	log.Printf("Worker pool created, %d workers\n", d.conf.numberOfWorkers)
-	return nil
 }
 
 func (d *dispatcher) growWorkerPool() error {
 	return nil
 }
 
-func (d *dispatcher) srinkWorkerPool() error {
+func (d *dispatcher) swrinkWorkerPool() error {
 	return nil
 }{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

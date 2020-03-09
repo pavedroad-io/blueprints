@@ -1,7 +1,10 @@
 {{define "templateScheduler.go"}}{{.PavedroadInfo}}
 package main
 
-import "os"
+import (
+	"os"
+	"sync"
+)
 
 // Scheduler defines the interfaces a scheduler must implement
 type Scheduler interface {
@@ -18,12 +21,13 @@ type Scheduler interface {
 	UpdateScheduleJob(jsonBlob []byte) (httpStatusCode int, jsonb []byte, err error)
 	CreateScheduleJob(jsonBlob []byte) (httpStatusCode int, jsonb []byte, err error)
 	DeleteScheduleJob(UUID string) (httpStatusCode int, jsonb []byte, err error)
+        StopContinuousJob(UUID string) (httpStatusCode int, jsonb []byte, err error)
 
 	// Execution methods
-	Init() error
+	Init(mo *managementCommands) error
 	SetChannels(chan Job, chan Result, chan bool, chan os.Signal)
 	Shutdown() error
-	Run() error
+	Run(mWg *sync.WaitGroup) error
 	//RestartScheduler() error
 	//RestartResultsCollector() error
 
@@ -35,7 +39,7 @@ type Scheduler interface {
 }
 
 // SchedulerStatus tracks if the scheduler and Results collectors are running
-type SchedulerStatus struct {
-	SchedulerRunning       bool
-	ResultCollectorRunning bool
-}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+//type SchedulerStatus struct {
+//	SchedulerRunning       bool
+//	ResultCollectorRunning bool
+//}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
