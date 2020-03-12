@@ -5,6 +5,7 @@ kind: Kustomization
 namespace: {{.Namespace}}
 
 bases:
+  - kafka
   - db
   - {{.Name}}
 

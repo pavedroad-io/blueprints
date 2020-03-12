@@ -7,6 +7,7 @@ PROJDIR := $(shell pwd)
 TARGET := $(PROJECTNAME)
 
 K8SRUNNING := $(shell dev/microk8sStatus.sh)
+export DOCKER_IP = `(dev/getdockerip.sh)`
 
 ASSETS := $(PROJDIR)/assets/images
 ARTIFACTS := $(PROJDIR)/artifacts
