@@ -8,6 +8,10 @@ services:
      - "8081"
     ports: 
      - 8081:8081
+    environment:
+     - HTTP_IP_ADDR=0.0.0.0
+     - HTTP_IP_PORT=8081
+     - APP_DB_IP=manifests_roach-ui_1
   roach-ui:
     image: cockroachdb/cockroach
     command: start --insecure
@@ -19,4 +23,17 @@ services:
      - "6060:8080"
     volumes:
      - ../volumes/data/db-1:/cockroach/cockroach-data
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: "${DOCKER_IP}"
+      KAFKA_ZOOKEEPER_CONNECT: "${DOCKER_IP}:2181"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

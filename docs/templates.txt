@@ -1,6 +1,6 @@
 DESCRIPTION:
-Templates provide a low-code environment for serverless, crd, and Microservices.
-The roadctl CLI uses the template scaffold combined code generation to create your
+Templates provide a low-code environment for serverless, CRD, and microservices.
+The roadctl CLI uses the template skaffold combined code generation to create your
 application, CI, and test framework.
 
 FIELDS:
@@ -11,7 +11,7 @@ api-version <string>
 version <string>
      Object data model version
 id <string>
-     UUID that uniquely identified a combination of api-verion + version
+     UUID that uniquely identified a combination of api-version + version
      This UUID is immutable for the above combination
 release-status <string>
      Specifies the stability of this template:
@@ -20,7 +20,7 @@ release-status <string>
        experimental - represents proof of concepts
 community <object>
      For Open Source projects, the community object specifies which web pages
-     and files are included into the repository.  This includes linking to 
+     and files are included into the repository.  This includes linking to
      social accounts such as slack, twitter, or linked in.
 project <object>
      Defines project/service level objects including:
@@ -31,4 +31,4 @@ project <object>
         license
 schemas <object>
      Allows for the definition of objects such as; user, inventory, services, etc.
-     schemas can be nested inside of each other and mapped to json labesl 
+     schemas can be nested inside of each other and mapped to json labels
