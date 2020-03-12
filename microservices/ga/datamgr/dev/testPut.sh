@@ -8,7 +8,7 @@ uuid=""
 
 getUUID()
 {
-  uuid=`curl -H "Content-Type: application/json" -s http://$host:$port/api/v1/$namespace/$namespace/$service"LIST" | jq -r '.[0].uuid'`
+  uuid=`curl -H "Content-Type: application/json" -s http://$host:$port/api/v1/namespace/$namespace/$service"LIST" | jq -r '.[0].uuid'`
   echo "UUID for user test is :  $uuid"
 }
 

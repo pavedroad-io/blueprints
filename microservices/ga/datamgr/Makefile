@@ -7,6 +7,7 @@ PROJDIR := $(shell pwd)
 TARGET := $(PROJECTNAME)
 
 K8SRUNNING := $(shell dev/microk8sStatus.sh)
+export DOCKER_IP = `(dev/getdockerip.sh)`
 
 ASSETS := $(PROJDIR)/assets/images
 ARTIFACTS := $(PROJDIR)/artifacts
@@ -14,7 +15,7 @@ BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
 GITTEST := .git/HEAD
-FOSSATEST := .fossa.ymml
+FOSSATEST := .fossa.yml
 PREFLIGHT := .pr_preflight_check
 
 # Go related variables.
@@ -36,7 +37,7 @@ GOSECREPORT := $(ARTIFACTS)/gosec.out
 GOVETREPORT := $(ARTIFACTS)/govet.out
 GOTESTREPORT := https://sonarcloud.io/dashboard?id={{.SonarPrefix}}{{.Name}}
 
-GIT_TAG := $(shell git describe)
+GIT_TAG := $(shell git describe 2> /dev/null)
 
 SHELL := /bin/bash
 
@@ -184,6 +185,20 @@ help: Makefile
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 	@echo
 
+## docker-build: Build docker images for use with docker-compose
+docker-build:
+	docker build -f manifests/Dockerfile -t acme-demo/users .
+	docker build -f manifests/Dockerfile -t acme-demo/usersinitdb .
+
+## up: Start service using docker-compose
+up:
+	docker-compose -f manifests/docker-compose.yaml up -d
+
+
+## down: Stop service using docker-compose
+down:
+	docker-compose -f manifests/docker-compose.yaml down
+
 $(ASSETS):
 	$(shell mkdir -p $(ASSETS))
 
@@ -199,8 +214,8 @@ $(DOCS):
 $(LOGS):
 	$(shell mkdir -p $(LOGS))
 
-## Preflight ensure all requirements are met
-## Once they are the $(PREFLIGH) file will be created
+# Preflight: ensure all requirements are met
+# Once they are the $(PREFLIGH) file will be created
 $(PREFLIGHT):
 	dev/preflight.sh
 

@@ -16,3 +16,5 @@ commonLabels:
 commonAnnotations:
   pavedroad.kustomize.base: eventcollector/manifests/kubernetes/dev
   pavedroad.kustomize.bases: eventcollector,kafka
+
+namespace: mirantis
