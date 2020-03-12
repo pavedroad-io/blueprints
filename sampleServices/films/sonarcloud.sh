@@ -1,3 +1,4 @@
+
 sonar-scanner \
   -Dsonar.projectKey=PavedRoad_films \
   -Dsonar.organization=acme-demo \

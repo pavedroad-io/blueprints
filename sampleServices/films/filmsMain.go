@@ -1,8 +1,8 @@
 
 
-//
 // Copyright (c) PavedRoad. All rights reserved.
-// Licensed under the Apache2. See LICENSE file in the project root for full license information.
+// Licensed under the Apache2. See LICENSE file in the project root
+// for full license information.
 //
 
 // User project / copyright / usage information
@@ -20,7 +20,7 @@ import (
         "time"
 )
 
-// Contants to build up a k8s style URL
+// Constants to build up a k8s style URL
 const (
   // FilmsAPIVersion Version API URL
   FilmsAPIVersion string = "/api/v1"
@@ -30,7 +30,7 @@ const (
   FilmsDefaultNamespace string = "pavedroad.io"
   // FilmsResourceType CRD Type per k8s
   FilmsResourceType string = "films"
-  // The email or account login used by 3rd parth provider
+  // The email or account login used by 3rd party provider
   FilmsKey string = "/{key}"
 )
 
@@ -46,7 +46,7 @@ type FilmsApp struct {
   DB     *sql.DB
 }
 
-// both db and http configuration can be changed using environment varialbes
+// both db and http configuration can be changed using environment variables
 type databaseConfig struct {
   username string
   password string
