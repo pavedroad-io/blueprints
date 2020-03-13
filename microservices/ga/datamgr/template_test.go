@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	_ "io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -17,6 +16,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	log "github.com/pavedroad-io/core/go/logger"
 )
 
 const (

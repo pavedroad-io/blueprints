@@ -13,11 +13,11 @@ import (
   "github.com/gorilla/mux"
   _ "github.com/lib/pq"
   "io/ioutil"
-  "log"
   "net/http"
   "os"
   "strconv"
   "time"
+  log "github.com/pavedroad-io/core/go/logger"
 )
 
 // Initialize setups database connection object and the http server
@@ -163,12 +163,6 @@ func (a *{{.NameExported}}App) initializeEnvironment() {
       log.Println("Shutdown timeout", httpconf.shutdownTimeout)
     }
   }
-
-  envVar = os.Getenv("HTTP_LOG")
-  if envVar != "" {
-    httpconf.logPath = envVar
-  }
-
 }
 
 {{.AllRoutesSwaggerDoc}}
@@ -405,17 +399,6 @@ func logRequest(handler http.Handler) http.Handler {
     log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
     handler.ServeHTTP(w, r)
   })
-}
-
-func openLogFile(logfile string) {
-  if logfile != "" {
-    lf, err := os.OpenFile(logfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
-
-    if err != nil {
-      log.Fatal("OpenLogfile: os.OpenFile:", err)
-    }
-    log.SetOutput(lf)
-  }
 }
 
 /*
