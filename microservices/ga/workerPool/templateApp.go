@@ -68,7 +68,7 @@ func (a *{{.NameExported}}App) Run(addr string) {
 	log.Println("Listing at: " + addr)
 	// Wrap router with W3C logging
 
-	lf, _ := os.OpenFile("logs/access.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+	lf, _ := os.OpenFile("logs/access.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 
 	loggedRouter := handlers.LoggingHandler(lf, a.Router)
 	srv := &http.Server{
@@ -97,8 +97,13 @@ func (a *{{.NameExported}}App) Run(addr string) {
 
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.
-	srv.Shutdown(ctx)
-	log.Println("shutting down")
+	err := srv.Shutdown(ctx)
+	if err == nil {
+                log.Println("Shutting Down...")
+        } else {
+                log.Println("Shutting Down...", err)
+        }
+
 	os.Exit(0)
 }
 
@@ -541,14 +546,24 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 	// Special case for shutting down
 	if requestedCommand.Command == "shutdown" {
 		time.Sleep(time.Duration(a.Dispatcher.conf.gracefulShutdown) * time.Second)
-		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		e = syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		if e != nil {
+                        msg := fmt.Sprintf("{\"error\": \"Shutting down with\", \"Error\": \"%v\"}", e.Error())
+                        log.Println("shutdown error:", msg)
+                }
+
 	}
 
 	// Special case for hard kill
 	// We've sent the reply
 	if requestedCommand.Command == "shutdown_now" {
 		time.Sleep(time.Duration(a.Dispatcher.conf.hardShutdown) * time.Second)
-		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		e = syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		if e != nil {
+                        msg := fmt.Sprintf("{\"error\": \"Shutting down with\", \"Error\": \"%v\"}", e.Error())
+                        log.Println("shutdown_now error:", msg)
+                }
+
 	}
 
 	return
@@ -760,7 +775,11 @@ func respondWithError(w http.ResponseWriter, code int, message string) {
 func respondWithByte(w http.ResponseWriter, code int, payload []byte) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	w.Write(payload)
+	_, e := w.Write(payload)
+	if e != nil {
+                msg := fmt.Sprintf("{\"error\": \"payload error: \", \"Error\": \"%v\"}", e.Error())
+                log.Println("respondWithByte error:", msg)
+        }
 }
 
 // respondWithJSON will Marshal the payload
@@ -769,7 +788,12 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	w.Write(response)
+	_, e := w.Write(response)
+	if e != nil {
+                msg := fmt.Sprintf("{\"error\": \"payload error: \", \"Error\": \"%v\"}", e.Error())
+                log.Println("respondWithByte error:", msg)
+        }
+
 }
 
 func openAccessLogFile(accesslogfile string) *os.File {
@@ -783,7 +807,7 @@ func openAccessLogFile(accesslogfile string) *os.File {
 
 	_, _ = rollLogIfExists(accesslogfile)
 
-	lf, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+	lf, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 
 	if err != nil {
 		log.Println("Error opening access log file: os.OpenFile:", err)
@@ -801,7 +825,7 @@ func openErrorLogFile(errorlogfile string) error {
 
 	_, _ = rollLogIfExists(errorlogfile)
 
-	lf, err := os.OpenFile(errorlogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+	lf, err := os.OpenFile(errorlogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 
 	if err != nil {
 		log.Println("Error opening error log file: os.OpenFile:", err)
