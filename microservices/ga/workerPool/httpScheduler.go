@@ -591,9 +591,9 @@ func (s *httpScheduler) RunScheduler(mWg *sync.WaitGroup) error {
 	for {
               actSent = 0
                 fmt.Println("Scheduler Running..")
-		Mmutex.Lock()
+		s.metrics.mutex.Lock()
                 if ChannelsReady {
-			Mmutex.Unlock()
+			s.metrics.mutex.Unlock()
                         listLn = len(s.jobList)
                         if listLn != 0 {
                                 s.MetricInc(schedulerIterations)
@@ -631,7 +631,7 @@ func (s *httpScheduler) RunScheduler(mWg *sync.WaitGroup) error {
                                 s.MetricSet(jobListSize, actSent)
                         }
                 } else {
-			Mmutex.Unlock()
+			s.metrics.mutex.Unlock()
                         fmt.Println("Before worker wait sleep ..")
                         time.Sleep(5 * time.Second)
                 }

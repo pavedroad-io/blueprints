@@ -34,8 +34,8 @@ type httpJob struct {
         JobURL     *url.URL  `json:"job_url"`
         Stats      httpStats `json:"stats"`
         ClientID   string    `json:"client_id"` //Possible business client
-        sent       bool      //Internal
-        continuous bool      //Internal
+        sent       bool      //Job control flag
+        continuous bool      //Job scheduling
         count      int       //Tracking times sent for continuos Job
         startTime  time.Time
         endTime    time.Time
@@ -102,6 +102,8 @@ func (j *httpJob) Init() error {
 	return nil
 }
 //MarkSent: Mark job as sent before placing on channel
+/Locks are currently set by caller.
+//TODO: place locks in function
 func (j *httpJob) MarkSent() {
         if !j.sent {
                 j.sent = true
@@ -114,16 +116,18 @@ func (j *httpJob) MarkSent() {
 
 //PausedAsSent is used to pause a continuous job.
 //Job remains on jobList but is not sent.
+//Locks are currently set by caller.
+//TODO: place locks in function
 func (j *httpJob) PausedAsSent() bool {
         if j.continuous && !j.sent {
-                //After completion a continous job is
-                //is marked as not sent.
-                //Marking here as sent without expectation
-                //for placement on the worker pool.
+                //After completion a continous job 
+                //is reset to not sent (false).
+                //This process will 
+                //pause the job outside of the scheduling process.
                 j.sent = true
                 return j.sent
         }
-        return false
+        return false //Can only pause jobs tht are continuos
 }
 // GetSent: reports on the jobs status
 func (j *httpJob) GetSent() bool {

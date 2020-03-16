@@ -172,7 +172,7 @@ type ConfigValue struct {
         funcName interface{} `json:"func_name"`
 }
 
-//MgtCommand has information CommandNames maps in managementCommands
+//MgtCommand has information for CommandNames maps in managementCommands
 type MgtCommand struct {
         // Description of what this command does
         Description string `json:"description"`
@@ -313,7 +313,7 @@ func (mc *managementCommands) callFunc(fn interface{}, params ...interface{}) (h
         return int(result[0].Int()), result[1].Bytes(), nil
 }
 
-//FieldParm is the information for Fields in managementCommands
+//FieldParm is the information for Fields in managementRequest
 type FieldParm struct {
         // Value for field
         FieldValue string `json:"field_value"`
@@ -359,6 +359,11 @@ type managementRequest struct {
 func (mc *managementCommands) useCommand(name, desc, resourse string, paramsName []string, valPtr interface{}) {
         var oldCmd MgtCommand
         var exist bool
+
+	//TODO: Modify with name prefixed by resourse code to allow
+        //      unique name by resourse. Currently name conflicts
+        //      are not supported. Also need to return error messages.
+
 
 
         if valPtr == nil {
@@ -429,7 +434,12 @@ func (mc *managementCommands) useCommand(name, desc, resourse string, paramsName
 func (mc *managementCommands) setField(name, datatype, resourse string, valPtr interface{}) {
 
         Mmutex.Lock()
-       defer Mmutex.Unlock()
+        defer Mmutex.Unlock()
+
+	//TODO: Modify with name prefixed by resourse code to allow
+        //      unique name by resourse. Currently name conflicts
+        //      are not supported. Also need to return error messages.
+
 
         oldVal, exist := mc.Fields[name]
 

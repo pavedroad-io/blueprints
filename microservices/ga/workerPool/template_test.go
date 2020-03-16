@@ -275,7 +275,7 @@ func TestInitEnv(t *testing.T) {
 
         time.Sleep(5 * time.Second)
 
-        curIp := httpconf.ip
+        curIP := httpconf.ip
         curPort := httpconf.port
         curRt := httpconf.readTimeout.Seconds()
         curWt := httpconf.writeTimeout.Seconds()
@@ -286,14 +286,14 @@ func TestInitEnv(t *testing.T) {
         curStS := strconv.FormatFloat(curSt, 'f', 0, 64)
         curWtS := strconv.FormatFloat(curWt, 'f', 0, 64)
 
-        envIp := os.Getenv("HTTP_IP_ADDR")
+        envIP := os.Getenv("HTTP_IP_ADDR")
         envPort := os.Getenv("HTTP_IP_PORT")
         envRto := os.Getenv("HTTP_READ_TIMEOUT")
         envWto := os.Getenv("HTTP_WRITE_TIMEOUT")
         envSto := os.Getenv("HTTP_SHUTDOWN_TIMEOUT")
         envLog := os.Getenv("HTTP_LOG")
 
-        os.Setenv("HTTP_IP_ADDR", curIp)
+        os.Setenv("HTTP_IP_ADDR", curIP)
        os.Setenv("HTTP_IP_PORT", curPort)
         os.Setenv("HTTP_READ_TIMEOUT", curRtS)
         os.Setenv("HTTP_WRITE_TIMEOUT", curWtS)
@@ -304,8 +304,8 @@ func TestInitEnv(t *testing.T) {
         a.initializeEnvironment()
 
         //expected := "0.0.0.0"
-        if httpconf.ip != curIp {
-                t.Errorf("Expected IP %v; Got %v\n", curIp, httpconf.ip)
+        if httpconf.ip != curIP {
+                t.Errorf("Expected IP %v; Got %v\n", curIP, httpconf.ip)
         }
 
         //expected = "10000"
@@ -348,8 +348,8 @@ func TestInitEnv(t *testing.T) {
         os.Unsetenv("HTTP_WRITE_TIMEOUT")
         os.Unsetenv("HTTP_SHUTDOWN_TIMEOUT")
 
-        if envIp != "" {
-                os.Setenv("HTTP_IP_ADDR", envIp)
+        if envIP != "" {
+                os.Setenv("HTTP_IP_ADDR", envIP)
 
         }
         if envPort != "" {
