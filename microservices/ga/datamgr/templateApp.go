@@ -17,7 +17,7 @@ import (
   "os"
   "strconv"
   "time"
-  log "github.com/pavedroad-io/core/go/logger"
+  log "github.com/pavedroad-io/go-core/logger"
 )
 
 // Initialize setups database connection object and the http server
