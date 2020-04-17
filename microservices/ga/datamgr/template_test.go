@@ -16,7 +16,7 @@ import (
 	"strings"
 	"testing"
 	"time"
-	log "github.com/pavedroad-io/core/go/logger"
+	log "github.com/pavedroad-io/go-core/logger"
 )
 
 const (

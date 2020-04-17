@@ -14,7 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	log "github.com/pavedroad-io/core/go/logger"
+	log "github.com/pavedroad-io/go-core/logger"
 )
 
 // A GenericError is the default error message that is generated.
