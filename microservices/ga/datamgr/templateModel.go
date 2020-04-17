@@ -9,12 +9,12 @@ package main
 
 import (
 	"database/sql"
-  "encoding/json"
-  "github.com/google/uuid"
+	"encoding/json"
+	"github.com/google/uuid"
 	"errors"
 	"fmt"
-  "time"
-	"log"
+	"time"
+	log "github.com/pavedroad-io/go-core/logger"
 )
 
 // A GenericError is the default error message that is generated.
