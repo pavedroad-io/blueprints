@@ -91,7 +91,7 @@ Available Commands:
 
 Flags:
       --config string      Config file (default is $HOME/.roadctl.yaml)
-      --debug string       Debug level: info(default)|warm|error|critical (default "info")
+      --debug string       Debug level: info(default)|warn|error|critical (default "info")
       --format string      Output format: text(default)|json|yaml (default "text")
   -h, --help               help for roadctl
       --password string    HTTP basic auth password
@@ -118,7 +118,7 @@ Flags:
 
 Global Flags:
       --config string      Config file (default is $HOME/.roadctl.yaml)
-      --debug string       Debug level: info(default)|warm|error|critical (default "info")
+      --debug string       Debug level: info(default)|warn|error|critical (default "info")
       --format string      Output format: text(default)|json|yaml (default "text")
       --password string    HTTP basic auth password
       --templates string   Set the location of the directory holding roadctl templates
