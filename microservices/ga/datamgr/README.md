@@ -342,6 +342,6 @@ Use the "Generate new token" button to create your new token.
 
 ```bash
 # add line to your .bashrc
-export ACCESS_TOKEN=####################
+export GH_ACCESS_TOKEN=####################
 ```
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
