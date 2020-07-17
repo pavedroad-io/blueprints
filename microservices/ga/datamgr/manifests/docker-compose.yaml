@@ -16,7 +16,7 @@ services:
      - PRLOG_CFGTYPE=env
      - PRLOG_ENABLEKAFKA=true
      - PRLOG_FILEFORMAT=text
-     - PRLOG_FILELOCATION=logs/users.log
+     - PRLOG_FILELOCATION=logs/{{.Name}}.log
      - PRKAFKA_BROKERS=kafka:9092
     depends_on:
      - kafka
