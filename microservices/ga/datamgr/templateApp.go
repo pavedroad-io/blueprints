@@ -203,7 +203,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 //        200: {{.Name}}List
 
 func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
-  {{.Name}} := {{.Name}}{}
+  {{.Name}} := {{.PrimaryTableName}}{}
 
   count, _ := strconv.Atoi(r.FormValue("count"))
   start, _ := strconv.Atoi(r.FormValue("start"))
@@ -241,7 +241,7 @@ func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *h
 
 func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
-  {{.Name}} := {{.Name}}{}
+  {{.Name}} := {{.PrimaryTableName}}{}
 	key := vars["key"]
 
 	// Pre-processing hook
@@ -278,7 +278,7 @@ func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *ht
 //        400: genericError
 func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   // New map structure
-  {{.Name}} := {{.Name}}{}
+  {{.Name}} := {{.PrimaryTableName}}{}
 
   // Pre-processing hook
   a.create{{.NameExported}}PreHook(w, r)
@@ -324,7 +324,7 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
 //        201: {{.Name}}Response
 //        400: genericError
 func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
-  {{.Name}} := {{.Name}}{}
+  {{.Name}} := {{.PrimaryTableName}}{}
 
   // Read URI variables
   vars := mux.Vars(r)
@@ -369,7 +369,7 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
 //        200: {{.Name}}Response
 //        400: genericError
 func (a *{{.NameExported}}App) delete{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
-  {{.Name}} := {{.Name}}{}
+  {{.Name}} := {{.PrimaryTableName}}{}
   vars := mux.Vars(r)
 	key := vars["key"]
 
