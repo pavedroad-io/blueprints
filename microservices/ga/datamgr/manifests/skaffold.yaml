@@ -6,14 +6,25 @@ build:
     - localhost:32000
   artifacts:
   - image: localhost:32000/{{.Organization}}/{{.Name}}
-    context: .
-    docker:
-      dockerfile: manifests/Dockerfile
+	  custom:
+    dependencies:
+    	paths:
+      	- "**.go"
   - image: localhost:32000/{{.Organization}}/{{.Name}}initdb
     context: .
     docker:
       dockerfile: manifests/InitDbDockerFile
 deploy:
   kustomize:
-    path: "manifests/kubernetes/dev"
+    paths:
+    - "manifests/kubernetes/dev"
+
+profiles:
+  - name: dev-debug
+		activation:
+			- env: GODEBUG=true
+    deploy:
+      kustomize:
+        paths:
+        - "manifests/kubernetes/dev-debug"
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
