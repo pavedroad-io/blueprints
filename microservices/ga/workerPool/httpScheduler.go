@@ -201,11 +201,17 @@ func (s *httpScheduler) UpdateScheduleJob(jsonBlob []byte) (httpStatusCode int, 
 			newJob := httpJob{}
 			pu, err := url.Parse(updateData.URL)
 			if err != nil {
-				fmt.Println(err)
-				os.Exit(-1)
+		 fmt.Println(err)
+                                msg := fmt.Sprintf("{\"error\": \"bad job url\", \"Error\": \"%v\"}", err)
+                                return http.StatusBadRequest, []byte(msg), err
 			}
 			newJob.JobURL = pu
-			newJob.Init()
+			e = newJob.Init()
+                        if e != nil {
+                                msg := fmt.Sprintf("{\"error\": \"job init failed\", \"Error\": \"%v\"}", e.Error())
+                                return http.StatusInternalServerError, []byte(msg), e
+                        }
+
 			newJobList = append(newJobList, &newJob)
 			oldJobID = v.ID()
 			newJobID = newJob.ID()
@@ -249,7 +255,12 @@ func (s *httpScheduler) CreateScheduleJob(jsonBlob []byte) (httpStatusCode int, 
 		os.Exit(-1)
 	}
 	newJob.JobURL = pu
-	newJob.Init()
+	e = newJob.Init()
+        if e != nil {
+                msg := fmt.Sprintf("{\"error\": \"job init failed\", \"Error\": \"%v\"}", e.Error())
+                return http.StatusInternalServerError, []byte(msg), e
+        }
+
 	s.jobList = append(s.jobList, &newJob)
 
 	msg := fmt.Sprintf("{\"success\": \"new job %v added\"}", newJob.ID())
@@ -379,7 +390,11 @@ func (s *httpScheduler) Init() error {
 		newJob.JobURL = pu
 
 		// Set type and ID and http.Client
-		newJob.Init()
+		em := newJob.Init()
+		if em != nil {
+                        return em
+                }
+
 		s.jobList = append(s.jobList, &newJob)
 	}
 

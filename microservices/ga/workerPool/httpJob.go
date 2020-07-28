@@ -14,7 +14,9 @@ import (
 )
 
 const (
+	//HTTPJobType is type of Job from scheduler
 	HTTPJobType		string = "io.pavedraod.eventcollector.httpjob"
+	//ClientTimeout in seconds to timeout client jobs
 	ClientTimeout int  = 30
 )
 
