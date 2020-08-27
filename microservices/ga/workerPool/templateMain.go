@@ -40,8 +40,8 @@ const (
 	// {{.NameExported}}MetricsEndPoint
 	{{.NameExported}}MetricsEndPoint string = "{{.Metrics}}"
 
-	// EventCollectorManagementEndPoint
-	EventCollectorManagementEndPoint string = "management"
+	// {{.NameExported}}ManagementEndPoint
+	{{.NameExported}}ManagementEndPoint string = "management"
 
 	// {{.NameExported}}JobsEndPoint
 	{{.NameExported}}JobsEndPoint string = "jobs"
@@ -109,6 +109,11 @@ func printVersion() {
 	os.Exit(0)
 }
 
+//printError
+func printError(em error) {
+        fmt.Println(em)
+}
+
 // main entry point for server
 func main() {
 	a := {{.NameExported}}App{}
@@ -121,7 +126,11 @@ func main() {
 	}
 
 	// Setup logging
-	openErrorLogFile(httpconf.logPath + httpconf.diagnosticsFile)
+        e := openErrorLogFile(httpconf.logPath + httpconf.diagnosticsFile)
+	if e != nil {
+                printError(e)
+                os.Exit(0)
+        }
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	a.accessLog = openAccessLogFile(httpconf.logPath + httpconf.accessFile)

@@ -68,7 +68,7 @@ func (a *{{.NameExported}}App) Run(addr string) {
 	log.Println("Listing at: " + addr)
 	// Wrap router with W3C logging
 
-	lf, _ := os.OpenFile("logs/access.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+	lf, _ := os.OpenFile("logs/access.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 
 	loggedRouter := handlers.LoggingHandler(lf, a.Router)
 	srv := &http.Server{
@@ -97,8 +97,13 @@ func (a *{{.NameExported}}App) Run(addr string) {
 
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.
-	srv.Shutdown(ctx)
-	log.Println("shutting down")
+	err := srv.Shutdown(ctx)
+	if err == nil {
+                log.Println("Shutting Down...")
+        } else {
+                log.Println("Shutting Down...", err)
+        }
+
 	os.Exit(0)
 }
 
@@ -165,7 +170,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + "LIST"
+				{{.NameExported}}JobsEndPoint + "LIST"
 	a.Router.HandleFunc(uri, a.listJobs).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -173,7 +178,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint + "LIST"
+				{{.NameExported}}SchedulerEndPoint + "LIST"
 	a.Router.HandleFunc(uri, a.listSchedule).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -181,7 +186,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + EventCollectorKey
+				{{.NameExported}}JobsEndPoint + {{.NameExported}}Key
 	a.Router.HandleFunc(uri, a.getJob).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -189,7 +194,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
+				{{.NameExported}}SchedulerEndPoint
 	a.Router.HandleFunc(uri, a.getSchedule).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -197,7 +202,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorLivenessEndPoint
+				{{.NameExported}}LivenessEndPoint
 	a.Router.HandleFunc(uri, a.getLiveness).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -205,7 +210,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorReadinessEndPoint
+				{{.NameExported}}ReadinessEndPoint
 	a.Router.HandleFunc(uri, a.getReadiness).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -213,7 +218,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorMetricsEndPoint
+				{{.NameExported}}MetricsEndPoint
 	a.Router.HandleFunc(uri, a.getMetrics).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -221,7 +226,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorManagementEndPoint
+				{{.NameExported}}ManagementEndPoint
 	a.Router.HandleFunc(uri, a.getManagement).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -229,7 +234,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorManagementEndPoint
+				{{.NameExported}}ManagementEndPoint
 	a.Router.HandleFunc(uri, a.putManagement).Methods("PUT")
 	log.Println("PUT: ", uri)
 
@@ -237,7 +242,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-		EventCollectorJobsEndPoint + EventCollectorKey
+				{{.NameExported}}JobsEndPoint + {{.NameExported}}Key
 	a.Router.HandleFunc(uri, a.updateJob).Methods("PUT")
 	log.Println("PUT: ", uri)
 
@@ -245,7 +250,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + EventCollectorKey
+				{{.NameExported}}JobsEndPoint + {{.NameExported}}Key
 	a.Router.HandleFunc(uri, a.deleteJob).Methods("DELETE")
 	log.Println("DELETE: ", uri)
 
@@ -253,7 +258,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint
+				{{.NameExported}}JobsEndPoint
 	a.Router.HandleFunc(uri, a.createJob).Methods("POST")
 	log.Println("POST: ", uri)
 
@@ -261,7 +266,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
+				{{.NameExported}}SchedulerEndPoint
 	a.Router.HandleFunc(uri, a.updateSchedule).Methods("PUT")
 	log.Println("PUT: ", uri)
 
@@ -269,7 +274,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
+				{{.NameExported}}SchedulerEndPoint
 	a.Router.HandleFunc(uri, a.deleteSchedule).Methods("DELETE")
 	log.Println("DELETE: ", uri)
 
@@ -277,7 +282,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
+				{{.NameExported}}SchedulerEndPoint
 	a.Router.HandleFunc(uri, a.createSchedule).Methods("POST")
 	log.Println("POST: ", uri)
 
@@ -285,7 +290,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 }
 
 {{.GetAllSwaggerDoc}}
-// listJobs swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/EventCollectorJobsEndPointLIST jobs listjobs
+// listJobs swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}JobsEndPointLIST jobs listjobs
 //
 // Returns a list of Jobs
 //
@@ -320,7 +325,7 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
 }
 
 {{.GetAllSwaggerDoc}}
-// listSchedule swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/EventCollectorSchedulerEndPointLIST schedules listschedule
+// listSchedule swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}SchedulerEndPointLIST schedules listschedule
 //
 // Returns a list of schedules
 //
@@ -541,14 +546,24 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 	// Special case for shutting down
 	if requestedCommand.Command == "shutdown" {
 		time.Sleep(time.Duration(a.Dispatcher.conf.gracefulShutdown) * time.Second)
-		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		e = syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		if e != nil {
+                        msg := fmt.Sprintf("{\"error\": \"Shutting down with\", \"Error\": \"%v\"}", e.Error())
+                        log.Println("shutdown error:", msg)
+                }
+
 	}
 
 	// Special case for hard kill
 	// We've sent the reply
 	if requestedCommand.Command == "shutdown_now" {
 		time.Sleep(time.Duration(a.Dispatcher.conf.hardShutdown) * time.Second)
-		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		e = syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		if e != nil {
+                        msg := fmt.Sprintf("{\"error\": \"Shutting down with\", \"Error\": \"%v\"}", e.Error())
+                        log.Println("shutdown_now error:", msg)
+                }
+
 	}
 
 	return
@@ -760,7 +775,11 @@ func respondWithError(w http.ResponseWriter, code int, message string) {
 func respondWithByte(w http.ResponseWriter, code int, payload []byte) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	w.Write(payload)
+	_, e := w.Write(payload)
+	if e != nil {
+                msg := fmt.Sprintf("{\"error\": \"payload error: \", \"Error\": \"%v\"}", e.Error())
+                log.Println("respondWithByte error:", msg)
+        }
 }
 
 // respondWithJSON will Marshal the payload
@@ -769,7 +788,12 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	w.Write(response)
+	_, e := w.Write(response)
+	if e != nil {
+                msg := fmt.Sprintf("{\"error\": \"payload error: \", \"Error\": \"%v\"}", e.Error())
+                log.Println("respondWithByte error:", msg)
+        }
+
 }
 
 func openAccessLogFile(accesslogfile string) *os.File {
@@ -783,7 +807,7 @@ func openAccessLogFile(accesslogfile string) *os.File {
 
 	_, _ = rollLogIfExists(accesslogfile)
 
-	lf, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+	lf, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 
 	if err != nil {
 		log.Println("Error opening access log file: os.OpenFile:", err)
@@ -801,7 +825,7 @@ func openErrorLogFile(errorlogfile string) error {
 
 	_, _ = rollLogIfExists(errorlogfile)
 
-	lf, err := os.OpenFile(errorlogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
+	lf, err := os.OpenFile(errorlogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 
 	if err != nil {
 		log.Println("Error opening error log file: os.OpenFile:", err)
