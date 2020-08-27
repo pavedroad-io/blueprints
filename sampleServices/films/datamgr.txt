@@ -1,13 +1,15 @@
 DESCRIPTION:
 
-The datamgr template provide a low-code environment for creating a
-micro service that manages a data base object. You customize the 
-micro service to your use case by creating a definitions file.
-Use to generate a definitions file you can alter:
+The datamgr template provide a low-code or no-code environment
+for creating a microservice that manages a data base object.
+You customize the microservice to your use case by creating a
+definitions file.
+
+To generate a definitions file you can use:
 
 roadctl describe templates datamgr > mydefinitions.yaml
 
-Data attributes are defined in the Tables field and tables can 
+Data attributes are defined in the Tables field and tables can
 be nested.  All records are automatically assigned a UUID that
 acts as the key.
 
@@ -37,7 +39,7 @@ info <Object>
 
 community <object>
      For Open Source projects, the community object specifies which web pages
-     and files are included into the repository.  This includes linking to 
+     and files are included into the repository.  This includes linking to
      social accounts such as slack, twitter, or linked in.
 
      description <string>
@@ -56,55 +58,116 @@ community <object>
       example, shared CI/CD templates
 
       MD5 <string>
-      An MD5 hash that is used to validate resource retrieved 
+      An MD5 hash that is used to validate resource retrieved
       via URL.
 
 
 project <object>
-     Defines project/service level objects including:
-        dependencies <object>
-        A list of images required to run this micro service
+     Defines project/service level objects and attributes
 
-        command <string>
-        Optional command line to pass too the container
+        go <object>
+				Go configuration and compilation options
 
-        comments <string>
-        Optional comment string
+				  dependency-manager <string>
+					Defines if dep or modules are used as the Go dependency.
+					This options affects the Makefile generation
 
-        image <string>
-        A valid docker image tag
+        kubernetes <object>
+				Go configuration and compilation options
 
-        name <string>
-        Name for this instance of the image
+				  namespace <string>
+					Kubernetes namespace to deploy this microservice
+					into, if omitted, pavedroad is used.
 
-        ports <array>
-        A list of external to internal port mappings
+				  liveness <string>
+					Define the Rest API endpoint name for Kubernetes
+					liveness checks, if omitted, liveness is used.
 
-        volumes <array>
-        A valid docker volume definition
+				  readiness <string>
+					Define the Rest API endpoint name for Kubernetes
+					readiness checks, if omitted, ready is used.
 
-        label
-        One or more user defined labels
+				  metrics <string>
+					Define the Rest API endpoint name for reporting
+					metrics, if omitted, metrics is used.
+
+				  management <string>
+					Define the Rest API endpoint name for management
+					of this service, if omitted, management is used.
+
+        dependencies <array>
+        A list of images required to run this microservice.
+				It includes Dockerfile options as required, and
+				configuration data.
+
+          command <string>
+          Optional command line to pass too the container
+
+          comments <string>
+          Optional comment string
+
+          image <string>
+          A valid docker image tag
+
+          name <string>
+          Name for this instance of the image
+
+          ports <array>
+          A list of external to internal port mappings
+
+          volumes <array>
+          A valid docker volume definition
+
+          topics <array>
+					A list of topics to automatically configure including
+					partitions and replication.
+
+					  value: <string>
+						The topic name to configure
+
+					  partitions: <int>
+						The number of partitions to create.
+
+					  replication: <int>
+						The number of replicates desired amongst available
+						brokers.
 
         description <string>
-        A description of this micro service.  It is used
+        A description of this microservice.  It is used
         in CI integration's and documentation
 
-        integrations
+        top_level_domain <string>
+				Required, sets the Top Level Domain name that API
+				requests should be directed towards.  For example,
+				api.myco.com.  This is used in API documentation
+				generation.
+
+        scheduler_name <string>
+				Not used in this template.
+
+        description <string>
+        A description of this microservice.  It is used
+        in CI integration's and documentation
+
+        integrations <array>
         A list of CI/CD integration's used by this template.
         Individual options are specific to a given integration.
-        All integration's include a list of "badges" to include
+        All integration's include a list of "shields" to include
         in the generated README.md and documentation files.
-        
-          badges <object>
-            enable <boolean>
-            true or false
 
-            link: <string>
-            Link to follow when this badge is clicked on
+         name <string>
+					The name for this integration, options
+include:
+                                          - sonarcloud
+                                          - go (goreportcard)
+                                          - fossa
 
-            name: <string>
-            Used as alt link attribute if image is not found
+         enable <boolean>
+					Enable or disable configuration and execution of this
+					integration
+
+         shields <array>
+					A list of quality gates to include in Markdown and HTML reports
 
         license
         The license used to protect this service
@@ -143,7 +206,7 @@ project <object>
           example, shared CI/CD templates
 
           MD5 <string>
-          An MD5 hash that is used to validate resource retrieved 
+          An MD5 hash that is used to validate resource retrieved
           via URL.
 
 tables <object>
@@ -166,7 +229,7 @@ tables <object>
     Automatically set to snake case of the name field
 
     modifiers <string>
-    JSON tag modifiers used when calling JSON Marshall 
+    JSON tag modifiers used when calling JSON Marshall
     methods
 
     name <string>

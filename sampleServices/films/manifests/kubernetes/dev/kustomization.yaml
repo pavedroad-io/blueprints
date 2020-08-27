@@ -1,7 +1,16 @@
 
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: 
+
 bases:
+  - kafka
   - db
   - films
+
+resources:
+  - namespace.yaml
 
 commonLabels:
   pavedroad.env: dev
