@@ -170,7 +170,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + "LIST"
+				{{.NameExported}}JobsEndPoint + "LIST"
 	a.Router.HandleFunc(uri, a.listJobs).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -178,7 +178,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint + "LIST"
+				{{.NameExported}}SchedulerEndPoint + "LIST"
 	a.Router.HandleFunc(uri, a.listSchedule).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -186,7 +186,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + EventCollectorKey
+				{{.NameExported}}JobsEndPoint + {{.NameExported}}Key
 	a.Router.HandleFunc(uri, a.getJob).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -194,7 +194,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
+				{{.NameExported}}SchedulerEndPoint
 	a.Router.HandleFunc(uri, a.getSchedule).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -202,7 +202,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorLivenessEndPoint
+				{{.NameExported}}LivenessEndPoint
 	a.Router.HandleFunc(uri, a.getLiveness).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -210,7 +210,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorReadinessEndPoint
+				{{.NameExported}}ReadinessEndPoint
 	a.Router.HandleFunc(uri, a.getReadiness).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -218,7 +218,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorMetricsEndPoint
+				{{.NameExported}}MetricsEndPoint
 	a.Router.HandleFunc(uri, a.getMetrics).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -226,7 +226,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorManagementEndPoint
+				{{.NameExported}}ManagementEndPoint
 	a.Router.HandleFunc(uri, a.getManagement).Methods("GET")
 	log.Println("GET: ", uri)
 
@@ -234,7 +234,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorManagementEndPoint
+				{{.NameExported}}ManagementEndPoint
 	a.Router.HandleFunc(uri, a.putManagement).Methods("PUT")
 	log.Println("PUT: ", uri)
 
@@ -242,7 +242,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-		EventCollectorJobsEndPoint + EventCollectorKey
+				{{.NameExported}}JobsEndPoint + {{.NameExported}}Key
 	a.Router.HandleFunc(uri, a.updateJob).Methods("PUT")
 	log.Println("PUT: ", uri)
 
@@ -250,7 +250,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint + EventCollectorKey
+				{{.NameExported}}JobsEndPoint + {{.NameExported}}Key
 	a.Router.HandleFunc(uri, a.deleteJob).Methods("DELETE")
 	log.Println("DELETE: ", uri)
 
@@ -258,7 +258,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorJobsEndPoint
+				{{.NameExported}}JobsEndPoint
 	a.Router.HandleFunc(uri, a.createJob).Methods("POST")
 	log.Println("POST: ", uri)
 
@@ -266,7 +266,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
+				{{.NameExported}}SchedulerEndPoint
 	a.Router.HandleFunc(uri, a.updateSchedule).Methods("PUT")
 	log.Println("PUT: ", uri)
 
@@ -274,7 +274,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
+				{{.NameExported}}SchedulerEndPoint
 	a.Router.HandleFunc(uri, a.deleteSchedule).Methods("DELETE")
 	log.Println("DELETE: ", uri)
 
@@ -282,7 +282,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
 				{{.NameExported}}ResourceType + "/" +
-				EventCollectorSchedulerEndPoint
+				{{.NameExported}}SchedulerEndPoint
 	a.Router.HandleFunc(uri, a.createSchedule).Methods("POST")
 	log.Println("POST: ", uri)
 
@@ -290,7 +290,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 }
 
 {{.GetAllSwaggerDoc}}
-// listJobs swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/EventCollectorJobsEndPointLIST jobs listjobs
+// listJobs swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}JobsEndPointLIST jobs listjobs
 //
 // Returns a list of Jobs
 //
@@ -325,7 +325,7 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
 }
 
 {{.GetAllSwaggerDoc}}
-// listSchedule swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/EventCollectorSchedulerEndPointLIST schedules listschedule
+// listSchedule swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}SchedulerEndPointLIST schedules listschedule
 //
 // Returns a list of schedules
 //

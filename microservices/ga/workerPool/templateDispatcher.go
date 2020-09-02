@@ -319,6 +319,10 @@ func (d *dispatcher) Init(dc *dispatcherConfiguration) {
 	dc.SetSane(d)
 
 	d.metrics.Counters = make(map[string]int)
+	d.metrics.mux = &sync.Mutex{}
+	d.mux = &sync.Mutex{}
+	d.wg = &sync.WaitGroup{}
+
 
 	// Scheduler channels
 	d.schedulerJobChan = make(chan Job, d.conf.sizeOfJobChannel)

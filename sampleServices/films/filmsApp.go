@@ -17,11 +17,11 @@ import (
   "github.com/gorilla/mux"
   _ "github.com/lib/pq"
   "io/ioutil"
-  "log"
   "net/http"
   "os"
   "strconv"
   "time"
+  log "github.com/pavedroad-io/go-core/logger"
 )
 
 // Initialize setups database connection object and the http server
@@ -167,12 +167,6 @@ func (a *FilmsApp) initializeEnvironment() {
       log.Println("Shutdown timeout", httpconf.shutdownTimeout)
     }
   }
-
-  envVar = os.Getenv("HTTP_LOG")
-  if envVar != "" {
-    httpconf.logPath = envVar
-  }
-
 }
 
 
@@ -290,13 +284,15 @@ func (a *FilmsApp) createFilms(w http.ResponseWriter, r *http.Request) {
   htmlData, err := ioutil.ReadAll(r.Body)
   if err != nil {
     log.Println(err)
-    os.Exit(1)
+    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	return
   }
 
   err = json.Unmarshal(htmlData, &films)
   if err != nil {
     log.Println(err)
-    os.Exit(1)
+    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	return
   }
 
   ct := time.Now().UTC()
@@ -407,17 +403,6 @@ func logRequest(handler http.Handler) http.Handler {
     log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
     handler.ServeHTTP(w, r)
   })
-}
-
-func openLogFile(logfile string) {
-  if logfile != "" {
-    lf, err := os.OpenFile(logfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0640)
-
-    if err != nil {
-      log.Fatal("OpenLogfile: os.OpenFile:", err)
-    }
-    log.SetOutput(lf)
-  }
 }
 
 /*

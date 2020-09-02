@@ -40,8 +40,8 @@ const (
 	// {{.NameExported}}MetricsEndPoint
 	{{.NameExported}}MetricsEndPoint string = "{{.Metrics}}"
 
-	// EventCollectorManagementEndPoint
-	EventCollectorManagementEndPoint string = "management"
+	// {{.NameExported}}ManagementEndPoint
+	{{.NameExported}}ManagementEndPoint string = "management"
 
 	// {{.NameExported}}JobsEndPoint
 	{{.NameExported}}JobsEndPoint string = "jobs"

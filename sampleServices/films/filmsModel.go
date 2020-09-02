@@ -13,12 +13,12 @@ package main
 
 import (
 	"database/sql"
-  "encoding/json"
-  "github.com/google/uuid"
+	"encoding/json"
+	"github.com/google/uuid"
 	"errors"
 	"fmt"
-  "time"
-	"log"
+	"time"
+	log "github.com/pavedroad-io/go-core/logger"
 )
 
 // A GenericError is the default error message that is generated.
@@ -94,8 +94,8 @@ func (t *films) updateFilms(db *sql.DB, key string) error {
 
   jb, err := json.Marshal(t)
   if err != nil {
-    log.Println("marshal failed")
-    panic(err)
+    log.Printf("updatefilms json.Marshal failed; Got (%v)\n", err.Error())
+    return(err)
   }
 
   statement := fmt.Sprintf(update, jb, key)
@@ -113,7 +113,9 @@ func (t *films) updateFilms(db *sql.DB, key string) error {
 func (t *films) createFilms(db *sql.DB) (string, error) {
   jb, err := json.Marshal(t)
   if err != nil {
-    panic(err)
+	msg := fmt.Sprintf("createfilms json.Marshal failed; Got (%v)\n", err.Error())
+    log.Printf(msg)
+    return msg, err
   }
 
   statement := fmt.Sprintf("INSERT INTO AcmeDemo.films(films) VALUES('%s') RETURNING FilmsUUID", jb)
@@ -201,7 +203,7 @@ func (t *films) getFilms(db *sql.DB, key string, method int) error {
   switch err := row.Scan(&uid, &jb); err {
 
   case sql.ErrNoRows:
-    m := fmt.Sprintf("404:name %s does not exist", key)
+    m := fmt.Sprintf("404:Name %s does not exist", key)
     return errors.New(m)
   case nil:
     err = json.Unmarshal(jb, t)
@@ -212,8 +214,8 @@ func (t *films) getFilms(db *sql.DB, key string, method int) error {
     t.FilmsUUID = uid
     break
   default:
-    //Some error to catch
-    panic(err)
+	  log.Printf("500:getfilms Select failed; Got (%v)\n", err.Error())
+    return(err)
   }
 
   return nil

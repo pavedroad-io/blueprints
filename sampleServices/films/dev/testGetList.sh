@@ -3,10 +3,11 @@
 host=127.0.0.1
 port=8081
 service="films"
+namespace=""
 
 get()
 {
-  curl -v -H "Content-Type: application/json" -s http://$host:$port/api/v1/namespace/pavedroad.io/$service"LIST" | jq '.'
+  curl -v -H "Content-Type: application/json" -s http://$host:$port/api/v1/namespace/$namespace/$service"LIST" | jq '.'
 }
 
 usage()
@@ -21,7 +22,7 @@ while [ "$1" != "" ]; do
   case $1 in
     -k | --k8s ) shift
       host="$(./getk8sip.sh)"
-      port="$(./getNodePort.sh $service)"
+      port="$(./getNodePort.sh $service $namespace)"
       ;;
   -h | --help ) usage
     exit

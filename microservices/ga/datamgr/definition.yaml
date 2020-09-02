@@ -82,70 +82,37 @@ project:
   top_level_domain: "api.pavedroad.io"
   scheduler_name: ""
   integrations:
-  - badges:
-    - enable: true
-      link: <a href="https://app.fossa.com/projects/custom%2B9819%2Ffilms?ref=badge_shield"
-        alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/custom%2B9819%2Ffilms.svg?type=shield"/></a>
-      name: FOSSA
-    name: fossa
+  - name: fossa
+    shields:
+    - "quality_gate"
     enable: true
-  - sonar-cloud-config:
-      key: pavedroad-io_users
-      login: 3faaf04fd0f66a33ced5dea109847fa3dc6d40a4
+  - name: go
+    shields:
+    - "report_card"
+    enable: true
+  - name: sonarcloud
+    enable: true
+    sonar-cloud-config:
+      key: "test"
+      login: "3faaf04fd0f66a33ced5dea109847fa3dc6d40a4"
       options:
-        badges:
-        - enable: true
-          link: <a href="https://sonarcloud.io/dashboard?id=PavedRoad_films" alt="SonarCloud
-            Report"><img src="https://sonarcloud.io/api/project_badges/measure?project=PavedRoad_films&metric=alert_status"></a>
-          name: Alert status
-        - enable: true
-          link: <a href="https://sonarcloud.io/dashboard?id=PavedRoad_films" alt="SonarCloud
-            Report"><img src="https://sonarcloud.io/api/project_badges/measure?project=PavedRoad_films&metric=bugs"></a>
-          name: bugs
-        - enable: true
-          link: <a href="https://sonarcloud.io/dashboard?id=PavedRoad_films" alt="SonarCloud
-            Report"><img src="https://sonarcloud.io/api/project_badges/measure?project=PavedRoad_films&metric=code_smells"></a>
-          name: Code smells
-        - enable: true
-          link: <a href="https://sonarcloud.io/dashboard?id=PavedRoad_films" alt="SonarCloud
-            Report"><img src="https://sonarcloud.io/api/project_badges/measure?project=PavedRoad_films&metric=coverage"></a>
-          name: Coverage
-        - enable: true
-          link: <a href="https://sonarcloud.io/dashboard?id=PavedRoad_films" alt="SonarCloud
-            Report"><img src="https://sonarcloud.io/api/project_badges/measure?project=PavedRoad_films&metric=ncloc"></a>
-          name: Lines of code
-        - enable: true
-          link: <a href="https://sonarcloud.io/dashboard?id=PavedRoad_films" alt="SonarCloud
-            Report"><img src="https://sonarcloud.io/api/project_badges/measure?project=PavedRoad_films&metric=duplicated_lines_density"></a>
-          name: Duplicate line desnity
-        - enable: true
-          link: <a href="https://sonarcloud.io/dashboard?id=PavedRoad_films" alt="SonarCloud
-            Report"><img src="https://sonarcloud.io/api/project_badges/measure?project=PavedRoad_films&metric=security_rating"></a>
-          name: Security
-        - enable: true
-          link: <a href="https://sonarcloud.io/dashboard?id=PavedRoad_films" alt="SonarCloud
-            Report"><img src="https://sonarcloud.io/api/project_badges/measure?project=PavedRoad_films&metric=sqale_index"></a>
-          name: Time to fix technical debt
-        - enable: true
-          link: <a href="https://sonarcloud.io/dashboard?id=PavedRoad_films" alt="SonarCloud
-            Report"><img src="https://sonarcloud.io/api/project_badges/measure?project=PavedRoad_films&metric=vulnerabilities"></a>
-          name: Vulnerabilities
-        coverage:
-          enable: true
-          report: $ref->go.coverage.artifacts
-        go-sec:
-          enable: true
-          report: $ref->go.sec.artifacts
-        lint:
-          enable: true
-          report: $ref->go.lint.artifacts
-    configuration-file:
-      artifacts-dir: ./artifacts
-      name: sonar-project.properties
-      path: .
-      src: templatedir
-    name: sonarcloud
-    enable: true
+        shields:
+        - "bugs"
+        - "code_smells"
+        - "coverage"
+        - "duplicated_lines_density"
+        - "ncloc"
+        - "sqale_rating"
+        - "alert_status"
+        - "reliability_rating"
+        - "security_rating"
+        - "sqale_index"
+        - "vulnerabilities"
+        coverage: {enable: true, report: $ref->go.coverage.artifacts}
+        go-sec: {enable: true, report: $ref->go.sec.artifacts}
+        lint: {enable: true, report: $ref->go.lint.artifacts}
+    configuration-file: {artifacts-dir: ./artifacts, name: sonar-project.properties,
+      path: ., src: templatedir}
   license: Apache2
   maintainer:
     email: foo@bar.com
