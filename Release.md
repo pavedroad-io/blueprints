@@ -26,4 +26,3 @@ v1.0.0alpha:
 		- Minor spelling changes
 		- Replace eventcollector example with httpCollector
 ```
-
