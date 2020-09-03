@@ -1,0 +1,15 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: films
+  labels:
+    env: dev-debug
+spec:
+  template:
+    spec:
+      containers:
+        - name: films
+          env:
+           - name: GODEBUG
+             value: true

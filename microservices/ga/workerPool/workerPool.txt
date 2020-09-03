@@ -159,24 +159,20 @@ project <object>
         All integration's include a list of "badges" to include
         in the generated README.md and documentation files.
 
-          name <string>
-					The name for this integration
+         name <string>
+					The name for this integration, options
+include:
+                                          - sonarcloud
+                                          - go (goreportcard)
+                                          - fossa
 
-					enable <boolean>
-					Enable of disable configuration and execution of this
+         enable <boolean>
+					Enable or disable configuration and execution of this
 					integration
 
-          badges <array>
-					A list of badges to include in Markdown and HTML reports
+         shields <array>
+					A list of quality gates to include in Markdown and HTML reports
 
-            enable <boolean>
-            true or false
-
-            link: <string>
-            Link to follow when this badge is clicked on
-
-            name: <string>
-            Used as alt link attribute if image is not found
 
         license
         The license used to protect this service

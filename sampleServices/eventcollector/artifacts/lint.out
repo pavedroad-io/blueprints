@@ -1,2 +1,0 @@
-eventcollectorDispatcher.go:97:3: struct field JsonBody should be JSONBody
-httpJob.go:21:2: exported const HTTPJobType should have comment (or a comment on this block) or be unexported

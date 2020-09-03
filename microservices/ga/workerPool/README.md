@@ -142,7 +142,8 @@ Generated files are prefixed with the name you define for your microservice.  Fo
 ## Rest API
 
 Rest APIs follow the Kubernetes convention.  You define the API version
-and namespace in your definitions file.
+and namespace in your definitions file, for the following output format:
+e.g. /api/1.0.0/pavedroad.io\/eventCollector\/\[resource name]
 
 ```bash
 /api/version/namespace/name/resource
@@ -389,18 +390,24 @@ Badges for both with links to details can be found in the generated
 service.html in the docs directory.
 
 # SonarCloud
-SonarCloud provides free code analysis for open-source projects.  By default,
-the following tools are included:
+SonarCloud provides free code analysis for open-source projects.
+Note, Shield name is the text required in the definitions file.
+By default, the following tools are included:
 
-- quality gate
-- bugs
-- code smells
-- coverage
-- lines of code
-- duplicate lines of code
-- security
-- technical debt
-- vulnerabilities
+Shield name | Description
+----------- | --------------------------------------------------
+reliability_rating | Grade for code reliability, i. e. "A, B .... F"
+quality gate | A score of release ability, passing or failing
+bugs | Coding error that needs to be fixed
+code_smells | SCA errors/warnings and comments with TODO
+coverage | Test coverage percentage for new code
+duplicate_line_density | Percent of repeating code lines
+ncloc | Total number of lines of code
+alert_status | Quality gate status passing or failing
+sequrity_rating | A grade for your security status, i.e. "A,B...F"
+vulnerabilities | Number of security threats in your code
+sqale_rating | Maintainability of code grade, i. e. "A,B...F"
+sqale_index | Estimate of time to address technical  debit
 
 
 Support for SonarCloud is pre-integrated in the generated Makefile.

@@ -9,12 +9,12 @@ package main
 
 import (
 	"database/sql"
-  "encoding/json"
-  "github.com/google/uuid"
+	"encoding/json"
+	"github.com/google/uuid"
 	"errors"
 	"fmt"
-  "time"
-	"log"
+	"time"
+	log "github.com/pavedroad-io/go-core/logger"
 )
 
 // A GenericError is the default error message that is generated.
@@ -56,7 +56,7 @@ type {{.NameExported}}Response struct {
 }
 
 // update{{.NameExported}} in database
-func (t *{{.Name}}) update{{.NameExported}}(db *sql.DB, key string) error {
+func (t *{{.PrimaryTableName}}) update{{.NameExported}}(db *sql.DB, key string) error {
 	update := `
 	UPDATE {{.OrgSQLSafe}}.{{.Name}}
     SET {{.Name}} = '%s'
@@ -80,7 +80,7 @@ func (t *{{.Name}}) update{{.NameExported}}(db *sql.DB, key string) error {
 }
 
 // create{{.NameExported}} in database
-func (t *{{.Name}}) create{{.NameExported}}(db *sql.DB) (string, error) {
+func (t *{{.PrimaryTableName}}) create{{.NameExported}}(db *sql.DB) (string, error) {
   jb, err := json.Marshal(t)
   if err != nil {
 	msg := fmt.Sprintf("create{{.Name}} json.Marshal failed; Got (%v)\n", err.Error())
@@ -112,7 +112,7 @@ func (t *{{.Name}}) create{{.NameExported}}(db *sql.DB) (string, error) {
 
 // list{{.NameExported}}: return a list of {{.Name}}
 //
-func (t *{{.Name}}) list{{.NameExported}}(db *sql.DB, start, count int) ([]listResponse, error) {
+func (t *{{.PrimaryTableName}}) list{{.NameExported}}(db *sql.DB, start, count int) ([]listResponse, error) {
 /*
     qry := `select uuid,
           {{.Name}} ->> 'active' as active,
@@ -149,7 +149,7 @@ func (t *{{.Name}}) list{{.NameExported}}(db *sql.DB, start, count int) ([]listR
 
 // get{{.NameExported}}: return a {{.Name}} based on the key
 //
-func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) error {
+func (t *{{.PrimaryTableName}}) get{{.NameExported}}(db *sql.DB, key string, method int) error {
     var statement string
 
   switch method {
@@ -193,7 +193,7 @@ func (t *{{.Name}}) get{{.NameExported}}(db *sql.DB, key string, method int) err
 
 // delete{{.NameExported}}: return a {{.Name}} based on UUID
 //
-func (t *{{.Name}}) delete{{.NameExported}}(db *sql.DB, key string) error {
+func (t *{{.PrimaryTableName}}) delete{{.NameExported}}(db *sql.DB, key string) error {
 	statement := fmt.Sprintf("DELETE FROM {{.OrgSQLSafe}}.{{.Name}} WHERE {{.NameExported}}UUID = '%s'", key)
   result, err := db.Exec(statement)
   c, e := result.RowsAffected()

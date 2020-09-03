@@ -7,13 +7,12 @@
 package main
 
 import (
-        "database/sql"
-        "flag"
-        "fmt"
-        "github.com/gorilla/mux"
-        "log"
-        "os"
-        "time"
+	"database/sql"
+	"flag"
+	"fmt"
+	"github.com/gorilla/mux"
+	"os"
+	"time"
 )
 
 // Constants to build up a k8s style URL
@@ -61,7 +60,6 @@ type httpConfig struct {
   readTimeout     time.Duration
   writeTimeout    time.Duration
   listenString    string
-  logPath         string
 }
 
 // Global for use in the module
@@ -70,7 +68,7 @@ type httpConfig struct {
 var dbconf = databaseConfig{username: "root", password: "", database: "pavedroad", sslMode: "disable", dbDriver: "postgres", ip: "127.0.0.1", port: "26257"}
 
 // Set default http configuration
-var httpconf = httpConfig{ip: "127.0.0.1", port: "8081", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "127.0.0.1:8081", logPath: "logs/{{.Name}}.log"}
+var httpconf = httpConfig{ip: "127.0.0.1", port: "8081", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "127.0.0.1:8081"}
 
 // shutdownTimeout will be initialized based on the default or HTTP_SHUTDOWN_TIMEOUT
 var shutdowTimeout time.Duration
@@ -95,11 +93,6 @@ func main() {
         if *versionFlag {
                 printVersion()
         }
-
-  // Setup loggin
-  openLogFile(httpconf.logPath)
-  log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-  log.Printf("Logfile opened %s", httpconf.logPath)
 
   a := {{.NameExported}}App{}
   a.Initialize()

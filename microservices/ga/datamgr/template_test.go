@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	_ "io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -17,6 +16,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	log "github.com/pavedroad-io/go-core/logger"
 )
 
 const (
@@ -194,7 +194,7 @@ func TestMarshall{{.NameExported}}(t *testing.T) {
 // Inserts a new user into the database and returns the UUID
 // for the record that was created
 //
-func add{{.NameExported}}(t *{{.Name}}) (string) {
+func add{{.NameExported}}(t *{{.PrimaryTableName}}) (string) {
 
   statement := fmt.Sprintf("INSERT INTO {{.OrgSQLSafe}}.{{.Name}}({{.Name}}) VALUES('%s') RETURNING {{.Name}}UUID", new{{.NameExported}}JSON)
   rows, er1 := a.DB.Query(statement)
@@ -220,8 +220,8 @@ func add{{.NameExported}}(t *{{.Name}}) (string) {
 // Create a new instance of {{.NameExported}}
 // Iterate over the struct setting random values
 // 
-func New{{.NameExported}}() (t *{{.Name}}) {
-	var n {{.Name}}
+func New{{.NameExported}}() (t *{{.PrimaryTableName}}) {
+	var n {{.PrimaryTableName}}
   json.Unmarshal([]byte(new{{.NameExported}}JSON), &n) 
 	return &n
 }

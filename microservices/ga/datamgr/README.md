@@ -91,7 +91,7 @@ Available Commands:
 
 Flags:
       --config string      Config file (default is $HOME/.roadctl.yaml)
-      --debug string       Debug level: info(default)|warm|error|critical (default "info")
+      --debug string       Debug level: info(default)|warn|error|critical (default "info")
       --format string      Output format: text(default)|json|yaml (default "text")
   -h, --help               help for roadctl
       --password string    HTTP basic auth password
@@ -118,7 +118,7 @@ Flags:
 
 Global Flags:
       --config string      Config file (default is $HOME/.roadctl.yaml)
-      --debug string       Debug level: info(default)|warm|error|critical (default "info")
+      --debug string       Debug level: info(default)|warn|error|critical (default "info")
       --format string      Output format: text(default)|json|yaml (default "text")
       --password string    HTTP basic auth password
       --templates string   Set the location of the directory holding roadctl templates
@@ -269,22 +269,28 @@ artifacts/govet.out
 
 ### SonarCloud and FOSSA
 docs/service.html
-Badges for both with links to details can be found in the generated
+Badges/Shields for both with links to details can be found in the generated
 service.html in the docs directory.
 
 # SonarCloud
-SonarCloud provides free code analysis for open-source projects.  By default,
-the following tools are included:
+SonarCloud provides free code analysis for open-source projects.
+Note, Shield name is the text required in the definitions file.
+By default, the following tools are included:
 
-- quality gate
-- bugs
-- code smells
-- coverage
-- lines of code
-- duplicate lines of code
-- security
-- technical debt
-- vulnerabilities
+Shield name | Description
+----------- | --------------------------------------------------
+reliability_rating | Grade for code reliability, i. e. "A, B .... F"
+quality gate | A score of release ability, passing or failing
+bugs | Coding error that needs to be fixed
+code_smells | SCA errors/warnings and comments with TODO
+coverage | Test coverage percentage for new code
+duplicate_line_density | Percent of repeating code lines
+ncloc | Total number of lines of code
+alert_status | Quality gate status passing or failing
+sequrity_rating | A grade for your security status, i.e. "A,B...F"
+vulnerabilities | Number of security threats in your code
+sqale_rating | Maintainability of code grade, i. e. "A,B...F"
+sqale_index | Estimate of time to address technical  debit
 
 
 Support for SonarCloud is pre-integrated in the generated Makefile.
@@ -342,6 +348,6 @@ Use the "Generate new token" button to create your new token.
 
 ```bash
 # add line to your .bashrc
-export ACCESS_TOKEN=####################
+export GH_ACCESS_TOKEN=####################
 ```
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

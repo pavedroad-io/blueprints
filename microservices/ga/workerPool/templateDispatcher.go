@@ -94,7 +94,7 @@ type genericResponse struct {
 	// in: body
 	Body struct {
 		// JSON body
-		JsonBody string `json:"json_body"`
+		JSONBody string `json:"json_body"`
 	} `json:"body"`
 }
 
@@ -147,7 +147,7 @@ type managementRequest struct {
 type worker struct {
 	currentJob   Job
 	lastJob      Job
-	wg           sync.WaitGroup
+	wg           *sync.WaitGroup
 	jobChan      chan Job
 	responseChan chan Result
 	interrupt    chan os.Signal
@@ -239,7 +239,7 @@ type dispatcher struct {
 	schedulerInterrupt  chan os.Signal // Shutdown initiated by OS
 
 	// Workers config
-	wg      sync.WaitGroup
+	wg      *sync.WaitGroup
 	workers []*worker
 
 	// Worker Channels
@@ -254,14 +254,14 @@ type dispatcher struct {
 	// Metrics counters
 	metrics dispatcherMetrics
 
-	mux sync.Mutex
+	mux *sync.Mutex
 }
 
 type dispatcherMetrics struct {
 	StartTime time.Time      `json:"start_time"`
 	UpTime    time.Duration  `json:"up_time"`
 	Counters  map[string]int `json:"counters"`
-	mux       sync.Mutex
+	mux       *sync.Mutex
 }
 
 func (d *dispatcher) MetricToJSON() ([]byte, error) {
@@ -319,6 +319,10 @@ func (d *dispatcher) Init(dc *dispatcherConfiguration) {
 	dc.SetSane(d)
 
 	d.metrics.Counters = make(map[string]int)
+	d.metrics.mux = &sync.Mutex{}
+	d.mux = &sync.Mutex{}
+	d.wg = &sync.WaitGroup{}
+
 
 	// Scheduler channels
 	d.schedulerJobChan = make(chan Job, d.conf.sizeOfJobChannel)
@@ -403,12 +407,14 @@ func (d *dispatcher) managementInit() {
 }
 
 func (d dispatcher) Run() error {
-	d.createWorkerPool()
-	go d.Forwarder()
-	go d.Responder()
+	e := d.createWorkerPool()
+	if e == nil {
+                go d.Forwarder()
+                go d.Responder()
+                return nil
+        }
 
-	//wg.Wait()
-	return nil
+	return e
 }
 
 func (d dispatcher) Forwarder() {
@@ -522,7 +528,12 @@ func (d *dispatcher) ProcessManagementRequest(r managementRequest) (httpStatusCo
 			return http.StatusBadRequest, []byte(msg), nil
 		}
 
-		d.createWorkerPool()
+		e := d.createWorkerPool()
+		 if e != nil {
+                        msg := fmt.Sprintf("{\"status\": \"couldn't start worker pool: %v\"}", e)
+                        return http.StatusExpectationFailed, []byte(msg), nil
+                }
+
 		msg := fmt.Sprintf("{\"Status\": \"Worker stop initiated\"}")
 		return http.StatusOK, []byte(msg), nil
 
@@ -547,7 +558,6 @@ func (d *dispatcher) ProcessManagementRequest(r managementRequest) (httpStatusCo
 		return http.StatusBadRequest, []byte(msg), nil
 	}
 
-	return 0, nil, nil
 }
 
 func (d *dispatcher) createWorkerPool() error {
