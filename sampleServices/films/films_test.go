@@ -27,15 +27,15 @@ const (
 )
 
 var newFilmsJSON=`{
-	"filmsuuid": "2c11b0e1-6dec-4286-9c6d-8608bbd85133",
-	"id": "VLcaQlQsKHgwkB3",
-	"title": "VLcaQlQsKHgwkB3",
-	"updated": "2020-08-27T15:03:48-07:00",
-	"created": "2020-08-27T15:03:48-07:00",
+	"filmsuuid": "5daa3361-859a-49b3-a586-4ec6edbc5221",
+	"id": "jT4vdCga87Y07VF",
+	"title": "jT4vdCga87Y07VF",
+	"updated": "2020-09-03T18:09:22-07:00",
+	"created": "2020-09-03T18:09:22-07:00",
 	"metadata": {
-		"author": "VLcaQlQsKHgwkB3",
-		"genre": "VLcaQlQsKHgwkB3",
-		"rating": "VLcaQlQsKHgwkB3"
+		"author": "jT4vdCga87Y07VF",
+		"genre": "jT4vdCga87Y07VF",
+		"rating": "jT4vdCga87Y07VF"
 	}
 }`
 
