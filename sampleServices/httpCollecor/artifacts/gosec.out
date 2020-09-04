@@ -1,0 +1,346 @@
+{
+	"issues": [
+		{
+			"engineId": "gosec",
+			"ruleId": "G304",
+			"cwe": {
+				"ID": "22",
+				"URL": "https://cwe.mitre.org/data/definitions/22.html"
+			},
+			"primaryLocation": {
+				"message": "Potential file inclusion via variable",
+				"filePath": "httpcollectorApp.go",
+				"textRange": {
+					"startLine": 814,
+					"endLine": 814
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MAJOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G304",
+			"cwe": {
+				"ID": "22",
+				"URL": "https://cwe.mitre.org/data/definitions/22.html"
+			},
+			"primaryLocation": {
+				"message": "Potential file inclusion via variable",
+				"filePath": "httpcollectorApp.go",
+				"textRange": {
+					"startLine": 832,
+					"endLine": 832
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MAJOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G304",
+			"cwe": {
+				"ID": "22",
+				"URL": "https://cwe.mitre.org/data/definitions/22.html"
+			},
+			"primaryLocation": {
+				"message": "Potential file inclusion via variable",
+				"filePath": "httpcollectorApp.go",
+				"textRange": {
+					"startLine": 814,
+					"endLine": 814
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MAJOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G304",
+			"cwe": {
+				"ID": "22",
+				"URL": "https://cwe.mitre.org/data/definitions/22.html"
+			},
+			"primaryLocation": {
+				"message": "Potential file inclusion via variable",
+				"filePath": "httpcollectorApp.go",
+				"textRange": {
+					"startLine": 832,
+					"endLine": 832
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MAJOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpcollector_test.go",
+				"textRange": {
+					"startLine": 227,
+					"endLine": 227
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpJob_test.go",
+				"textRange": {
+					"startLine": 103,
+					"endLine": 103
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpcollector_test.go",
+				"textRange": {
+					"startLine": 224,
+					"endLine": 224
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpcollector_test.go",
+				"textRange": {
+					"startLine": 225,
+					"endLine": 225
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpcollector_test.go",
+				"textRange": {
+					"startLine": 226,
+					"endLine": 226
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpJob_test.go",
+				"textRange": {
+					"startLine": 43,
+					"endLine": 43
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpcollector_test.go",
+				"textRange": {
+					"startLine": 228,
+					"endLine": 228
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpcollector_test.go",
+				"textRange": {
+					"startLine": 229,
+					"endLine": 229
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpcollector_test.go",
+				"textRange": {
+					"startLine": 263,
+					"endLine": 263
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpcollector_test.go",
+				"textRange": {
+					"startLine": 264,
+					"endLine": 264
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpcollector_test.go",
+				"textRange": {
+					"startLine": 265,
+					"endLine": 265
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpcollector_test.go",
+				"textRange": {
+					"startLine": 268,
+					"endLine": 268
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpcollector_test.go",
+				"textRange": {
+					"startLine": 269,
+					"endLine": 269
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		},
+		{
+			"engineId": "gosec",
+			"ruleId": "G104",
+			"cwe": {
+				"ID": "703",
+				"URL": "https://cwe.mitre.org/data/definitions/703.html"
+			},
+			"primaryLocation": {
+				"message": "Errors unhandled.",
+				"filePath": "httpcollector_test.go",
+				"textRange": {
+					"startLine": 270,
+					"endLine": 270
+				}
+			},
+			"type": "VULNERABILITY",
+			"severity": "MINOR",
+			"effortMinutes": 5
+		}
+	]
+}
