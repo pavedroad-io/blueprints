@@ -155,6 +155,19 @@ project <object>
         All integration's include a list of "shields" to include
         in the generated README.md and documentation files.
 
+          name <string>
+					The name for this integration
+
+					enable <boolean>
+					Enable of disable configuration and execution of this
+					integration
+
+          badges <array>
+					A list of badges to include in Markdown and HTML reports
+
+            enable <boolean>
+            true or false
+
          name <string>
 					The name for this integration, options
 include:

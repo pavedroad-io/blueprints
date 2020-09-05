@@ -1,0 +1,36 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpcollector
+spec:
+  replicas: 3
+  strategy: {}
+  selector:
+    matchLabels:
+      pavedroad.service: httpcollector
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        pavedroad.service: httpcollector
+    spec:
+      containers:
+      - image: localhost:32000/acme-demo/httpcollector:0.0
+        env:
+        - name: HTTP_IP_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: httpcollector-configmap
+              key: ip
+        - name: HTTP_IP_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: httpcollector-configmap
+              key: port
+        name: httpcollector
+        ports:
+        - containerPort: 8081
+        resources: {}
+      restartPolicy: Always
+status: {}

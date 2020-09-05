@@ -1,0 +1,69 @@
+info:
+  api-version: v1
+  id: workerPool
+  name: httpCollector
+  organization: acme-demo
+  release-status: alpha
+  version: 0.0.1
+project:
+  kubernetes:
+    namespace: mirantis
+    liveness: liveness
+    readiness: ready
+    metrics: metrics
+    management: management
+  dependencies:
+  - command: start --insecure
+    comments: used for events
+    docker-kafka: null
+    image: wurstmeister/kafka
+    name: kafka
+    ports:
+    - external: "9094"
+      internal: "9092"
+    topics:
+    - value: event-logger
+      partions: 3
+      replication: 1
+    volumes: []
+  description: Allocate jobs to workers in a pool
+  top_level_domain: "api.mirantis.com"
+  scheduler_name: "httpScheduler"
+  integrations:
+  - name: fossa
+    shields:
+            - "quality_gate"
+    enable: true
+  - name: go
+    shields:
+            - "report_card"
+    enable: true
+  - name: sonarcloud
+    enable: true
+    sonar-cloud-config:
+      key: "test"
+      login: "3faaf04fd0f66a33ced5dea109847fa3dc6d40a4"
+      options:
+        shields:
+        - "bugs"
+        - "code_smells"
+        - "coverage"
+        - "duplicated_lines_density"
+        - "ncloc"
+        - "sqale_rating"
+        - "alert_status"
+        - "reliability_rating"
+        - "security_rating"
+        - "sqale_index"
+        - "vulnerabilities" 
+        coverage: {enable: true, report: $ref->go.coverage.artifacts}
+        go-sec: {enable: true, report: $ref->go.sec.artifacts}
+        lint: {enable: true, report: $ref->go.lint.artifacts}
+    configuration-file: {artifacts-dir: ./artifacts, name: sonar-project.properties,
+      path: ., src: templatedir}
+  license: Apache2
+  maintainer:
+    email: andriy.levchenko@perfectial.com
+    name: Andriy Levchenko
+    slack: pavedroad.slack.com
+    web: https://perfectial.com/

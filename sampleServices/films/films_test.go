@@ -1,4 +1,3 @@
-
 // films_test.go
 
 package main
@@ -16,29 +15,29 @@ import (
 	"strings"
 	"testing"
 	"time"
+
 	log "github.com/pavedroad-io/go-core/logger"
 )
 
 const (
-	Updated         string = "updated"
-	Created         string = "created"
-	Active          string = "active"
-  FilmsURL string = "/api/v1/namespace/pavedroad.io/films/%s"
+	Updated  string = "updated"
+	Created  string = "created"
+	Active   string = "active"
+	FilmsURL string = "/api/v1/namespace/pavedroad.io/films/%s"
 )
 
-var newFilmsJSON=`{
-	"filmsuuid": "2c11b0e1-6dec-4286-9c6d-8608bbd85133",
-	"id": "VLcaQlQsKHgwkB3",
-	"title": "VLcaQlQsKHgwkB3",
-	"updated": "2020-08-27T15:03:48-07:00",
-	"created": "2020-08-27T15:03:48-07:00",
+var newFilmsJSON = `{
+	"filmsuuid": "5daa3361-859a-49b3-a586-4ec6edbc5221",
+	"id": "jT4vdCga87Y07VF",
+	"title": "jT4vdCga87Y07VF",
+	"updated": "2020-09-03T18:09:22-07:00",
+	"created": "2020-09-03T18:09:22-07:00",
 	"metadata": {
-		"author": "VLcaQlQsKHgwkB3",
-		"genre": "VLcaQlQsKHgwkB3",
-		"rating": "VLcaQlQsKHgwkB3"
+		"author": "jT4vdCga87Y07VF",
+		"genre": "jT4vdCga87Y07VF",
+		"rating": "jT4vdCga87Y07VF"
 	}
 }`
-
 
 var a FilmsApp
 
@@ -83,10 +82,8 @@ CREATE TABLE IF NOT EXISTS AcmeDemo.films (
     films JSONB
 );`
 
-
 const indexCreate = `
 CREATE INDEX IF NOT EXISTS filmsIdx ON AcmeDemo.films USING GIN (films);`
-
 
 func TestEmptyTable(t *testing.T) {
 	clearTable()
@@ -140,9 +137,9 @@ func TestGetWithBadUserUUID(t *testing.T) {
 //
 func TestGetWrongUUID(t *testing.T) {
 	clearTable()
-  nt := NewFilms()
-  addFilms(nt)
-  badUid := "00000000-d01d-4c09-a4e7-59026d143b89"
+	nt := NewFilms()
+	addFilms(nt)
+	badUid := "00000000-d01d-4c09-a4e7-59026d143b89"
 
 	statement := fmt.Sprintf(FilmsURL, badUid)
 
@@ -151,6 +148,7 @@ func TestGetWrongUUID(t *testing.T) {
 
 	checkResponseCode(t, http.StatusNotFound, response.Code)
 }
+
 // TestCreate
 // Use sample data from newFilmsJSON) to create
 // a new record.
@@ -205,10 +203,10 @@ func TestMarshallFilms(t *testing.T) {
 // Inserts a new user into the database and returns the UUID
 // for the record that was created
 //
-func addFilms(t *films) (string) {
+func addFilms(t *films) string {
 
-  statement := fmt.Sprintf("INSERT INTO AcmeDemo.films(films) VALUES('%s') RETURNING filmsUUID", newFilmsJSON)
-  rows, er1 := a.DB.Query(statement)
+	statement := fmt.Sprintf("INSERT INTO AcmeDemo.films(films) VALUES('%s') RETURNING filmsUUID", newFilmsJSON)
+	rows, er1 := a.DB.Query(statement)
 
 	if er1 != nil {
 		log.Printf("Insert failed error %s", er1)
@@ -217,23 +215,23 @@ func addFilms(t *films) (string) {
 
 	defer rows.Close()
 
-  for rows.Next() {
-    err := rows.Scan(&t.FilmsUUID)
-    if err != nil {
-      return ""
-    }
-  }
+	for rows.Next() {
+		err := rows.Scan(&t.FilmsUUID)
+		if err != nil {
+			return ""
+		}
+	}
 
-  return t.FilmsUUID
+	return t.FilmsUUID
 }
 
 // NewFilms
 // Create a new instance of Films
 // Iterate over the struct setting random values
-// 
+//
 func NewFilms() (t *films) {
 	var n films
-  json.Unmarshal([]byte(newFilmsJSON), &n) 
+	json.Unmarshal([]byte(newFilmsJSON), &n)
 	return &n
 }
 
@@ -245,14 +243,15 @@ func TestGetFilms(t *testing.T) {
 	statement := fmt.Sprintf(FilmsURL, uid)
 
 	req, err := http.NewRequest("GET", statement, nil)
-  if err != nil {
+	if err != nil {
 		panic(err)
-  }
+	}
 
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 }
+
 // TestUpdateFilms
 func TestUpdatefilms(t *testing.T) {
 	clearTable()
@@ -283,9 +282,9 @@ func TestUpdatefilms(t *testing.T) {
 	var m map[string]interface{}
 	json.Unmarshal(response.Body.Bytes(), &m)
 
-//	if m["active"] != "eslaf" {
-//		t.Errorf("Expected active to be eslaf. Got %v", m["active"])
-//	}
+	//	if m["active"] != "eslaf" {
+	//		t.Errorf("Expected active to be eslaf. Got %v", m["active"])
+	//	}
 }
 
 func TestDeletefilms(t *testing.T) {

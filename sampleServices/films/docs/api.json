@@ -1,0 +1,220 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "Given a key, login, or email address return the PR UUID",
+    "title": "Microservice for mapping multiple 3rd party id into internal ID",
+    "termsOfService": "there are no TOS at this moment, use at your own risk we take no responsibility",
+    "contact": {
+      "name": "goffy",
+      "url": "http://www.foo.bar",
+      "email": "foo@bar.com"
+    },
+    "license": {
+      "name": "Apache 2"
+    },
+    "version": "0.0.1"
+  },
+  "host": "api.pavedroad.io",
+  "basePath": "/api/v1/namespace/pavedroad.io/films",
+  "paths": {
+    "/api/v1/namespace/pavedroad.io/films": {
+      "post": {
+        "description": "Create a new films",
+        "tags": [
+          "films"
+        ],
+        "operationId": "createfilms",
+        "responses": {
+          "201": {
+            "$ref": "#/responses/filmsResponse"
+          },
+          "400": {
+            "$ref": "#/responses/genericError"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/pavedroad.io/films/{key}": {
+      "put": {
+        "description": "Update a films specified by key, where key is a UUID",
+        "tags": [
+          "films"
+        ],
+        "operationId": "updatefilms",
+        "responses": {
+          "201": {
+            "$ref": "#/responses/filmsResponse"
+          },
+          "400": {
+            "$ref": "#/responses/genericError"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      },
+      "delete": {
+        "description": "Update a films specified by key, which is a uuid",
+        "tags": [
+          "films"
+        ],
+        "operationId": "deletefilms",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/filmsResponse"
+          },
+          "400": {
+            "$ref": "#/responses/genericError"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/pavedroad.io/films/{uuid}": {
+      "get": {
+        "description": "Returns a films given a key, where key is a UUID",
+        "tags": [
+          "films"
+        ],
+        "operationId": "getfilms",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/filmsResponse"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    },
+    "/api/v1/namespace/pavedroad.io/filmsLIST": {
+      "get": {
+        "description": "Returns a list of films",
+        "tags": [
+          "films"
+        ],
+        "operationId": "listfilms",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/filmsList"
+          },
+          "default": {
+            "$ref": "#/responses/genericError"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "metadata": {
+      "description": "Generated structures with Swagger docs",
+      "type": "object",
+      "properties": {
+        "author": {
+          "description": "Author",
+          "type": "string",
+          "x-go-name": "Author"
+        },
+        "genre": {
+          "description": "Genre",
+          "type": "string",
+          "x-go-name": "Genre"
+        },
+        "rating": {
+          "description": "Rating",
+          "type": "string",
+          "x-go-name": "Rating"
+        }
+      },
+      "x-go-package": "films"
+    }
+  },
+  "responses": {
+    "films": {
+      "schema": {
+        "$ref": "#/definitions/metadata"
+      },
+      "headers": {
+        "created": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Created"
+        },
+        "filmsuuid": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "description": "Id"
+        },
+        "metadata": {},
+        "title": {
+          "type": "string",
+          "description": "Title"
+        },
+        "updated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Updated"
+        }
+      }
+    },
+    "filmsList": {
+      "description": "Return list of filmss\n\nTODO: add method of including sub attributes"
+    },
+    "filmsResponse": {
+      "description": "Films response model\n\nThis is used for returning a response with a single films as body"
+    },
+    "genericError": {
+      "description": "A GenericError is the default error message that is generated.\nFor certain status codes there are more appropriate error structures.",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "description": "Code: integer code for error message",
+            "type": "integer",
+            "format": "int32",
+            "x-go-name": "Code"
+          },
+          "message": {
+            "description": "Message: Error message called with Method()",
+            "type": "string",
+            "x-go-name": "Message"
+          }
+        }
+      }
+    },
+    "metadata": {
+      "description": "Generated structures with Swagger docs",
+      "headers": {
+        "author": {
+          "type": "string",
+          "description": "Author"
+        },
+        "genre": {
+          "type": "string",
+          "description": "Genre"
+        },
+        "rating": {
+          "type": "string",
+          "description": "Rating"
+        }
+      }
+    }
+  }
+}
