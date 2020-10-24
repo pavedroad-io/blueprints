@@ -1,0 +1,13 @@
+httpcollectorMain.go:24:2: const HttpCollectorAPIVersion should be HTTPCollectorAPIVersion
+httpcollectorMain.go:27:2: const HttpCollectorNamespaceID should be HTTPCollectorNamespaceID
+httpcollectorMain.go:30:2: const HttpCollectorDefaultNamespace should be HTTPCollectorDefaultNamespace
+httpcollectorMain.go:33:2: const HttpCollectorResourceType should be HTTPCollectorResourceType
+httpcollectorMain.go:36:2: const HttpCollectorKey should be HTTPCollectorKey
+httpcollectorMain.go:39:2: const HttpCollectorLivenessEndPoint should be HTTPCollectorLivenessEndPoint
+httpcollectorMain.go:42:2: const HttpCollectorReadinessEndPoint should be HTTPCollectorReadinessEndPoint
+httpcollectorMain.go:45:2: const HttpCollectorMetricsEndPoint should be HTTPCollectorMetricsEndPoint
+httpcollectorMain.go:48:2: const HttpCollectorManagementEndPoint should be HTTPCollectorManagementEndPoint
+httpcollectorMain.go:51:2: const HttpCollectorJobsEndPoint should be HTTPCollectorJobsEndPoint
+httpcollectorMain.go:54:2: const HttpCollectorSchedulerEndPoint should be HTTPCollectorSchedulerEndPoint
+httpcollectorMain.go:59:6: type HttpCollectorApp should be HTTPCollectorApp
+httpcollector_test.go:33:5: var newHttpCollectorJSON should be newHTTPCollectorJSON
