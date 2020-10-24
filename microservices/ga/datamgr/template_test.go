@@ -234,14 +234,15 @@ func TestGet{{.NameExported}}(t *testing.T) {
 	statement := fmt.Sprintf({{.NameExported}}URL, uid)
 
 	req, err := http.NewRequest("GET", statement, nil)
-  if err != nil {
-		panic(err)
-  }
+  	if err != nil {
+	  t.Errorf("Expected nil error. Got %v\n", err)
+  	}
 
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
 }
+
 // TestUpdate{{.NameExported}}
 func TestUpdate{{.Name}}(t *testing.T) {
 	clearTable()
