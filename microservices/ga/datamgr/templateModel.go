@@ -32,9 +32,10 @@ type GenericError struct {
 	} `json:"body"`
 }
 
-// Return list of {{.Name}}s
-//
 // TODO: add method of including sub attributes
+//
+
+// Return list of {{.Name}}s
 //
 // swagger:response {{.Name}}List
 type listResponse struct {

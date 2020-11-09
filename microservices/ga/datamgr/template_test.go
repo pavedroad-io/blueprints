@@ -140,11 +140,12 @@ func TestGetWrongUUID(t *testing.T) {
 
 	checkResponseCode(t, http.StatusNotFound, response.Code)
 }
+/ TODO:
+//  need to assert tests for subattributes being present
+
 // TestCreate
 // Use sample data from new{{.NameExported}}JSON) to create
 // a new record.
-// TODO:
-//  need to assert tests for subattributes being present
 //
 func TestCreate{{.NameExported}}(t *testing.T) {
 	clearTable()
