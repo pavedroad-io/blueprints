@@ -1,0 +1,6 @@
+{{ define "manifests/kubernetes/dev/namespace.yaml"}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{.Namespace}}
+{{end}}{/* vim: set filetype=gotexttmpl: */ -}}

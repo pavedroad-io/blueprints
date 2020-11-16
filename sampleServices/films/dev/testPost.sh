@@ -5,13 +5,14 @@
 host=127.0.0.1
 port=8081
 service="films"
+namespace="pavedroad"
 
 post()
 {
   curl -H "Content-Type: application/json" \
       -X POST \
       -d @films.json \
-      -v http://$host:$port/api/v1/namespace/pavedroad.io/films
+      -v http://$host:$port/api/v1/namespace/$namespace/$service
 }
 
 usage()
@@ -27,7 +28,7 @@ while [ "$1" != "" ]; do
   case $1 in
     -k | --k8s ) shift
       host="$(./getk8sip.sh)"
-      port="$(./getNodePort.sh $service)"
+      port="$(./getNodePort.sh $service $namespace)"
       echo $host
       echo $port
       ;;

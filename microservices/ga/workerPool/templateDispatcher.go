@@ -41,10 +41,10 @@ const (
 // Management API
 const (
 	gracefulShutdownSeconds string = "graceful_shutdown_seconds"
-	hardShutdownSeconds			string = "hard_shutdown_seconds"
-	numberOfWorkers					string = "number_of_workers"
-	schedulerChannelSize		string = "scheduler_channel_size"
-	resultChannelSize				string = "result_channel_size"
+	hardShutdownSeconds     string = "hard_shutdown_seconds"
+	numberOfWorkers         string = "number_of_workers"
+	schedulerChannelSize    string = "scheduler_channel_size"
+	resultChannelSize       string = "result_channel_size"
 )
 
 // managementGetResponse List of available command and field options
@@ -94,7 +94,7 @@ type genericResponse struct {
 	// in: body
 	Body struct {
 		// JSON body
-		JsonBody string `json:"json_body"`
+		JSONBody string `json:"json_body"`
 	} `json:"body"`
 }
 
@@ -145,13 +145,13 @@ type managementRequest struct {
 
 // worker is a go worker pool pattern
 type worker struct {
-	currentJob	 Job
-	lastJob			 Job
-	wg					 sync.WaitGroup
-	jobChan			 chan Job
+	currentJob   Job
+	lastJob      Job
+	wg           *sync.WaitGroup
+	jobChan      chan Job
 	responseChan chan Result
-	interrupt		 chan os.Signal
-	done				 chan bool
+	interrupt    chan os.Signal
+	done         chan bool
 }
 
 // Run starts listing for jobs to be processed
@@ -196,7 +196,7 @@ type dispatcherConfiguration struct {
 	hardShutdown        int
 }
 
-// SetSane Verify and set san configuration options
+// SetSane Verify and set sane configuration options
 // 	if not defined or exit if an option is mandatory
 func (dc *dispatcherConfiguration) SetSane(d *dispatcher) {
 	if dc.scheduler == nil {
@@ -232,21 +232,21 @@ type dispatcher struct {
 
 	// Points to client implemented scheduler
 	// that we read Jobs from
-	scheduler           Scheduler     // Pointer to the scheduler
+	scheduler           Scheduler      // Pointer to the scheduler
 	schedulerJobChan    chan Job       // Channel to read jobs from
 	schedulerResultChan chan Result    // Channel to write result to
-	schedulerDone       chan bool      // Shudown initiated by applicatoin
-	schedulerInterrupt	chan os.Signal // Shutdown initiated by OS
+	schedulerDone       chan bool      // Shutdown initiated by applicatoin
+	schedulerInterrupt  chan os.Signal // Shutdown initiated by OS
 
 	// Workers config
-	wg						 sync.WaitGroup
-	workers				 []*worker
+	wg      *sync.WaitGroup
+	workers []*worker
 
 	// Worker Channels
-	workerJobChan			chan Job
+	workerJobChan     chan Job
 	workerJobResponse chan Result
-	workerDone				chan bool
-	workerInterrupt		chan os.Signal
+	workerDone        chan bool
+	workerInterrupt   chan os.Signal
 
 	// Management response
 	managementOptions managementGetResponse
@@ -254,14 +254,14 @@ type dispatcher struct {
 	// Metrics counters
 	metrics dispatcherMetrics
 
-	mux							 sync.Mutex
+	mux *sync.Mutex
 }
 
 type dispatcherMetrics struct {
 	StartTime time.Time      `json:"start_time"`
 	UpTime    time.Duration  `json:"up_time"`
 	Counters  map[string]int `json:"counters"`
-	mux       sync.Mutex
+	mux       *sync.Mutex
 }
 
 func (d *dispatcher) MetricToJSON() ([]byte, error) {
@@ -319,6 +319,10 @@ func (d *dispatcher) Init(dc *dispatcherConfiguration) {
 	dc.SetSane(d)
 
 	d.metrics.Counters = make(map[string]int)
+	d.metrics.mux = &sync.Mutex{}
+	d.mux = &sync.Mutex{}
+	d.wg = &sync.WaitGroup{}
+
 
 	// Scheduler channels
 	d.schedulerJobChan = make(chan Job, d.conf.sizeOfJobChannel)
@@ -403,12 +407,14 @@ func (d *dispatcher) managementInit() {
 }
 
 func (d dispatcher) Run() error {
-	d.createWorkerPool()
-	go d.Forwarder()
-	go d.Responder()
+	e := d.createWorkerPool()
+	if e == nil {
+                go d.Forwarder()
+                go d.Responder()
+                return nil
+        }
 
-	//wg.Wait()
-	return nil
+	return e
 }
 
 func (d dispatcher) Forwarder() {
@@ -511,6 +517,7 @@ func (d *dispatcher) ProcessManagementRequest(r managementRequest) (httpStatusCo
 
 	case "stop_workers":
 		d.workerDone <- true
+		d.conf.currentNumberOfWorkers = 0
 		msg := fmt.Sprintf("{\"Status\": \"Worker stop initiated\"}")
 		return http.StatusOK, []byte(msg), nil
 
@@ -521,7 +528,12 @@ func (d *dispatcher) ProcessManagementRequest(r managementRequest) (httpStatusCo
 			return http.StatusBadRequest, []byte(msg), nil
 		}
 
-		d.createWorkerPool()
+		e := d.createWorkerPool()
+		 if e != nil {
+                        msg := fmt.Sprintf("{\"status\": \"couldn't start worker pool: %v\"}", e)
+                        return http.StatusExpectationFailed, []byte(msg), nil
+                }
+
 		msg := fmt.Sprintf("{\"Status\": \"Worker stop initiated\"}")
 		return http.StatusOK, []byte(msg), nil
 
@@ -541,12 +553,11 @@ func (d *dispatcher) ProcessManagementRequest(r managementRequest) (httpStatusCo
 		return http.StatusOK, []byte(msg), nil
 
 	default:
-		msg := fmt.Sprintf("{\"Status\": \"Command: %s not implemeted\"}",
+		msg := fmt.Sprintf("{\"Status\": \"Command %s not implemented\"}",
 			r.Command)
-		return http.StatusOK, []byte(msg), nil
+		return http.StatusBadRequest, []byte(msg), nil
 	}
 
-	return 0, nil, nil
 }
 
 func (d *dispatcher) createWorkerPool() error {
@@ -554,7 +565,7 @@ func (d *dispatcher) createWorkerPool() error {
 		newWorker := worker{wg: d.wg,
 			jobChan:      d.workerJobChan,
 			responseChan: d.workerJobResponse,
-			interrupt:     d.workerInterrupt,
+			interrupt:    d.workerInterrupt,
 			done:         d.workerDone}
 
 		d.wg.Add(1)

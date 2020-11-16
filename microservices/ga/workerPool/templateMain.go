@@ -40,8 +40,8 @@ const (
 	// {{.NameExported}}MetricsEndPoint
 	{{.NameExported}}MetricsEndPoint string = "{{.Metrics}}"
 
-	// EventCollectorManagementEndPoint
-	EventCollectorManagementEndPoint string = "management"
+	// {{.NameExported}}ManagementEndPoint
+	{{.NameExported}}ManagementEndPoint string = "management"
 
 	// {{.NameExported}}JobsEndPoint
 	{{.NameExported}}JobsEndPoint string = "jobs"
@@ -60,7 +60,7 @@ type {{.NameExported}}App struct {
 	Dispatcher dispatcher
 
 	// Scheduler creates and forwards jobs to dispatcher
-	Scheduler  Scheduler
+	Scheduler Scheduler
 
 	// Live http server is start
 	Live bool
@@ -76,13 +76,13 @@ type {{.NameExported}}App struct {
 
 // HTTP server configuration
 type httpConfig struct {
-	ip							string
-	port						string
+	ip              string
+	port            string
 	shutdownTimeout time.Duration
-	readTimeout			time.Duration
-	writeTimeout		time.Duration
-	listenString		string
-	logPath					string
+	readTimeout     time.Duration
+	writeTimeout    time.Duration
+	listenString    string
+	logPath         string
 	diagnosticsFile string
 	accessFile      string
 }
@@ -109,6 +109,11 @@ func printVersion() {
 	os.Exit(0)
 }
 
+//printError
+func printError(em error) {
+        fmt.Println(em)
+}
+
 // main entry point for server
 func main() {
 	a := {{.NameExported}}App{}
@@ -121,7 +126,11 @@ func main() {
 	}
 
 	// Setup logging
-	openErrorLogFile(httpconf.logPath + httpconf.diagnosticsFile)
+        e := openErrorLogFile(httpconf.logPath + httpconf.diagnosticsFile)
+	if e != nil {
+                printError(e)
+                os.Exit(0)
+        }
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	a.accessLog = openAccessLogFile(httpconf.logPath + httpconf.accessFile)
