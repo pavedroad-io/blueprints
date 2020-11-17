@@ -324,6 +324,8 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
 	respondWithByte(w, http.StatusOK, jl)
 }
 
+// TODO: decide do kill it or do something with it
+
 {{.GetAllSwaggerDoc}}
 // listSchedule swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}SchedulerEndPointLIST schedules listschedule
 //
@@ -332,7 +334,6 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
 // Responses:
 //		default: genericError
 
-// TODO: decide do kill it or do something with it
 func (a *{{.NameExported}}App) listSchedule(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, "{}")
 }

@@ -31,10 +31,10 @@ type GenericError struct {
 		Message error `json:"message"`
 	} `json:"body"`
 }
+// TODO: add method of including sub attributes
 
 // Return list of {{.Name}}s
 //
-// TODO: add method of including sub attributes
 //
 // swagger:response {{.Name}}List
 type listResponse struct {
