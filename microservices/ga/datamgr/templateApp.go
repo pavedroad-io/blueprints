@@ -225,7 +225,7 @@ func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *h
 }
 
 {{.GetSwaggerDoc}}
-// get{{.NameExported}} swagger:route GET /api/v1/namespace/pavedroad.io/{{.Name}}/{uuid} {{.Name}} get{{.Name}}
+// get{{.NameExported}} swagger:route GET /api/v1/namespace/pavedroad.io/{{.Name}}/{key} {{.Name}} get{{.Name}}
 //
 // Returns a {{.Name}} given a key, where key is a UUID
 //
