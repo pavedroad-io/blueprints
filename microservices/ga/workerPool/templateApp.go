@@ -290,7 +290,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 }
 
 {{.GetAllSwaggerDoc}}
-// listJobs swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}JobsEndPointLIST jobs listjobs
+// listJobs swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.NameExported}}JobsEndPointLIST jobs listjobs
 //
 // Returns a list of Jobs
 //
@@ -325,7 +325,7 @@ func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) 
 }
 
 {{.GetAllSwaggerDoc}}
-// listSchedule swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}SchedulerEndPointLIST schedules listschedule
+// listSchedule swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.NameExported}}SchedulerEndPointLIST schedules listschedule
 //
 // Returns a list of schedules
 //
@@ -338,7 +338,7 @@ func (a *{{.NameExported}}App) listSchedule(w http.ResponseWriter, r *http.Reque
 }
 
 {{.GetSwaggerDoc}}
-// getJob swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/jobs/{key} job getjob
+// getJob swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/jobs/{key} job getjob
 //
 // Returns a job given a key, where key is a UUID
 //
@@ -368,7 +368,7 @@ func (a *{{.NameExported}}App) getJob(w http.ResponseWriter, r *http.Request) {
 }
 
 {{.GetSwaggerDoc}}
-// getSchedule swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/schedule/{key} schedule getschedule
+// getSchedule swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/schedule/{key} schedule getschedule
 //
 // Returns a schedule given a key, where key is a UUID
 //
@@ -395,7 +395,7 @@ func (a *{{.NameExported}}App) getSchedule(w http.ResponseWriter, r *http.Reques
 }
 
 {{.GetSwaggerDoc}}
-// getLiveness swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.Liveness}} {{.Liveness}} get{{.Liveness}}
+// getLiveness swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.Liveness}} {{.Liveness}} get{{.Liveness}}
 //
 // A HTTP response status code between 200-400 indicates the pod is alive.
 // Any other status code will cause kubelet to restart the pod.
@@ -418,7 +418,7 @@ func (a *{{.NameExported}}App) getLiveness(w http.ResponseWriter, r *http.Reques
 }
 
 {{.GetSwaggerDoc}}
-// getReadiness swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.Readiness}} {{.Readiness}} get{{.Readiness}}
+// getReadiness swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.Readiness}} {{.Readiness}} get{{.Readiness}}
 //
 // Indicates the pod is ready to start taking traffic.
 // Should return a 200 after all pod initialization has completed.
@@ -442,7 +442,7 @@ func (a *{{.NameExported}}App) getReadiness(w http.ResponseWriter, r *http.Reque
 }
 
 {{.GetSwaggerDoc}}
-// getMetrics swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.Metrics}} {{.Metrics}} getMetrics
+// getMetrics swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.Metrics}} {{.Metrics}} getMetrics
 //
 // Returns metrics for {{.Name}} service
 // Metrics should include:
@@ -482,7 +482,7 @@ func (a *{{.NameExported}}App) getMetrics(w http.ResponseWriter, r *http.Request
 	respondWithByte(w, http.StatusOK, []byte(combinedJSON))
 }
 
-// getManagement swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.Management}} {{.Management}} get{{.Management}}
+// getManagement swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.Management}} {{.Management}} get{{.Management}}
 //
 // Returns available management commands
 //
@@ -499,7 +499,7 @@ func (a *{{.NameExported}}App) getManagement(w http.ResponseWriter, r *http.Requ
 	respondWithJSON(w, http.StatusOK, a.Dispatcher.managementOptions)
 }
 
-// put{{.Management}} swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.Management}} {{.Management}} put{{.Management}}
+// put{{.Management}} swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.Management}} {{.Management}} put{{.Management}}
 //
 // Returns available management commands
 //
@@ -570,7 +570,7 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 }
 
 {{.PostSwaggerDoc}}
-// createJob swagger:route POST /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}JobsEndPoint {{.NameExported}}JobsEndPoint createJob
+// createJob swagger:route POST /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.NameExported}}JobsEndPoint {{.NameExported}}JobsEndPoint createJob
 //
 // Create a new Job
 //
@@ -605,7 +605,7 @@ func (a *{{.NameExported}}App) createJob(w http.ResponseWriter, r *http.Request)
 }
 
 {{.PutSwaggerDoc}}
-// updateJob swagger:route PUT /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}JobsEndPoint/{key} {{.NameExported}}SchedulerEndPoint updateJob
+// updateJob swagger:route PUT /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.NameExported}}JobsEndPoint/{key} {{.NameExported}}SchedulerEndPoint updateJob
 //
 // Update a {{.NameExported}}JobsEndPoint specified by key, where key is a uuid
 //
@@ -642,7 +642,7 @@ func (a *{{.NameExported}}App) updateJob(w http.ResponseWriter, r *http.Request)
 }
 
 {{.DeleteSwaggerDoc}}
-// deleteJob swagger:route DELETE /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}JobsEndPoint/{key} {{.NameExported}}JobsEndPoint deleteJobs
+// deleteJob swagger:route DELETE /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.NameExported}}JobsEndPoint/{key} {{.NameExported}}JobsEndPoint deleteJobs
 //
 // Delete a job specified by key, which is a uuid
 //
@@ -670,7 +670,7 @@ func (a *{{.NameExported}}App) deleteJob(w http.ResponseWriter, r *http.Request)
 }
 
 {{.PostSwaggerDoc}}
-// createSchedule swagger:route POST /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}SchedulerEndPoint {{.NameExported}}SchedulerEndPoint createSchedule
+// createSchedule swagger:route POST /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.NameExported}}SchedulerEndPoint {{.NameExported}}SchedulerEndPoint createSchedule
 //
 // Create a new scheduler
 //
@@ -703,7 +703,7 @@ func (a *{{.NameExported}}App) createSchedule(w http.ResponseWriter, r *http.Req
 }
 
 {{.PutSwaggerDoc}}
-// updateSchedle swagger:route PUT /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}SchedulerEndPoint/{key} {{.NameExported}}SchedulerEndPoint updateSchedule
+// updateSchedle swagger:route PUT /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.NameExported}}SchedulerEndPoint/{key} {{.NameExported}}SchedulerEndPoint updateSchedule
 //
 // Update a {{.NameExported}}SchedulerEndPoint specified by key, where key is a uuid
 //
@@ -739,7 +739,7 @@ func (a *{{.NameExported}}App) updateSchedule(w http.ResponseWriter, r *http.Req
 }
 
 {{.DeleteSwaggerDoc}}
-// deleteSchedule swagger:route DELETE /api/v1/namespace/{{.Namespace}}/{{.Name}}/{{.NameExported}}SchedulerEndPoint/{key} {{.NameExported}}SchedulerEndPoint deleteSchudler
+// deleteSchedule swagger:route DELETE /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.NameExported}}SchedulerEndPoint/{key} {{.NameExported}}SchedulerEndPoint deleteSchudler
 //
 // Delete a job specified by key, which is a uuid
 //
