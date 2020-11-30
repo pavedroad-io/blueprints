@@ -130,7 +130,7 @@ go-clean:
 	docker-compose -f manifests/docker-db-only.yaml down
 
 sonar-scanner: $(ARTIFACTS)
-	./sonarcloud.sh
+	sonar-scanner
 
 ## show-coverage: Show go code coverage in browser
 show-coverage:
