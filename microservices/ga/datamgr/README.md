@@ -315,13 +315,6 @@ available [here](https://docs.sonarqube.org/latest/analysis/analysis-parameters/
 The default configuration provides extended support for code coverage and go lint reporting.
 
 
-## Run by hand using
-The sonarcloud.sh is provided for executing an analysis by hand.
-
-```bash
-sonarcloud.sh
-
-```
 # FOSSA
 FOSSA provides free license scanning for open-source projects.   The [fossa-cli](https://github.com/fossas/fossa-cli/) documentation is covers basic usage.  Support for fossa is pre-integrated in the generated Makefile.  You need to set a valid fossa token before executing make in your .bashrc file:
 
