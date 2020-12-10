@@ -1,11 +1,29 @@
 {{define "dev/kube-config.sh"}}
 #!/bin/bash
 
-CMD0="microk8s.config"
-CMD1=`microk8s.config > $HOME/.kube/config`
+K8SCONFIG="microk8s.config"
+K8SCONTEXT="microk8s"
 
 clear
-echo "Writing microk8s.config to $HOME/.kube/config"
-echo "microk8s.config > $HOME/.kube/config"
-$CMD1
+echo "Saving ${K8SCONFIG} to ${HOME}/.kube/config"
+echo "gathering microk8s configuration "
+
+clusterName=`${K8SCONFIG} | yq r - clusters[0].name`
+clusterServer=`${K8SCONFIG} | yq r - clusters[0].cluster.server`
+clusterCertificate=`${K8SCONFIG} | yq r - clusters[0].cluster.certificate-authority-data`
+userName=`microk8s.config | yq r - users[0].name`
+userToken=`${K8SCONFIG} | yq r - users[0].user.token`
+
+# Add/update the server
+echo "Saving / updating ${K8SCONTEXT}"
+kubectl config set-cluster ${clusterName} --server=${clusterServer}
+kubectl config set clusters.${clusterName}.certificate-authority-data ${clusterCertificate}
+
+kubectl config set-credentials ${userName}
+kubectl config set users.${userName}.token ${userToken}
+
+#kubectl config set-context dev-frontend --cluster=development --namespace=frontend --user=developer
+kubectl config set-context microk8s --cluster=${clusterName} --user=${userName}
+kubectl config set current-context microk8s
+
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
