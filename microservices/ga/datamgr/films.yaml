@@ -2,35 +2,35 @@ community:
   community-files:
   - name: CODE_OF_CONDUCT.md
     path: .
-    src: templatedir
+    src: blueprintdir
   - name: CONTRIBUTING.md
     path: .
-    src: templatedir
+    src: blueprintdir
   - name: GOVERNANCE.md
     path: .
-    src: templatedir
+    src: blueprintdir
   - name: MEETING.md
     path: .
-    src: templatedir
+    src: blueprintdir
   - name: OWNERS.md
     path: .
-    src: templatedir
+    src: blueprintdir
   - name: SECURITY.md
     path: .
-    src: templatedir
+    src: blueprintdir
   - md5: "123123123123123123231"
     name: SUPPORT.md
     path: .
-    src: git-api://templates.pavedroad.io/templates/oss/support.md
+    src: git-api://blueprints.pavedroad.io/blueprints/oss/support.md
   - name: ROADMAP.md
     path: .
-    src: https://w.pavedroad.io/templates/roadmap.md
+    src: https://w.pavedroad.io/blueprints/roadmap.md
   - name: SECURITY.md
     path: .
-    src: templatedir
+    src: blueprintdir
   - name: ROADMAP.md
     path: .
-    src: https://w.pavedroad.io/templates/roadmap.md
+    src: https://w.pavedroad.io/blueprints/roadmap.md
   description: list of community files to include
 info:
   api-version: 1.0.0
@@ -143,7 +143,7 @@ project:
       artifacts-dir: ./artifacts
       name: sonar-project.properties
       path: .
-      src: templatedir
+      src: blueprintdir
     name: sonarcloud
     enable: true
   license: Apache2
@@ -156,27 +156,27 @@ project:
   - description: Information about the project and project status
     name: README.md
     path: .
-    src: templatedir
+    src: blueprintdir
   - description: Summary documentation in swagger 2.0 and godoc format
-    name: templateDoc.go
+    name: blueprintDoc.go
     path: .
-    src: templatedir
+    src: blueprintdir
   - description: Main entry point for microservice
-    name: templateMain.go
+    name: blueprintMain.go
     path: .
-    src: templatedir
+    src: blueprintdir
   - description: Business logic for the application
-    name: templateApp.go
+    name: blueprintApp.go
     path: .
-    src: templatedir
+    src: blueprintdir
   - description: Generated data model for the microservice
-    name: templateModel.go
+    name: blueprintModel.go
     path: .
-    src: templatedir
+    src: blueprintdir
   - description: Generated test cases for microservice
-    name: template_test.go
+    name: blueprint_test.go
     path: .
-    src: templatedir
+    src: blueprintdir
 tables:
 - columns:
   - constraints: ""

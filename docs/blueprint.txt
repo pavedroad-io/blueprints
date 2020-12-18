@@ -1,11 +1,11 @@
 DESCRIPTION:
-Templates provide a low-code environment for serverless, CRD, and microservices.
-The roadctl CLI uses the template skaffold combined code generation to create your
+Blueprints provide a low-code environment for serverless, CRD, and microservices.
+The roadctl CLI uses the blueprint skaffold combined code generation to create your
 application, CI, and test framework.
 
 FIELDS:
 name <string>
-     A user friendly name for this template
+     A user friendly name for this blueprint
 api-version <string>
      API version used to generate it
 version <string>
@@ -14,7 +14,7 @@ id <string>
      UUID that uniquely identified a combination of api-version + version
      This UUID is immutable for the above combination
 release-status <string>
-     Specifies the stability of this template:
+     Specifies the stability of this blueprint:
        ga - general availability, aka stable
        incubation - represents beta quality code
        experimental - represents proof of concepts
@@ -26,7 +26,7 @@ project <object>
      Defines project/service level objects including:
         maintainer
         integrations
-        project-files: aka, templates
+        project-files: aka, blueprints
         dependencies
         license
 schemas <object>

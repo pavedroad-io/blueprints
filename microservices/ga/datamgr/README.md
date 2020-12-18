@@ -12,7 +12,7 @@ are installed:
 - The user.name and user.email are set in your git configuration
 - A GitHub Personal Access Token is available in the GH_ACCESS_TOKEN env variable
 - A .gitignore file with entries
-- An initialized templates repository
+- An initialized blueprintss repository
 
 It doesn't generate a git tag; pick your own. Once preflight.sh
 successfully executes, a ".pr_preflight_check" is created.  Until this
@@ -95,7 +95,7 @@ Flags:
       --format string      Output format: text(default)|json|yaml (default "text")
   -h, --help               help for roadctl
       --password string    HTTP basic auth password
-      --templates string   Set the location of the directory holding roadctl templates
+      --blueprintss string   Set the location of the directory holding roadctl blueprintss
       --token string       OAUTH access token
       --user string        HTTP basic auth user name
 
@@ -121,7 +121,7 @@ Global Flags:
       --debug string       Debug level: info(default)|warn|error|critical (default "info")
       --format string      Output format: text(default)|json|yaml (default "text")
       --password string    HTTP basic auth password
-      --templates string   Set the location of the directory holding roadctl templates
+      --blueprintss string   Set the location of the directory holding roadctl blueprintss
       --token string       OAUTH access token
       --user string        HTTP basic auth user name
 ```
@@ -130,27 +130,27 @@ Global Flags:
 The roadctl CLI is used to create new services.
 It has two fundamental concepts:
 
-- templates: Contain logic need to generate a service
+- blueprintss: Contain logic need to generate a service
 - definitions: Define your custom logic, integrations, and organizational information
 
 A sample definitions is available to help you get started.
 
-### Initialize template repository
+### Initialize blueprints repository
     roadctl init
 
-### List available templates
-    roadctl get templates
+### List available blueprintss
+    roadctl get blueprintss
 
 ### Create a copy of the sample definition
-    roadctl describe templates datamgr > myservice.yaml
+    roadctl describe blueprintss datamgr > myservice.yaml
 
 Note: edit myservice.yaml to customize your create below.
 
 ### Get definitions of attributes in your myservice.txt
-    roadctl explain templates datamgr > myservice.txt
+    roadctl explain blueprintss datamgr > myservice.txt
 
 ### Create your microservice
-    roadctl create templates datamgr -f myservice.yaml
+    roadctl create blueprintss datamgr -f myservice.yaml
 ### Build and test
 Executing make will compile and test your service.
 Optionally, you can do `make compile` followed by `make check`.

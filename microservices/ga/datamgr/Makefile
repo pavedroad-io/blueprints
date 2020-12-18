@@ -149,7 +149,7 @@ lint: $(GOFILES)
 	@echo $?
 	$(GOLINT) $? > $(GOLINTREPORT)
 	@echo "  >  running gosec... > $(GOSECREPORT)"
-	$(shell (export GOPATH=$(GOPATH);gosec -fmt=sonarqube -tests -out $(GOSECREPORT) -exclude-dir=.templates ./...))
+	$(shell (export GOPATH=$(GOPATH);gosec -fmt=sonarqube -tests -out $(GOSECREPORT) -exclude-dir=.blueprints ./...))
 	@echo "  >  running go vet... > $(GOVETREPORT)"
 	$(shell (export GOPATH=$(GOPATH);go vet ./... 2> $(GOVETREPORT)))
 {{.FossaLintSection}}
