@@ -14,6 +14,7 @@ ARTIFACTS := $(PROJDIR)/artifacts
 BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
+VOLS := $(PROJDIR)/volumes
 GITTEST := .git/HEAD
 FOSSATEST := .fossa.yml
 PREFLIGHT := .pr_preflight_check
@@ -69,11 +70,9 @@ build: go-get
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
 # make this conditional on build GOARCH
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS="darwin" GOARCH="amd64" go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-"darwin"-"amd64" $(GOFILES)
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS="darwin" GOARCH="386" go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-"darwin"-"386" $(GOFILES)
 	cp $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(BUILDS)/$(PROJECTNAME)-$(GOOS)-$(GOARCH)
 	cp $(BUILDS)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(PROJECTNAME)
 	cp $(GOBIN)/$(PROJECTNAME)-"darwin"-"amd64" $(BUILDS)/$(PROJECTNAME)-"darwin"-"amd64"
-	cp $(GOBIN)/$(PROJECTNAME)-"darwin"-"386" $(BUILDS)/$(PROJECTNAME)-"darwin"-"386"
 
 
 ## deploy: Deploy image to repository and k8s cluster
@@ -89,6 +88,42 @@ endif
 	@sleep 20
 	@echo "  >  Build image and deploy..."
 	@skaffold run -f manifests/skaffold.yaml
+
+## deploy-debug: Deploy image to the k8s cluster in headless debug mode
+deploy-debug:
+ifeq "$(K8SRUNNING)" "down"
+	@echo "  >  Starting k8s for deployment..."
+	dev/microk8sStart.sh
+endif
+	@echo "  >  Starting k8s is up..."
+	@dev/kube-config.sh
+#       wait for the registry service to be ready	
+	@echo "  >  Wait for registry to come up..."
+	@sleep 20
+	@echo "  >  Build image and deploy..."
+	@echo "  >  Start image headles for remote debugging..."
+	@skaffold run -f manifests/skaffold.yaml -p dev-debug
+
+## deploy-down: Delete and cleanup deployment from the k8s cluster
+deploy-down:
+	@echo "  >  Cleanup deployment..."
+	@skaffold delete -f manifests/skaffold.yaml
+
+## dev-mode: Start deployment in debug mode, watch for file changes and perform a live update
+dev-mode:
+	@echo "  >  Running deployment in development mode..."
+	@echo "  >  Use CTRL-C to exit..."
+	skaffold dev -f manifests/skaffold.yaml
+
+## tilt-up: Start service using Tilt UI
+tilt-up: dbclean
+	@echo "  >  Start with Tilt UI..."
+	@tilt up
+
+## tilt-down: Stop and cleanup a Tilt service
+tilt-down:
+	@echo "  >  Cleanup deployment..."
+	@tilt down
 
 Gopkg.toml:
 	@echo "  >  initialize dep support..."
@@ -120,15 +155,15 @@ go-clean:
 ## check: Start services and execute static code analysis and tests
 {{.CheckBuildTarget}}
 	@echo "  >  Starting cockroach DB..."
-	docker-compose -f manifests/docker-db-only.yaml up -d
+	docker-compose -f manifests/docker-db-only.yaml up -d --remove-orphans
 	@echo "  >  Waiting cockroach DB is ready..."
 	@sleep 5
 	@echo "  >  running to tests..."
-	go test -coverprofile=$(GOCOVERAGE) -v ./...
+	go test -coverprofile=$(GOCOVERAGE) -v .
 	@echo "  >  Stopping cockroach DB..."
 	docker-compose -f manifests/docker-db-only.yaml down
 
-sonar-scanner: $(ARTIFACTS)
+sonar-scanner: dbclean $(ARTIFACTS)
 	./sonarcloud.sh
 
 ## show-coverage: Show go code coverage in browser
@@ -187,12 +222,12 @@ help: Makefile
 
 ## docker-build: Build docker images for use with docker-compose
 docker-build:
-	docker build -f manifests/Dockerfile -t acme-demo/users .
-	docker build -f manifests/Dockerfile -t acme-demo/usersinitdb .
+	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}} .
+	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}}initdb .
 
 ## up: Start service using docker-compose
-up:
-	docker-compose -f manifests/docker-compose.yaml up -d
+up: dbclean docker-build
+	docker-compose -f manifests/docker-compose.yaml up -d --remove-orphans
 
 
 ## down: Stop service using docker-compose
@@ -213,6 +248,11 @@ $(DOCS):
 
 $(LOGS):
 	$(shell mkdir -p $(LOGS))
+
+dbclean:
+	@echo "Removing cockroach volumes directory owned by root"
+	@echo "If needed you will be prompted for your sudo password"
+	$(shell sudo rm -R $(VOLS))
 
 # Preflight: ensure all requirements are met
 # Once they are the $(PREFLIGH) file will be created
