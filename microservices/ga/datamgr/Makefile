@@ -14,6 +14,7 @@ ARTIFACTS := $(PROJDIR)/artifacts
 BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
+VOLS := $(PROJDIR)/volumes
 GITTEST := .git/HEAD
 FOSSATEST := .fossa.yml
 PREFLIGHT := .pr_preflight_check
@@ -203,6 +204,11 @@ $(DOCS):
 
 $(LOGS):
 	$(shell mkdir -p $(LOGS))
+
+dbclean:
+	@echo "Removing cockroach volumes directory owned by root"
+	@echo "If needed you will be prompted for your sudo password"
+	$(shell sudo rm -R $(VOLS))
 
 # Preflight: ensure all requirements are met
 # Once they are the $(PREFLIGH) file will be created
