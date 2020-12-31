@@ -111,7 +111,7 @@ go-clean:
 	docker-compose -f manifests/kafka.yaml down
 
 sonar-scanner: $(ARTIFACTS)
-	sonarcloud.sh
+	sonar-scanner
 
 ## show-coverage: Show go code coverage in browser
 show-coverage:
