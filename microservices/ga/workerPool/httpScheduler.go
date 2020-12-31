@@ -368,9 +368,9 @@ func (s *httpScheduler) SetChannels(j chan Job, r chan Result, b chan bool, i ch
 func (s *httpScheduler) Init() error {
 	urlList := []string{
 		"https://api.chucknorris.io/jokes/random",
-		"https://swapi.co/api/people/1/",
-		"https://swapi.co/api/people/2/",
-		"https://swapi.co/api/people/3/"}
+		"https://swapi.dev/api/people/1/",
+		"https://swapi.dev/api/people/2/",
+		"https://swapi.dev/api/people/3/"}
 
 	s.metrics.Counters = make(map[string]int)
 
