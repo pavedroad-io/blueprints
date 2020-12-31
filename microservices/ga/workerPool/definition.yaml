@@ -2,7 +2,7 @@ info:
   api-version: v1
   id: workerPool
   name: eventCollector
-  organization: pavedroad.io
+  organization: acme-demo
   release-status: alpha
   version: 0.0.1
 project:
