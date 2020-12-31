@@ -53,7 +53,7 @@ LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD) -X=main.GitT
 {{.AllBuildTarget}}
 
 ## compile: Compile the binary.
-compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc
+compile: build-mods $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc
 	@echo "  Compiling"
 	@-$(MAKE) -s build
 
@@ -65,7 +65,7 @@ clean:
 	@-$(MAKE) go-clean
 
 ## build: Build the binary for linux / mac x86 and amd
-build: go-get
+build:
 	@echo "  >  Building binary..."
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
 # make this conditional on build GOARCH
@@ -74,6 +74,9 @@ build: go-get
 	cp $(BUILDS)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(PROJECTNAME)
 	cp $(GOBIN)/$(PROJECTNAME)-"darwin"-"amd64" $(BUILDS)/$(PROJECTNAME)-"darwin"-"amd64"
 
+build-mods:
+	@echo "  >  go mod vendor..."
+	go mod vendor
 
 ## deploy: Deploy image to repository and k8s cluster
 deploy:
@@ -125,24 +128,12 @@ tilt-down:
 	@echo "  >  Cleanup deployment..."
 	@tilt down
 
-Gopkg.toml:
-	@echo "  >  initialize dep support..."
-	$(shell (export GOPATH=$(GOPATH);dep init))
-
-go-get: Gopkg.toml get-deps $(ASSETS)
-	@echo "  >  Creating dependencies graph png..."
-	$(shell (export GOPATH=$(GOPATH);dep status -dot | dot -T png -o $(ASSETS)/$(PROJECTNAME).png))
-
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
 	$(shell (export GOPATH=$(GOPATH);swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"
-
-get-deps:
-	@echo "  >  dep ensure..."
-	$(shell (GOPATH=$(GOPATH);dep ensure $?))
 
 ## install: Install packages or main
 install:
