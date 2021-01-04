@@ -53,19 +53,18 @@ LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD) -X=main.GitT
 {{.AllBuildTarget}}
 
 ## compile: Compile the binary.
-compile: build-mods $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc
+compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc mod-graph
 	@echo "  Compiling"
 	@-$(MAKE) -s build
 
-## clean: Remove dep, vendor, binary(s), and executes go clean
+## clean: Remove binary(s) and execute go clean
 clean:
 	@echo "  execute go-clean"
 	@-rm $(GOBIN)/$(PROJECTNAME)* 2> /dev/null || true
-	@-rm -R vendor Gopkt.* 2> /dev/null || true
 	@-$(MAKE) go-clean
 
 ## build: Build the binary for linux / mac x86 and amd
-build:
+build: mod-setup
 	@echo "  >  Building binary..."
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
 # make this conditional on build GOARCH
@@ -74,9 +73,14 @@ build:
 	cp $(BUILDS)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(PROJECTNAME)
 	cp $(GOBIN)/$(PROJECTNAME)-"darwin"-"amd64" $(BUILDS)/$(PROJECTNAME)-"darwin"-"amd64"
 
-build-mods:
-	@echo "  >  go mod vendor..."
-	go mod vendor
+mod-setup:
+	@echo "  >  setting up modules..."
+	go mod download
+	go mod tidy
+
+mod-graph: mod-setup $(ASSETS)
+	@echo "  >  Creating dependencies graph png..."
+	$(shell (go mod graph | modgraphviz | dot -T png -o $(ASSETS)/$(PROJECTNAME).png))
 
 ## deploy: Deploy image to repository and k8s cluster
 deploy:
