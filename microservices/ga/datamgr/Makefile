@@ -7,6 +7,7 @@ PROJDIR := $(shell pwd)
 TARGET := $(PROJECTNAME)
 
 K8SRUNNING := $(shell dev/microk8sStatus.sh)
+VOLS := $(PROJDIR)/volumes
 export DOCKER_IP = `(dev/getdockerip.sh)`
 
 ASSETS := $(PROJDIR)/assets/images
@@ -57,6 +58,7 @@ compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc
 	@echo "  Compiling"
 	@-$(MAKE) -s build
 
+	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
 ## clean: Remove dep, vendor, binary(s), and executes go clean
 clean:
 	@echo "  execute go-clean"
@@ -164,7 +166,7 @@ go-clean:
 	docker-compose -f manifests/docker-db-only.yaml down
 
 sonar-scanner: dbclean $(ARTIFACTS)
-	./sonarcloud.sh
+	sonar-scanner
 
 ## show-coverage: Show go code coverage in browser
 show-coverage:

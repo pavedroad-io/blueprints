@@ -1,10 +1,11 @@
 {{define ".gitignore"}}
 # Binaries for programs and plugins
 *.exe
-*.exe~
 *.dll
 *.so
 *.dylib
+*.un~
+*.yaml~
 
 # Test binary, build with `go test -c`
 *.test

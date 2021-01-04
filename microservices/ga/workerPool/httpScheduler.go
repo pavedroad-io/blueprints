@@ -115,10 +115,11 @@ func (s *httpScheduler) UpdateJobList(newJobList []*httpJob) {
 	s.mux.Unlock()
 }
 
+// TODO: Move this to dispatcher, it is generic
+
 // A []listJobsResponse is a single job but returned as a list
 //
 // swagger:response listJobResponse
-// TODO: Move this to dispatcher, it is generic
 type listJobsResponse struct {
 	// in: body
 
