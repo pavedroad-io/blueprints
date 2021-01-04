@@ -22,7 +22,7 @@ services:
      - kafka
   roach-ui:
     image: cockroachdb/cockroach
-    command: start --insecure
+    command: start-single-node --insecure
     expose:
      - "8080"
      - "26257"

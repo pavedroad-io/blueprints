@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - args:
-        - start
+        - start-single-node
         - --insecure
         image: cockroachdb/cockroach
         name: roach-ui

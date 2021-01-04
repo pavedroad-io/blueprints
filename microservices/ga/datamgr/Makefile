@@ -7,6 +7,7 @@ PROJDIR := $(shell pwd)
 TARGET := $(PROJECTNAME)
 
 K8SRUNNING := $(shell dev/microk8sStatus.sh)
+VOLS := $(PROJDIR)/volumes
 export DOCKER_IP = `(dev/getdockerip.sh)`
 
 ASSETS := $(PROJDIR)/assets/images
@@ -56,6 +57,7 @@ compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc
 	@echo "  Compiling"
 	@-$(MAKE) -s build
 
+	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
 ## clean: Remove dep, vendor, binary(s), and executes go clean
 clean:
 	@echo "  execute go-clean"
@@ -88,6 +90,42 @@ endif
 	@echo "  >  Build image and deploy..."
 	@skaffold run -f manifests/skaffold.yaml
 
+## deploy-debug: Deploy image to the k8s cluster in headless debug mode
+deploy-debug:
+ifeq "$(K8SRUNNING)" "down"
+	@echo "  >  Starting k8s for deployment..."
+	dev/microk8sStart.sh
+endif
+	@echo "  >  Starting k8s is up..."
+	@dev/kube-config.sh
+#       wait for the registry service to be ready	
+	@echo "  >  Wait for registry to come up..."
+	@sleep 20
+	@echo "  >  Build image and deploy..."
+	@echo "  >  Start image headles for remote debugging..."
+	@skaffold run -f manifests/skaffold.yaml -p dev-debug
+
+## deploy-down: Delete and cleanup deployment from the k8s cluster
+deploy-down:
+	@echo "  >  Cleanup deployment..."
+	@skaffold delete -f manifests/skaffold.yaml
+
+## dev-mode: Start deployment in debug mode, watch for file changes and perform a live update
+dev-mode:
+	@echo "  >  Running deployment in development mode..."
+	@echo "  >  Use CTRL-C to exit..."
+	skaffold dev -f manifests/skaffold.yaml
+
+## tilt-up: Start service using Tilt UI
+tilt-up: dbclean
+	@echo "  >  Start with Tilt UI..."
+	@tilt up
+
+## tilt-down: Stop and cleanup a Tilt service
+tilt-down:
+	@echo "  >  Cleanup deployment..."
+	@tilt down
+
 Gopkg.toml:
 	@echo "  >  initialize dep support..."
 	$(shell (export GOPATH=$(GOPATH);dep init))
@@ -99,7 +137,6 @@ go-get: Gopkg.toml get-deps $(ASSETS)
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
 	$(shell (export GOPATH=$(GOPATH);swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
-	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"
@@ -123,11 +160,11 @@ go-clean:
 	@echo "  >  Waiting cockroach DB is ready..."
 	@sleep 5
 	@echo "  >  running to tests..."
-	go test -coverprofile=$(GOCOVERAGE) -v ./...
+	go test -coverprofile=$(GOCOVERAGE) -v .
 	@echo "  >  Stopping cockroach DB..."
 	docker-compose -f manifests/docker-db-only.yaml down
 
-sonar-scanner: $(ARTIFACTS)
+sonar-scanner: dbclean $(ARTIFACTS)
 	sonar-scanner
 
 ## show-coverage: Show go code coverage in browser
@@ -186,12 +223,12 @@ help: Makefile
 
 ## docker-build: Build docker images for use with docker-compose
 docker-build:
-	docker build -f manifests/Dockerfile -t acme-demo/users .
-	docker build -f manifests/Dockerfile -t acme-demo/usersinitdb .
+	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}} .
+	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}}initdb .
 
 ## up: Start service using docker-compose
-up:
-	docker-compose -f manifests/docker-compose.yaml up -d
+up: dbclean docker-build
+	docker-compose -f manifests/docker-compose.yaml up -d --remove-orphans
 
 
 ## down: Stop service using docker-compose
@@ -212,6 +249,11 @@ $(DOCS):
 
 $(LOGS):
 	$(shell mkdir -p $(LOGS))
+
+dbclean:
+	@echo "Removing cockroach volumes directory owned by root"
+	@echo "If needed you will be prompted for your sudo password"
+	$(shell sudo rm -R $(VOLS))
 
 # Preflight: ensure all requirements are met
 # Once they are the $(PREFLIGH) file will be created

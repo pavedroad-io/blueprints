@@ -12,7 +12,7 @@ are installed:
 - The user.name and user.email are set in your git configuration
 - A GitHub Personal Access Token is available in the GH_ACCESS_TOKEN env variable
 - A .gitignore file with entries
-- An initialized templates repository
+- An initialized blueprints repository
 
 It doesn't generate a git tag; pick your own. Once preflight.sh
 successfully executes, a ".pr_preflight_check" is created.  Until this
@@ -95,7 +95,7 @@ Flags:
       --format string      Output format: text(default)|json|yaml (default "text")
   -h, --help               help for roadctl
       --password string    HTTP basic auth password
-      --templates string   Set the location of the directory holding roadctl templates
+      --blueprints string  Set the location of the directory holding roadctl blueprints
       --token string       OAUTH access token
       --user string        HTTP basic auth user name
 
@@ -121,7 +121,7 @@ Global Flags:
       --debug string       Debug level: info(default)|warn|error|critical (default "info")
       --format string      Output format: text(default)|json|yaml (default "text")
       --password string    HTTP basic auth password
-      --templates string   Set the location of the directory holding roadctl templates
+      --blueprints string   Set the location of the directory holding roadctl blueprints
       --token string       OAUTH access token
       --user string        HTTP basic auth user name
 ```
@@ -130,27 +130,27 @@ Global Flags:
 The roadctl CLI is used to create new services.
 It has two fundamental concepts:
 
-- templates: Contain logic need to generate a service
+- blueprints: Contain logic need to generate a service
 - definitions: Define your custom logic, integrations, and organizational information
 
 A sample definitions is available to help you get started.
 
-### Initialize template repository
+### Initialize blueprint repository
     roadctl init
 
-### List available templates
-    roadctl get templates
+### List available blueprints
+    roadctl get blueprints
 
 ### Create a copy of the sample definition
-    roadctl describe templates datamgr > myservice.yaml
+    roadctl describe blueprints datamgr > myservice.yaml
 
 Note: edit myservice.yaml to customize your create below.
 
 ### Get definitions of attributes in your myservice.txt
-    roadctl explain templates datamgr > myservice.txt
+    roadctl explain blueprints datamgr > myservice.txt
 
 ### Create your microservice
-    roadctl create templates datamgr -f myservice.yaml
+    roadctl create blueprints datamgr -f myservice.yaml
 ### Build and test
 Executing make will compile and test your service.
 Optionally, you can do `make compile` followed by `make check`.
@@ -203,6 +203,11 @@ Help output:
   clean           Remove dep, vendor, binary(s), and execute go clean
   build           Build the binary for linux / mac x86 and amd
   deploy          Deploy image to repository and k8s cluster
+  deploy-debug    Deploy image to the k8s cluster in headless debug mode
+  deploy-down     Delete and cleanup deployment from the k8s cluster
+  dev-mode        Start deployment in debug mode, watch for file changes and perform a live update
+  tilt-up         Start service using Tilt UI
+  tilt-down       Stop and cleanup a Tilt service
   install         Install packages or main
   check           Start services and execute static code analysis and tests
   show-coverage   Show go code coverage in browser
@@ -241,6 +246,25 @@ Deletes all deployed resources
 
 ```bash
 skaffold delete -f manifests/skaffold.yaml
+```
+
+### debug
+Start skaffold container in k8s cluster in debug mode.
+Use kubectl describe to return information for connecting
+to the remote pod/image
+
+#### Explicit
+
+```bash
+skaffold run -f manifests/skaffold.yaml -p dev-debug
+```
+#### Implicit
+
+Automatically enter debug mode by declaring GODEBUG
+
+```bash
+export GODEBUG=true
+skaffold run -f manifests/skaffold.yaml
 ```
 
 ## Linters
