@@ -96,7 +96,6 @@ Flags:
   -h, --help               help for roadctl
       --password string    HTTP basic auth password
       --blueprints string  Set the location of the directory holding roadctl blueprints
->>>>>>> master
       --token string       OAUTH access token
       --user string        HTTP basic auth user name
 
