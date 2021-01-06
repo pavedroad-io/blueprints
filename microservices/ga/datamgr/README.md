@@ -200,7 +200,7 @@ Help output:
   Choose a command run in films:
 
   compile         Compile the binary.
-  clean           Remove dep, vendor, binary(s), and execute go clean
+  clean           Remove dep, vendor, binary(s), and executes go clean
   build           Build the binary for linux / mac x86 and amd
   deploy          Deploy image to repository and k8s cluster
   deploy-debug    Deploy image to the k8s cluster in headless debug mode
@@ -222,7 +222,6 @@ Help output:
   docker-build    Build docker images for use with docker-compose
   up              Start service using docker-compose
   down            Stop service using docker-compose
-
 ```
 
 ## Skaffold CI/CD

@@ -67,7 +67,7 @@ project:
         go-sec: {enable: true, report: $ref->go.sec.artifacts}
         lint: {enable: true, report: $ref->go.lint.artifacts}
     configuration-file: {artifacts-dir: ./artifacts, name: sonar-project.properties,
-      path: ., src: templatedir}
+      path: ., src: blueprintdir}
   license: Apache2
   maintainer:
     email: demo@pavedroad.io

@@ -15,6 +15,7 @@ ARTIFACTS := $(PROJDIR)/artifacts
 BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
+VOLS := $(PROJDIR)/volumes
 GITTEST := .git/HEAD
 FOSSATEST := .fossa.yml
 PREFLIGHT := .pr_preflight_check
@@ -156,7 +157,7 @@ go-clean:
 ## check: Start services and execute static code analysis and tests
 {{.CheckBuildTarget}}
 	@echo "  >  Starting cockroach DB..."
-	docker-compose -f manifests/docker-db-only.yaml up -d
+	docker-compose -f manifests/docker-db-only.yaml up -d --remove-orphans
 	@echo "  >  Waiting cockroach DB is ready..."
 	@sleep 5
 	@echo "  >  running to tests..."
@@ -185,7 +186,7 @@ lint: $(GOFILES)
 	@echo $?
 	$(GOLINT) $? > $(GOLINTREPORT)
 	@echo "  >  running gosec... > $(GOSECREPORT)"
-	$(shell (export GOPATH=$(GOPATH);gosec -fmt=sonarqube -tests -out $(GOSECREPORT) -exclude-dir=.templates ./...))
+	$(shell (export GOPATH=$(GOPATH);gosec -fmt=sonarqube -tests -out $(GOSECREPORT) -exclude-dir=.blueprints ./...))
 	@echo "  >  running go vet... > $(GOVETREPORT)"
 	$(shell (export GOPATH=$(GOPATH);go vet ./... 2> $(GOVETREPORT)))
 {{.FossaLintSection}}
