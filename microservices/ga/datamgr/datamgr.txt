@@ -1,13 +1,13 @@
 DESCRIPTION:
 
-The datamgr template provide a low-code or no-code environment
+The datamgr blueprint provide a low-code or no-code environment
 for creating a microservice that manages a data base object.
 You customize the microservice to your use case by creating a
 definitions file.
 
 To generate a definitions file you can use:
 
-roadctl describe templates datamgr > mydefinitions.yaml
+roadctl describe blueprints datamgr > mydefinitions.yaml
 
 Data attributes are defined in the Tables field and tables can
 be nested.  All records are automatically assigned a UUID that
@@ -19,7 +19,7 @@ info <Object>
   API version used to generate it
 
   id <string> datamgr
-  Name of this template
+  Name of this blueprint
 
   organization <string>
   The name of your organization to use in automatically
@@ -29,7 +29,7 @@ info <Object>
   A user friendly name for your service
 
   release-status <string>
-  Specifies the stability of this template:
+  Specifies the stability of this blueprint:
     ga - general availability, aka stable
     incubation - represents beta quality code
     experimental - represents proof of concepts
@@ -53,9 +53,9 @@ community <object>
       The path to the directory this file is copied too.
 
       src <string>
-      Is either "templatedir" or a URL.  Using a URL is useful
-      for templates you want to share across services.  For
-      example, shared CI/CD templates
+      Is either "blueprintdir" or a URL.  Using a URL is useful
+      for blueprints you want to share across services.  For
+      example, shared CI/CD blueprints
 
       MD5 <string>
       An MD5 hash that is used to validate resource retrieved
@@ -143,14 +143,14 @@ project <object>
 				generation.
 
         scheduler_name <string>
-				Not used in this template.
+				Not used in this blueprint.
 
         description <string>
         A description of this microservice.  It is used
         in CI integration's and documentation
 
         integrations <array>
-        A list of CI/CD integration's used by this template.
+        A list of CI/CD integration's used by this blueprint.
         Individual options are specific to a given integration.
         All integration's include a list of "shields" to include
         in the generated README.md and documentation files.
@@ -189,10 +189,10 @@ include:
 
         project-files: <array of objects>
         A list of the files to be included in this build of
-        the datamgr template.
+        the datamgr blueprint.
 
           description <string>
-          A friendly description of what this template file does
+          A friendly description of what this blueprint file does
 
           name <string>
           The name of the file on disk
@@ -201,9 +201,9 @@ include:
           The path to the directory this file is copied too.
 
           src <string>
-          Is either "templatedir" or a URL.  Using a URL is useful
-          for templates you want to share across services.  For
-          example, shared CI/CD templates
+          Is either "blueprintdir" or a URL.  Using a URL is useful
+          for blueprints you want to share across services.  For
+          example, shared CI/CD blueprints
 
           MD5 <string>
           An MD5 hash that is used to validate resource retrieved

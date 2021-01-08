@@ -1,0 +1,34 @@
+DESCRIPTION:
+Blueprints provide a low-code environment for serverless, CRD, and microservices.
+The roadctl CLI uses the blueprint skaffold combined code generation to create your
+application, CI, and test framework.
+
+FIELDS:
+name <string>
+     A user friendly name for this blueprint
+api-version <string>
+     API version used to generate it
+version <string>
+     Object data model version
+id <string>
+     UUID that uniquely identified a combination of api-version + version
+     This UUID is immutable for the above combination
+release-status <string>
+     Specifies the stability of this blueprint:
+       ga - general availability, aka stable
+       incubation - represents beta quality code
+       experimental - represents proof of concepts
+community <object>
+     For Open Source projects, the community object specifies which web pages
+     and files are included into the repository.  This includes linking to
+     social accounts such as slack, twitter, or linked in.
+project <object>
+     Defines project/service level objects including:
+        maintainer
+        integrations
+        project-files: aka, blueprints
+        dependencies
+        license
+schemas <object>
+     Allows for the definition of objects such as; user, inventory, services, etc.
+     schemas can be nested inside of each other and mapped to json labels

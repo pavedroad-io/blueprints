@@ -1,15 +1,18 @@
 {{define "manifests/skaffold.yaml"}}
-apiVersion: skaffold/v1beta9
+apiVersion: skaffold/v2beta10
 kind: Config
 build:
   insecureRegistries:
     - localhost:32000
+  tagPolicy:
+    sha256: {}
   artifacts:
   - image: localhost:32000/{{.Organization}}/{{.Name}}
-	  custom:
-    dependencies:
-    	paths:
-      	- "**.go"
+    context: .
+    custom:
+      dependencies:
+        paths:
+          - "**.go"
   - image: localhost:32000/{{.Organization}}/{{.Name}}initdb
     context: .
     docker:
@@ -21,8 +24,8 @@ deploy:
 
 profiles:
   - name: dev-debug
-		activation:
-			- env: GODEBUG=true
+    activation:
+    - env: GODEBUG=true
     deploy:
       kustomize:
         paths:

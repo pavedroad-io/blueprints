@@ -4,7 +4,7 @@
 
 // {{.Name}}Hooks.go
 //   Allows users to add their own business logic
-//   This file will not be over written if a template is
+//   This file will not be over written if a blueprint is
 //   regenerated.  If a function signature is changed,
 //   you can update this file by running: $ go fix
 
