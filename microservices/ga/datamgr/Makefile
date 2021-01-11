@@ -54,20 +54,19 @@ LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD) -X=main.GitT
 {{.AllBuildTarget}}
 
 ## compile: Compile the binary.
-compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc
+compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc mod-graph
 	@echo "  Compiling"
 	@-$(MAKE) -s build
-
 	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
+
 ## clean: Remove dep, vendor, binary(s), and executes go clean
 clean:
 	@echo "  execute go-clean"
 	@-rm $(GOBIN)/$(PROJECTNAME)* 2> /dev/null || true
-	@-rm -R vendor Gopkt.* 2> /dev/null || true
 	@-$(MAKE) go-clean
 
 ## build: Build the binary for linux / mac x86 and amd
-build: go-get
+build: mod-setup
 	@echo "  >  Building binary..."
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
 # make this conditional on build GOARCH
@@ -76,6 +75,14 @@ build: go-get
 	cp $(BUILDS)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(PROJECTNAME)
 	cp $(GOBIN)/$(PROJECTNAME)-"darwin"-"amd64" $(BUILDS)/$(PROJECTNAME)-"darwin"-"amd64"
 
+mod-setup:
+	@echo "  >  setting up modules..."
+	go mod download
+	go mod tidy
+
+mod-graph: mod-setup $(ASSETS)
+	@echo "  >  Creating dependencies graph png..."
+	$(shell (go mod graph | modgraphviz | dot -T png -o $(ASSETS)/$(PROJECTNAME).png))
 
 ## deploy: Deploy image to repository and k8s cluster
 deploy:
@@ -141,10 +148,6 @@ api-doc: $(DOCS)
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"
-
-get-deps:
-	@echo "  >  dep ensure..."
-	$(shell (GOPATH=$(GOPATH);dep ensure $?))
 
 ## install: Install packages or main
 install:

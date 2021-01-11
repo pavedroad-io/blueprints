@@ -104,7 +104,7 @@ func (j *httpJob) Run() (result Result, err error) {
 // buildMetadata returns a map of strings with an http.Response encoded
 func (j *httpJob) buildMetadata(resp *http.Response) map[string]string {
 	md := make(map[string]string)
-	md["StatusCode"] = string(resp.StatusCode)
+	md["StatusCode"] = string(rune(resp.StatusCode))
 	md["Proto"] = resp.Proto
 
 	for n, v := range resp.Header {
