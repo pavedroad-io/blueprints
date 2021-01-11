@@ -1,0 +1,13 @@
+{{ define "manifests/kubernetes/dev-debug/kustomization.yaml"}}
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: {{.Namespace}}-debug
+
+patchesStrategicMerge:
+  - debug.yaml
+
+resources:
+  - ../dev
+
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

@@ -1,0 +1,16 @@
+{{ define "manifests/kubernetes/dev-debug/debug.yaml"}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Name}}
+  labels:
+    env: dev-debug
+spec:
+  template:
+    spec:
+      containers:
+        - name: {{.Name}}
+          env:
+           - name: GODEBUG
+             value: true
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

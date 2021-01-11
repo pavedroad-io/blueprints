@@ -66,6 +66,7 @@ clean:
 	@-$(MAKE) go-clean
 
 ## build: Build the binary for linux / mac x86 and amd
+	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
 build: mod-setup
 	@echo "  >  Building binary..."
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
@@ -133,14 +134,6 @@ tilt-up: dbclean
 tilt-down:
 	@echo "  >  Cleanup deployment..."
 	@tilt down
-
-Gopkg.toml:
-	@echo "  >  initialize dep support..."
-	$(shell (export GOPATH=$(GOPATH);dep init))
-
-go-get: Gopkg.toml get-deps $(ASSETS)
-	@echo "  >  Creating dependencies graph png..."
-	$(shell (export GOPATH=$(GOPATH);dep status -dot | dot -T png -o $(ASSETS)/$(PROJECTNAME).png))
 
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
