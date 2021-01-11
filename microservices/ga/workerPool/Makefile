@@ -13,6 +13,7 @@ ARTIFACTS := $(PROJDIR)/artifacts
 BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
+VOLS := $(PROJDIR)/volumes
 FOSSATEST := .fossa.ymml
 PREFLIGHT := .pr_preflight_check
 
@@ -46,19 +47,18 @@ LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD) -X=main.GitT
 {{.AllBuildTarget}}
 
 ## compile: Compile the binary.
-compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc
+compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc mod-graph
 	@echo "  Compiling"
 	@-$(MAKE) -s build
 
-## clean: Remove dep, vendor, binary(s), and executs go clean
+## clean: Remove binary(s) and execute go clean
 clean:
 	@echo "  execute go-clean"
 	@-rm $(GOBIN)/$(PROJECTNAME)* 2> /dev/null || true
-	@-rm -R vendor Gopkt.* 2> /dev/null || true
 	@-$(MAKE) go-clean
 
 ## build: Build the binary for linux / mac x86 and amd
-build: go-get
+build: mod-setup
 	@echo "  >  Building binary..."
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
 # make this conditional on build GOARCH
@@ -67,6 +67,14 @@ build: go-get
 	cp $(BUILDS)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(PROJECTNAME)
 	cp $(GOBIN)/$(PROJECTNAME)-"darwin"-"amd64" $(BUILDS)/$(PROJECTNAME)-"darwin"-"amd64"
 
+mod-setup:
+	@echo "  >  setting up modules..."
+	go mod download
+	go mod tidy
+
+mod-graph: mod-setup $(ASSETS)
+	@echo "  >  Creating dependencies graph png..."
+	$(shell (go mod graph | modgraphviz | dot -T png -o $(ASSETS)/$(PROJECTNAME).png))
 
 ## deploy: Deploy image to repository and k8s cluster
 deploy:
@@ -82,14 +90,6 @@ endif
 	@echo "  >  Build image and deploy..."
 	@skaffold run -f manifests/skaffold.yaml
 
-Gopkg.toml:
-	@echo "  >  initialize dep support..."
-	$(shell (export GOPATH=$(GOPATH);dep init))
-
-go-get: Gopkg.toml get-deps $(ASSETS)
-	@echo "  >  Creating dependencies graph png..."
-	$(shell (export GOPATH=$(GOPATH);dep status -dot | dot -T png -o $(ASSETS)/$(PROJECTNAME).png))
-
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
 	$(shell (export GOPATH=$(GOPATH);swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
@@ -97,10 +97,6 @@ api-doc: $(DOCS)
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"
-
-get-deps:
-	@echo "  >  dep ensure..."
-	$(shell (GOPATH=$(GOPATH);dep ensure $?))
 
 ## install: Install packages or main
 install:
@@ -120,7 +116,7 @@ go-clean:
 	docker-compose -f manifests/kafka.yaml down
 
 sonar-scanner: $(ARTIFACTS)
-	sonarcloud.sh
+	sonar-scanner
 
 ## show-coverage: Show go code coverage in browser
 show-coverage:
@@ -190,6 +186,11 @@ $(DOCS):
 
 $(LOGS):
 	$(shell mkdir -p $(LOGS))
+
+dbclean:
+	@echo "Removing cockroach volumes directory owned by root"
+	@echo "If needed you will be prompted for your sudo password"
+	$(shell sudo rm -R $(VOLS))
 
 ## Preflight ensure all requirements are met
 ## Once they are the $(PREFLIGH) file will be created
