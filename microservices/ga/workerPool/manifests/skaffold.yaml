@@ -12,4 +12,12 @@ build:
 deploy:
   kustomize:
     path: "manifests/kubernetes/dev"
+profiles:
+  - name: dev-debug
+    activation:
+    - env: GODEBUG=true
+    deploy:
+      kustomize:
+        paths:
+        - "manifests/kubernetes/dev-debug"
 {{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

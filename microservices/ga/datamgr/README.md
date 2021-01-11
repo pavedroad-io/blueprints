@@ -1,53 +1,6 @@
 {{define "README.md"}}
 # Working with your new {{.NameExported}} microservice
 
-## Preflighting
-
-*New in version v0.6.0alpha for roadctl*
-
-The preflight.sh script ensures that the following required components
-are installed:
-
-- An initialized git repository exists
-- The user.name and user.email are set in your git configuration
-- A GitHub Personal Access Token is available in the GH_ACCESS_TOKEN env variable
-- A .gitignore file with entries
-- An initialized blueprints repository
-
-It doesn't generate a git tag; pick your own. Once preflight.sh
-successfully executes, a ".pr_preflight_check" is created.  Until this
-file exists, Make will always attempt to run preflight.sh.
-
-If you are running a version prior to v0.6.0alpha, you may run preflight.sh
-by hand in the top level of your go microservice package with:
-
-```bash
-dev/preflight.sh
-```
-
-### Versioning information
-The make file sets three versioning variables; VERSION, BUILD, and GIT_TAG.  These are passed go the go compiler and printed when the -v flag is passed on the command line.  Output is formatted as JSON:
-
-    $ films -v
-    {"Version": "1.0.0", "Build": "8755e7f", "GitTag": "v0.0alpha"}
-
-VERSION := 1.0.0
-----------------
-The version variable is set based on the value you enter in your definitions file.
-
-BUILD := $(shell git rev-parse --short HEAD)
---------------------------------------------
-The build is set to the commit ID of your current git HEAD.
-
-GIT_TAG := $(shell git describe)
---------------------------------
-GIT_TAG set using the most recent tag if any.  You can add a tag with:
-
-    git tag -a "mytag" -m "message about the tag."
-Git push doesn't include tags.  To push tags to the origin use:
-
-    git push origin --tag
-
 ## roadctl
 The roadctl command is modeled after kubectl.
 Use "roadctl help" for a list of top level commands.
@@ -131,7 +84,7 @@ The roadctl CLI is used to create new services.
 It has two fundamental concepts:
 
 - blueprints: Contain logic need to generate a service
-- definitions: Define your custom logic, integrations, and organizational information
+- definitions: Define your custom logic, integration's, and organizational information
 
 A sample definitions is available to help you get started.
 
@@ -366,4 +319,49 @@ Use the "Generate new token" button to create your new token.
 # add line to your .bashrc
 export GH_ACCESS_TOKEN=####################
 ```
+## Preflighting
+
+The preflight.sh script ensures that the following required components
+are installed:
+
+- An initialized git repository exists
+- The user.name and user.email are set in your git configuration
+- A GitHub Personal Access Token is available in the GH_ACCESS_TOKEN env variable
+- A .gitignore file with entries
+- An initialized blueprints repository
+
+It doesn't generate a git tag; pick your own. Once preflight.sh
+successfully executes, a ".pr_preflight_check" is created.  Until this
+file exists, Make will always attempt to run preflight.sh.
+
+If you are running a version prior to v0.6.0alpha, you may run preflight.sh
+by hand in the top level of your go microservice package with:
+
+```bash
+dev/preflight.sh
+```
+
+### Versioning information
+The make file sets three versioning variables; VERSION, BUILD, and GIT_TAG.  These are passed go the go compiler and printed when the -v flag is passed on the command line.  Output is formatted as JSON:
+
+    $ films -v
+    {"Version": "1.0.0", "Build": "8755e7f", "GitTag": "v0.0alpha"}
+
+VERSION := 1.0.0
+----------------
+The version variable is set based on the value you enter in your definitions file.
+
+BUILD := $(shell git rev-parse --short HEAD)
+--------------------------------------------
+The build is set to the commit ID of your current git HEAD.
+
+GIT_TAG := $(shell git describe)
+--------------------------------
+GIT_TAG set using the most recent tag if any.  You can add a tag with:
+
+    git tag -a "mytag" -m "message about the tag."
+Git push doesn't include tags.  To push tags to the origin use:
+
+    git push origin --tag
+
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
