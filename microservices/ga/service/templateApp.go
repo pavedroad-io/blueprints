@@ -183,52 +183,18 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 	a.Router.HandleFunc(uri, a.putManagement).Methods("PUT")
 	log.Println("PUT: ", uri)
 
+// Generated routes
 {{.ServiceRoutes}}
-/*
-	uri = {{.NameExported}}APIVersion + "/" +
-				{{.NameExported}}NamespaceID + "/" +
-				{{.NameExported}}DefaultNamespace + "/" +
-				{{.NameExported}}ResourceType + "/" +
-				{{.NameExported}}JobsEndPoint
-	a.Router.HandleFunc(uri, a.createJob).Methods("POST")
-	log.Println("POST: ", uri)
-*/
 
 	return
 }
 
 {{.GetAllSwaggerDoc}}
 
-{{.RouterMethods}}
+// Generated routes
+{{.ServiceMethods}}
 
-
-/*
-func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) {
-	count, _ := strconv.Atoi(r.FormValue("count"))
-	start, _ := strconv.Atoi(r.FormValue("start"))
-
-	if count > 10 || count < 1 {
-		count = 10
-	}
-	if start < 0 {
-		start = 0
-	}
-
-	// Pre-processing hook
-	listJobsPreHook(w, r, count, start)
-
-	jl, e := a.Scheduler.GetScheduledJobs()
-
-	if e != nil {
-		respondWithError(w, http.StatusInternalServerError, e.Error())
-	}
-
-	// Post-processing hook
-	listJobsPostHook(w, r)
-
-	respondWithByte(w, http.StatusOK, jl)
-}
-*/
+// End generated routes
 
 // getLiveness swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.Liveness}} {{.Liveness}} get{{.Liveness}}
 //
