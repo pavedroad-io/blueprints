@@ -4,6 +4,6 @@
            "namespace"+{{.Namespace}} +"/"+
            {{.EndPointName}} +"/"+ "{{.EndPointName}}LIST"
     a.Router.HandleFunc(uri, a.{{.Method | ToLower}}{{.EndPointName}}.Methods("GET")
-    log.Println("{{.Method}}: ", uri)
+    log.Println("GET: ", uri)
 
 {{end}}
