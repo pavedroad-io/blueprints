@@ -191,7 +191,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 
 {{.GetAllSwaggerDoc}}
 
-// Generated routes
+// Generated methods
 {{.ServiceMethods}}
 
 // End generated routes
