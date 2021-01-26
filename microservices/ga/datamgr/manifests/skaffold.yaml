@@ -21,7 +21,6 @@ deploy:
   kustomize:
     paths:
     - "manifests/kubernetes/dev"
-
 profiles:
   - name: dev-debug
     activation:

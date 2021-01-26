@@ -18,8 +18,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
+	{{.GoImports}}
 )
 
 // Initialize setups database connection object and the http server
@@ -184,15 +183,15 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 	log.Println("PUT: ", uri)
 
 // Generated routes
-{{.ServiceRoutes}}
+{{.EndpointRoutes}}
 
 	return
 }
 
 {{.GetAllSwaggerDoc}}
 
-// Generated methods
-{{.ServiceMethods}}
+// Generated handlers
+{{.EndpointHandlers}}
 
 // End generated routes
 
