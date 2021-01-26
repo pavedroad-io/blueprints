@@ -1,6 +1,6 @@
 {{define "keyed_method.tpl"}}
 
-// {{.Method}}{{.EndPointName | ToCamel}} swagger:route {{.Method}} /api/v1/namespace/{{.Namespace}}/{{.EndPointName | ToCamel}} {{.EndPointName}} {{.Method | ToLower}}{{.EndPointName}}
+// {{.Method | ToLower}}{{.EndPointName | ToCamel}} swagger:route {{.Method}} /api/v1/namespace/{{.Namespace}}/{{.EndPointName | ToCamel}} {{.EndPointName}} {{.Method | ToLower}}{{.EndPointName}}
 //
 // Returns a {{.EndPointName}} object
 //
@@ -9,7 +9,7 @@
 //        200: {{.EndPointName | ToCamel}}List
 
 
-func (a *{{.EndPointName | ToCamel }}) list{{.EndPointName}}(w http.ResponseWriter, r *http.Request) {
+func (a *{{.EndPointName | ToCamel }}) {{.Method | ToLower}}{{.EndPointName}}(w http.ResponseWriter, r *http.Request) {
     count, _ := strconv.Atoi(r.FormValue("count"))
     start, _ := strconv.Atoi(r.FormValue("start"))
 
@@ -21,11 +21,11 @@ func (a *{{.EndPointName | ToCamel }}) list{{.EndPointName}}(w http.ResponseWrit
     }
 
     // Pre-processing hook
-    list{{.EndPointName}}PreHook(w, r, count, start)
+    {{.Method | ToLower }}{{.EndPointName}}PreHook(w, r, count, start)
 
 
     // Post-processing hook
-    list{{.EndPointName}}PostHook(w, r)
+    {{.Method | ToLower }}{{.EndPointName}}PostHook(w, r)
 
     respondWithByte(w, http.StatusOK, jl)
 }
