@@ -1,0 +1,52 @@
+apiversion: v1beta
+kind: DockerComposeBlock
+metadata:
+  labels:
+  - pavedroad
+  - docker
+  - docker-compose
+  - microservice
+  - dev
+  tags:
+  - pavedroad
+  - docker
+  - docker-compose
+  - microservice
+  - microservice
+  - dev
+  information:
+    description: Generate a docker-compose file for a microservice
+    title: Generate a docker-compose file for a microservice
+    contact:
+      author: John Scharber
+      organization: PavedRoad
+      email: support@pavedroad.io
+      website: www.pavedroad.io
+      support: pavedroad-io.slack.com
+id: cache://io.pavedroard.blocks/microservice/manifests/docker/docker-compose.yaml
+family: pavedroad/microservice/blocks/manifests/docker
+usagerights:
+  termsofservice: As is
+  licenses: Apache 2
+  contributelink: ""
+  accesstoken: ""
+imports: []
+base_directory: io.pavedroard.blocks/microservice/manifests/docker
+home_directory: manifests
+home_filename: docker-compose.yaml
+template_map:
+  - file_name: docker-compose.yaml
+    descripton: docker-compose file
+    template_function: stringFunctionMap()
+    templatePtr: null
+    template_exports:
+      - template_var: {{.Name}}
+        source_in_definitions: 
+      - template_var: {{.Organization}}
+        source_in_definitions: 
+      - template_var: {{.EnvironmentVariables}}
+        source_in_definitions: 
+      - template_var: {{.EnvironmentVariables}}
+        source_in_definitions: 
+      - template_var: {{.AdditionalServices}}
+        source_in_definitions: 

@@ -23,7 +23,7 @@ func (a *{{.NameExported}}App) getExplainPreHook(w http.ResponseWriter, r *http.
 }
 
 
-{{.ServiceHooks}}
+{{.EndpointHooks}}
 
 // TODO: Placeholders for generated code
 // list{{.NameExported}}PreHook
