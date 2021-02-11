@@ -1,0 +1,11 @@
+{{define "kustomization.tpl"}}
+resources:
+  - roach-ui-claim0-persistentvolumeclaim.yaml
+  - roach-ui-deployment.yaml
+  - roach-ui-service.yaml
+
+configMapGenerator:
+- name: cockroach-configmap
+  literals:
+  - host-ip=roach-ui
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

@@ -1,5 +1,5 @@
 apiversion: v1beta
-kind: DockerBlock
+kind: DockerfileBlock
 metadata:
   labels:
   - pavedroad
@@ -32,11 +32,27 @@ usagerights:
 imports: []
 baseDirectory: io.pavedroard.blocks/microservice/manifests/docker
 homeDirectory: manifests
-homeFilename: Dockerfile
 templateMap:
   - fileName: dockerfile.tpl
     description: Dockerfile for building a container
     templateFunction: stringFunctionMap()
+    outputFileName: Dockerfile
+    outputType: OutputFile
+  - fileName: docker-compose.tpl
+    description: docker-compoase for all services
+    templateFunction: stringFunctionMap()
+    outputFileName: docker-compose.yaml
+    outputType: OutputFile
+  - fileName: docker-db-only.tpl
+    description: docker-compoase for required testing services
+    templateFunction: stringFunctionMap()
+    outputFileName: docker-db-only.tpl
+    outputType: OutputFile
+  - fileName: InitDbDockerFile.tpl
+    description: Dockerfile to build db container that initialized tables
+    templateFunction: stringFunctionMap()
+    outputFileName: InitDbDockerFile
+    outputType: OutputFile
 templateExports:
   - templateVar: "{{.Info.Name}}"
   - templateVar: "{{.Info.Organization}}"

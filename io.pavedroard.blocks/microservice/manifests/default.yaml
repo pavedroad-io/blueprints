@@ -29,13 +29,14 @@ metadata:
       support: pavedroad-io.slack.com
 id: cache://io.pavedroard.blocks/microservice/manifests
 family: pavedroad/microservice/blocks/manifests
+baseDirectory: /microservice/manifests
 usagerights:
   termsofservice: As is
   licenses: Apache 2
   contributelink: ""
   accesstoken: ""
 imports: []
-importedblocks:
+importedBlocks:
 - apiversion: ""
   kind: ""
   metadata:
@@ -47,19 +48,8 @@ importedblocks:
     - envconfiguration
     - microservice
     - dev
-  id: cache://io.pavedroard.blocks/microservice/manifests/kubernetes/kustomize
-- apiversion: ""
-  kind: ""
-  metadata:
-    labels:
-    - docker
-    - docker-compose
-    - kafka
-    - zookepper
-    - envconfiguration
-    - microservice
-    - dev
-  id: cache://io.pavedroard.blocks/microservice/manifests/docker/docker-compose.yaml
+    - dev-debug
+  id: cache://io.pavedroard.blocks/microservice/manifests/kubernetes/kustomize.yaml
 - apiversion: ""
   kind: ""
   metadata:
@@ -68,7 +58,7 @@ importedblocks:
     - dockerfile
     - microservice
     - dev
-  id: cache://io.pavedroard.blocks/microservice/manifests/docker/dockerfile.yaml
+  id: cache://io.pavedroard.blocks/microservice/manifests/docker/docker.yaml
 - apiversion: ""
   kind: ""
   metadata:
@@ -79,3 +69,4 @@ importedblocks:
     - dev
     - dev-debug
   id: cache://io.pavedroard.blocks/microservice/manifests/skaffold/config.yaml
+  baseDirectory: /microservice/manifests/skaffold/config.yaml

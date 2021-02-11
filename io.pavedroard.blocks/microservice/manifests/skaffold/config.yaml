@@ -32,18 +32,18 @@ usagerights:
   contributelink: ""
   accesstoken: ""
 imports: []
-base_directory: io.pavedroard.blocks/microservice/manifests/skaffold
-home_directory: manifests
-home_filename: skaffold.yaml
-template_map:
-  - file_name: skaffold.yaml
-    descripton: Skaffold configuration file
-    template_function: stringFunctionMap()
-    templatePtr: null
-    template_exports:
-      - template_var: {{.Name}}
-        source_in_definitions: defs.Info.Name
-      - template_var: {{.SkaffoldVersion}}
-        source_in_definitions: defs.Info.Name
-      - template_var: {{.Organization}}
-        source_in_definitions: defs.Info.Organization
+baseDirectory: io.pavedroard.blocks/microservice/manifests/skaffold
+homeDirectory: manifests
+templateMap:
+  - fileName: skaffold.tpl
+    outputFileName: skaffold.yaml
+    outputType: OutputFile
+    description: Skaffold configuration file
+    templateFunction: stringFunctionMap()
+templateExports:
+  - templateVar: "{{.Name}}"
+    sourceInDefinitions: defs.Info.Name
+  - templateVar: "{{.SkaffoldVersion}}"
+    sourceInDefinitions: defs.Info.Name
+  - templateVar: "{{.Organization}}"
+    sourceInDefinitions: defs.Info.Organization
