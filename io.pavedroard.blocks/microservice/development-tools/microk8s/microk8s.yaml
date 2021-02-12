@@ -1,0 +1,67 @@
+apiversion: v1beta
+kind: TemplateBlock
+metadata:
+  labels:
+  - pavedroad
+  - skaffold
+  - kustomize
+  - microservice
+  - dev
+  - dev-debug
+  tags:
+  - pavedroad
+  - skaffold
+  - kustomize
+  - microservice
+  - dev
+  - dev-debug
+  information:
+    description: Generate skaffold.yaml configuration file
+    title: Generate skaffold.yaml configuration file
+    contact:
+      author: John Scharber
+      organization: PavedRoad
+      email: support@pavedroad.io
+      website: www.pavedroad.io
+      support: pavedroad-io.slack.com
+id: cache://io.pavedroard.blocks/microservice/development-tools/microk8s
+family: pavedroad/microservice/blocks/development-tools/skaffold
+usagerights:
+  termsofservice: As is
+  licenses: Apache 2
+  contributelink: ""
+  accesstoken: ""
+imports: []
+baseDirectory: io.pavedroard.blocks/microservice/development-tools/microk8s
+homeDirectory: dev
+templateMap:
+  - fileName: microk8sStart.tpl
+    outputFileName: microk8sStart.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Bash shell script for starting microk8s
+    templateFunction: stringFunctionMap()
+  - fileName: microk8sStop.tpl
+    outputFileName: microk8sStop.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Bash shell script for stopping microk8s
+    templateFunction: stringFunctionMap()
+  - fileName: microk8sStatus.tpl
+    outputFileName: microk8sStatus.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Bash shell getting the  microk8s status
+    templateFunction: stringFunctionMap()
+  - fileName: getk8sip.tpl
+    outputFileName: getk8sip.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Bash shell returns IP of microk8s cluster
+    templateFunction: stringFunctionMap()
+  - fileName: kube-config.tpl
+    outputFileName: kube-config.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Bash shell for adding microk8s kubectx to ~/.kube
+    templateFunction: stringFunctionMap()
