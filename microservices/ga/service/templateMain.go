@@ -7,11 +7,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
-	"github.com/gorilla/mux"
+	{{.GoImports}}
 )
 
 // Constants to build up a k8s style URL
@@ -41,7 +40,7 @@ const (
 	{{.NameExported}}MetricsEndPoint string = "{{.Metrics}}"
 
 	// {{.NameExported}}ExplainEndPoint
-	{{.NameExported}}MetricsEndPoint string = "{{.Explain}}"
+	{{.NameExported}}ExplainEndPoint string = "{{.Explain}}"
 
 	// {{.NameExported}}ManagementEndPoint
 	{{.NameExported}}ManagementEndPoint string = "{{.Management}}"
@@ -59,6 +58,9 @@ type {{.NameExported}}App struct {
 
 	// Ready once dispatcher has complete initialization
 	Ready bool
+
+	// httpInterruptChan for signals
+	httpInterruptChan chan os.Signal
 
 	// Logs
 	accessLog *os.File
@@ -121,7 +123,7 @@ func main() {
                 printError(e)
                 os.Exit(0)
         }
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+//	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	a.accessLog = openAccessLogFile(httpconf.logPath + httpconf.accessFile)
 

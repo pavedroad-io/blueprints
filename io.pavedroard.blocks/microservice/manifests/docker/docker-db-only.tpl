@@ -9,5 +9,5 @@ services:
      - "26257:26257"
      - "6060:8080"
     volumes:
-     - ../volumes/data/db-1:/cockroach/cockroach-data
+     - /tmp/volumes/data/db-1:/cockroach/cockroach-data
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

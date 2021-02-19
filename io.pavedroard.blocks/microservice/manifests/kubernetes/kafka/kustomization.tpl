@@ -4,6 +4,6 @@ kind: Kustomization
 resources:
   - kafka-broker-deployment.yaml
   - kafka-broker-service.yaml
-  - zookeeper-deployment.yaml
-  - zookeeper-service.yaml
+  - zookepper-deployment.yaml
+  - zookepper-service.yaml
 {{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

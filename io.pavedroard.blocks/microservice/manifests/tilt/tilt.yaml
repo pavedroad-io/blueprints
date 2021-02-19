@@ -1,0 +1,41 @@
+apiversion: v1beta
+kind: TemplateBlock
+metadata:
+  labels:
+  - pavedroad
+  - tilt
+  - kubernetes
+  - dev
+  tags:
+  - pavedroad
+  - tilt
+  - kubernetes
+  - dev
+  information:
+    description: Create a tilt configuration file for deploying kubernetes
+    title: Tilt configuration generator
+    contact:
+      author: John Scharber
+      organization: PavedRoad
+      email: support@pavedroad.io
+      website: www.pavedroad.io
+      support: pavedroad-io.slack.com
+id: cache://io.pavedroard.blocks/microservice/manifests/tilt/tilt.yaml
+family: pavedroad/microservice/blocks/manifests/tilt
+usagerights:
+  termsofservice: As is
+  licenses: Apache 2
+  contributelink: ""
+  accesstoken: ""
+imports: []
+baseDirectory: io.pavedroard.blocks/microservice/manifests/tilt
+homeDirectory: .
+templateMap:
+  - fileName: tilt.tpl
+    description: Tilt configuration file
+    templateFunction: stringFunctionMap()
+    outputFileName: Tiltfile
+    outputType: OutputFile
+templateExports:
+  - templateVar: "{{.Info.Name}}"
+  - templateVar: "{{.Info.Organization}}"

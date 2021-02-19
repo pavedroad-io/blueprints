@@ -16,8 +16,7 @@ import (
 
 
 // Will generate the func calls below based on HTTP verbs selected in the definitions file
-func (a *{{.NameExported}}App) getExplainPreHook(w http.ResponseWriter, r *http.Request, count, start int) (body []byte, error err)
-  var body []byte
+func (a *{{.NameExported}}App) getExplainPreHook(w http.ResponseWriter, r *http.Request) (body []byte, err error) {
 
   return body, nil
 }
@@ -49,6 +48,19 @@ func (a *{{.NameExported}}App) get{{.NameExported}}PreHook(w http.ResponseWriter
 func (a *{{.NameExported}}App) get{{.NameExported}}PostHook(w http.ResponseWriter, r *http.Request, key string) {
   return
 }
+
+// head{{.NameExported}}PreHook
+//
+func (a *{{.NameExported}}App) head{{.NameExported}}PreHook(w http.ResponseWriter, r *http.Request, key string) {
+  return
+}
+
+// head{{.NameExported}}PostHook
+//
+func (a *{{.NameExported}}App) head{{.NameExported}}PostHook(w http.ResponseWriter, r *http.Request, key string) {
+  return
+}
+
 
 // post{{.NameExported}}PreHook
 //
@@ -89,4 +101,54 @@ func (a *{{.NameExported}}App) delete{{.NameExported}}PreHook(w http.ResponseWri
 // delete{{.NameExported}}PostHook
 func (a *{{.NameExported}}App) delete{{.NameExported}}PostHook(w http.ResponseWriter, r *http.Request, key string) {
   return
-}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+}
+
+// getLivenessPreHook
+//
+func getLivenessPreHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// getReadinessPreHook
+//
+func getReadinessPreHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// getMetricsPreHook
+//
+func (a *{{.NameExported}}App) getMetricsPreHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// getMetricsPostHook
+//
+func (a *{{.NameExported}}App) getMetricsPostHook(w http.ResponseWriter, r *http.Request) {
+	return
+}
+
+// getManagementPreHook
+//
+func (a *{{.NameExported}}App) getManagementPreHook(w http.ResponseWriter, r *http.Request) {
+  return
+}
+
+// getManagementPostHook
+//
+func (a *{{.NameExported}}App) getManagementPostHook(w http.ResponseWriter, r *http.Request) {
+  return
+}
+
+// putManagementPreHook
+//
+func (a *{{.NameExported}}App) putManagementPreHook(w http.ResponseWriter, r *http.Request) {
+  return
+}
+
+// putManagementPostHook
+//
+func (a *{{.NameExported}}App) putManagementPostHook(w http.ResponseWriter, r *http.Request) {
+  return
+}
+
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

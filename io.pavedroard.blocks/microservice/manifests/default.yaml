@@ -70,3 +70,13 @@ importedBlocks:
     - dev-debug
   id: cache://io.pavedroard.blocks/microservice/manifests/skaffold/config.yaml
   baseDirectory: /microservice/manifests/skaffold/config.yaml
+- apiversion: ""
+  kind: ""
+  metadata:
+    labels:
+    - titl
+    - kubernetes
+    - dev
+    - dev-debug
+  id: cache://io.pavedroard.blocks/microservice/manifests/tilt/tilt.yaml
+  baseDirectory: .
