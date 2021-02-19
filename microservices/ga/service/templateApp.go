@@ -9,13 +9,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
+	// "io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-	"syscall"
+	// "syscall"
 	"time"
 
 	{{.GoImports}}
@@ -141,7 +140,7 @@ func (a *{{.NameExported}}App) initializeEnvironment() {
 
 {{.AllRoutesSwaggerDoc}}
 func (a *{{.NameExported}}App) initializeRoutes() {
-
+	var uri string
 	uri = {{.NameExported}}APIVersion + "/" +
 				{{.NameExported}}NamespaceID + "/" +
 				{{.NameExported}}DefaultNamespace + "/" +
@@ -254,7 +253,7 @@ func (a *{{.NameExported}}App) getReadiness(w http.ResponseWriter, r *http.Reque
 
 func (a *{{.NameExported}}App) getExplain(w http.ResponseWriter, r *http.Request) {
 	// Pre-processing hook
-	if body, err := getExplainPreHook(w,r); err != nil {
+	if body, err := a.getExplainPreHook(w,r); err != nil {
 		respondWithByte(w, http.StatusOK, []byte("{\"not-found\": true}"))
 	} else {
 		respondWithByte(w, http.StatusOK, body)
@@ -265,11 +264,6 @@ func (a *{{.NameExported}}App) getExplain(w http.ResponseWriter, r *http.Request
 // getMetrics swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.Metrics}} {{.Metrics}} getMetrics
 //
 // Returns metrics for {{.Name}} service
-// Metrics should include:
-//	 - Scheduler
-//	 - Dispatcher
-//	 - Workers
-//	 - Jobs
 //
 // Responses:
 //		default: genericError
@@ -279,25 +273,14 @@ func (a *{{.NameExported}}App) getMetrics(w http.ResponseWriter, r *http.Request
 	var combinedJSON string = "{"
 
 	// Pre-processing hook
-	getMetricsPreHook(w, r)
+	a.getMetricsPreHook(w, r)
 
-	sm := a.Scheduler.Metrics()
-	if sm != nil {
-		combinedJSON += `"scheduler":`
-		combinedJSON += string(sm)
-	}
 
-	a.Dispatcher.MetricUpdateUpTime()
-	dm, _ := a.Dispatcher.MetricToJSON()
-	if dm != nil {
-		combinedJSON += `,"dispatcher":`
-		combinedJSON += string(dm)
-	}
-
-	combinedJSON += "}"
 
 	// Post-processing hook
-	getMetricsPostHook(w, r)
+	a.getMetricsPostHook(w, r)
+
+	combinedJSON += "}"
 
 	respondWithByte(w, http.StatusOK, []byte(combinedJSON))
 }
@@ -311,12 +294,13 @@ func (a *{{.NameExported}}App) getMetrics(w http.ResponseWriter, r *http.Request
 //				200: managementGetResponse
 func (a *{{.NameExported}}App) getManagement(w http.ResponseWriter, r *http.Request) {
 	// Pre-processing hook
-	getManagementPreHook(w, r)
+	var response []byte
+	a.getManagementPreHook(w, r)
 
 	// Post-processing hook
-	getManagementPostHook(w, r)
+	a.getManagementPostHook(w, r)
 
-	respondWithJSON(w, http.StatusOK, a.Dispatcher.managementOptions)
+	respondWithByte(w, http.StatusOK, response)
 }
 
 // put{{.Management}} swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{{.Management}} {{.Management}} put{{.Management}}
@@ -330,11 +314,12 @@ func (a *{{.NameExported}}App) getManagement(w http.ResponseWriter, r *http.Requ
 //				500: genericError
 func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Request) {
 
-	var requestedCommand managementRequest
+//	var requestedCommand managementRequest
 
 	// Pre-processing hook
-	putManagementPreHook(w, r)
+	a.putManagementPreHook(w, r)
 
+	/*
 	payload, e := ioutil.ReadAll(r.Body)
 	if e != nil {
 		msg := fmt.Sprintf("{\"error\": \"ioutil.ReadAll failed\", \"Error\": \"%v\"}", e.Error())
@@ -356,13 +341,15 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 		respondWithByte(w, status, []byte(msg))
 		return
 	}
+	*/
 
 	// Post-processing hook
-	putManagementPostHook(w, r)
+	a.putManagementPostHook(w, r)
 
 	// TODO: find a way to flush this out
-	respondWithByte(w, status, respBody)
+	respondWithByte(w, http.StatusOK, nil)
 
+	/*
 	// Special case for shutting down
 	if requestedCommand.Command == "shutdown" {
 		time.Sleep(time.Duration(a.Dispatcher.conf.gracefulShutdown) * time.Second)
@@ -385,6 +372,7 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
                 }
 
 	}
+	*/
 
 	return
 }
@@ -429,7 +417,7 @@ func openAccessLogFile(accesslogfile string) *os.File {
 
 	_, _ = rollLogIfExists(accesslogfile)
 
-	lf, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	_, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 
 	if err != nil {
 		log.Println("Error opening access log file: os.OpenFile:", err)
@@ -447,13 +435,18 @@ func openErrorLogFile(errorlogfile string) error {
 
 	_, _ = rollLogIfExists(errorlogfile)
 
+	/*
 	lf, err := os.OpenFile(errorlogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 
 	if err != nil {
 		log.Println("Error opening error log file: os.OpenFile:", err)
 		return err
 	}
+
+
 	log.SetOutput(lf)
+	*/
+
 	return nil
 }
 

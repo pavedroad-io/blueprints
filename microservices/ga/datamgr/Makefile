@@ -67,7 +67,7 @@ clean:
 
 ## build: Build the binary for linux / mac x86 and amd
 	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
-build: mod-setup
+build: mod-setup import-check
 	@echo "  >  Building binary..."
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
 # make this conditional on build GOARCH
@@ -145,6 +145,10 @@ api-doc: $(DOCS)
 ## install: Install packages or main
 install:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go install $(GOFILES)
+
+import-check: $(GOFILES)
+  @echo "  >  Valiate Go imports"
+  @GOPATH=$(GOPATH) GOBIN=$(GOBIN) goimports -w $(GOFILES)
 
 go-clean:
 	@echo "  >  Cleaning build cache"

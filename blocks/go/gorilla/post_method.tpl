@@ -6,27 +6,19 @@
 //
 // Responses:
 //    default: genericError
-//        201: {{.EndPointName | ToCamel}}List
+//        201: {{.EndPointName | ToCamel}}Response
 
 
-func (a *{{.EndPointName | ToCamel }}) {{.Method | ToLower}}{{.EndPointName}}(w http.ResponseWriter, r *http.Request) {
-    count, _ := strconv.Atoi(r.FormValue("count"))
-    start, _ := strconv.Atoi(r.FormValue("start"))
-
-    if count > 10 || count < 1 {
-        count = 10
-    }
-    if start < 0 {
-        start = 0
-    }
+func (a *{{.EndPointName | ToCamel }}App) {{.Method | ToLower}}{{.EndPointName}}(w http.ResponseWriter, r *http.Request) {
+    var response []byte
 
     // Pre-processing hook
-    {{.Method | ToLower}}{{.EndPointName}}PreHook(w, r, count, start)
+    a.{{.Method | ToLower}}{{.EndPointName | ToCamel}}PreHook(w, r)
 
 
     // Post-processing hook
-    {{.Method | ToLower}}{{.EndPointName}}PostHook(w, r)
+    a.{{.Method | ToLower}}{{.EndPointName | ToCamel}}PostHook(w, r)
 
-    respondWithByte(w, http.StatusOK, jl)
+    respondWithByte(w, http.StatusOK, response)
 }
 {{end}}

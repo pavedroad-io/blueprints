@@ -9,10 +9,8 @@ build:
   artifacts:
   - image: localhost:32000/{{.Organization}}/{{.Name}}
     context: .
-    custom:
-      dependencies:
-        paths:
-          - "**.go"
+    docker:
+      dockerfile: manifests/Dockerfile
   - image: localhost:32000/{{.Organization}}/{{.Name}}initdb
     context: .
     docker:

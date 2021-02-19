@@ -2,7 +2,8 @@
 
 VERSION := {{.Version}}
 BUILD := $(shell git rev-parse --short HEAD)
-PROJECTNAME := $(shell basename "$(PWD)")
+#PROJECTNAME := $(shell basename "$(PWD)")
+PROJECTNAME := {{.Name}}
 PROJDIR := $(shell pwd)
 TARGET := $(PROJECTNAME)
 
@@ -58,8 +59,7 @@ clean:
 	@-$(MAKE) go-clean
 
 ## build: Build the binary for linux / mac x86 and amd
-	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
-build: mod-setup
+build: mod-setup import-check
 	@echo "  >  Building binary..."
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
 # make this conditional on build GOARCH
@@ -68,7 +68,7 @@ build: mod-setup
 	cp $(BUILDS)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(PROJECTNAME)
 	cp $(GOBIN)/$(PROJECTNAME)-"darwin"-"amd64" $(BUILDS)/$(PROJECTNAME)-"darwin"-"amd64"
 
-mod-setup:
+mod-setup: go.mod dbclean
 	@echo "  >  setting up modules..."
 	go mod download
 	go mod tidy
@@ -76,6 +76,10 @@ mod-setup:
 mod-graph: mod-setup $(ASSETS)
 	@echo "  >  Creating dependencies graph png..."
 	$(shell (go mod graph | modgraphviz | dot -T png -o $(ASSETS)/$(PROJECTNAME).png))
+
+go.mod: 
+	@echo "  >  initialize modules..."
+	go mod init {{.Name}}
 
 ## deploy: Deploy image to repository and k8s cluster
 deploy:
@@ -130,6 +134,7 @@ tilt-down:
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
 	$(shell (export GOPATH=$(GOPATH);swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
+	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"
@@ -138,18 +143,22 @@ api-doc: $(DOCS)
 install:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go install $(GOFILES)
 
+import-check: $(GOFILES)
+	@echo "  >  Valiate Go imports"
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) goimports -w $(GOFILES)
+
 go-clean:
 	@echo "  >  Cleaning build cache"
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go clean
 
 ## check: Start services and execute static code analysis and tests
 {{.CheckBuildTarget}}
-	@echo "  >  starting kafka..."
-	docker-compose -f manifests/kafka.yaml up -d --remove-orphans
+	@echo "  >  starting {{.Name}}..."
+	docker-compose -f manifests/docker-compose.yaml up -d --remove-orphans
 	@echo "  >  running to tests..."
 	go test -coverprofile=$(GOCOVERAGE) -v ./...
-	@echo "  >  stoping kafka..."
-	docker-compose -f manifests/kafka.yaml down
+	@echo "  >  stopping {{.Name}}..."
+	docker-compose -f manifests/docker-compose.yaml down
 
 sonar-scanner: $(ARTIFACTS)
 	sonar-scanner
@@ -209,7 +218,7 @@ help: Makefile
 	@echo
 
 ## docker-build: Build docker images for use with docker-compose
-docker-build:
+docker-build: dbclean
 	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}} .
 	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}}initdb .
 
@@ -239,10 +248,12 @@ $(LOGS):
 
 # Null target for roadctl
 dbclean:
-	@echo ""
+	@echo "Removing cockroach volumes directory owned by root"
+	@echo "If needed you will be prompted for your sudo password"
+	$(shell sudo rm -R $(VOLS))
 
 ## Preflight ensure all requirements are met
-## Once they are the $(PREFLIGH) file will be created
+## Once they are the $(PREFLIGHT) file will be created
 $(PREFLIGHT):
 	dev/preflight.sh
 
