@@ -69,6 +69,7 @@ build: mod-setup import-check
 	cp $(GOBIN)/$(PROJECTNAME)-"darwin"-"amd64" $(BUILDS)/$(PROJECTNAME)-"darwin"-"amd64"
 
 mod-setup: go.mod
+>>>>>>> cda7d2415de272a83449df5a9872adbec4081b14
 	@echo "  >  setting up modules..."
 	go mod download
 	go mod tidy
@@ -156,6 +157,7 @@ go-clean:
 	@echo "  >  starting {{.Name}}..."
 	docker-compose -f manifests/docker-compose.yaml up -d --remove-orphans
 	@echo "  >  executing tests..."
+>>>>>>> cda7d2415de272a83449df5a9872adbec4081b14
 	go test -coverprofile=$(GOCOVERAGE) -v ./...
 	@echo "  >  stopping {{.Name}}..."
 	docker-compose -f manifests/docker-compose.yaml down
@@ -218,7 +220,7 @@ help: Makefile
 	@echo
 
 ## docker-build: Build docker images for use with docker-compose
-docker-build:
+docker-build: dbclean
 	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}} .
 	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}}initdb .
 
