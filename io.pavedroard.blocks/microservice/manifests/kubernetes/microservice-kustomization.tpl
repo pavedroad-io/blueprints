@@ -4,7 +4,7 @@ resources:
   - {{.Info.Name}}-service.yaml
 
 commonLabels:
-  pavedroad.service: {{.Info.Name}}
+  pavedroad.service: {{.Info.Name | ToLower}}
 
 commonAnnotations:
   pavedroad.roadctl.version: alphav1
@@ -12,7 +12,7 @@ commonAnnotations:
   pavedroad.roadctl.support: support@pavedroad.io
 
 configMapGenerator:
-- name: {{.Info.Name}}-configmap
+- name: {{.Info.Name | ToLower}}-configmap
   literals:
   - database-ip=roach-ui
   - ip=0.0.0.0

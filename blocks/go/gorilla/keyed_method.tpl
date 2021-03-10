@@ -1,6 +1,6 @@
 {{define "keyed_method.tpl"}}
 
-// {{.Method | ToLower}}{{.EndPointName | ToCamel}} swagger:route {{.Method}} /api/v1/namespace/{{.Namespace}}/{{.EndPointName | ToCamel}} {{.EndPointName}} {{.Method | ToLower}}{{.EndPointName}}
+// {{.Method | ToLower}}{{.EndPointName}} swagger:route {{.Method}} /api/v1/namespace/{{.Namespace}}/{{.EndPointName}} {{.EndPointName}} {{.Method | ToLower}}{{.EndPointName}}
 //
 // Returns a {{.EndPointName}} object
 //
@@ -10,7 +10,7 @@
 //        400: genericError
 
 
-func (a *{{.EndPointName | ToCamel }}App) {{.Method | ToLower}}{{.EndPointName}}(w http.ResponseWriter, r *http.Request) {
+func (a *{{.EndPointName | ToCamel}}App) {{.Method | ToLower}}{{.EndPointName}}(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
     key := vars["key"]
     var response []byte

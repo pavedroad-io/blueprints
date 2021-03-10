@@ -7,13 +7,13 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: localhost:32000/{{.Info.Organization}}/{{.Info.Name}}
+  - image: localhost:32000/{{.Info.Organization}}/{{.Info.Name | ToLower}}
     context: .
     custom:
       dependencies:
         paths:
           - "**.go"
-  - image: localhost:32000/{{.Info.Organization}}/{{.Info.Name}}initdb
+  - image: localhost:32000/{{.Info.Organization}}/{{.Info.Name | ToLower}}initdb
     context: .
     docker:
       dockerfile: manifests/InitDbDockerFile

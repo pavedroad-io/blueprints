@@ -4,7 +4,7 @@
 ## set default values
 host=127.0.0.1
 port=8081
-service="{{.Info.Name}}"
+service="{{.Info.Name | ToLower}}"
 namespace="{{.Project.Kubernetes.Namespace}}"
 
 post()

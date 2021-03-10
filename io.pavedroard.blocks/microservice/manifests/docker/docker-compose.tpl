@@ -2,8 +2,8 @@
 version: '3'
 
 services:
-  {{.Info.Name}}:
-    image: {{.Info.Organization}}/{{.Info.Name}}
+  {{.Info.Name | ToLower}}:
+    image: {{.Info.Organization}}/{{.Info.Name | ToLower}}
     expose:
      - "8081"
     ports: 
@@ -16,7 +16,7 @@ services:
      - PRLOG_CFGTYPE=env
      - PRLOG_ENABLEKAFKA=true
      - PRLOG_FILEFORMAT=text
-     - PRLOG_FILELOCATION=logs/{{.Info.Name}}.log
+     - PRLOG_FILELOCATION=logs/{{.Info.Name | ToLower}}.log
      - PRKAFKA_BROKERS=kafka:9092
     depends_on:
      - kafka

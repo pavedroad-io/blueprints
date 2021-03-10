@@ -3,7 +3,7 @@
 FROM golang:latest
 
 LABEL "io.pavedroad.vendor": "{{.Info.Organization}}" \
-      "io.pavedroad.microservice": "{{.Info.Name}}" \
+      "io.pavedroad.microservice": "{{.Info.Name | ToLower}}" \
       "io.pavedroad.description": "{{.Project.Description}}" \
       "io.pavedroad.version": "{{.Info.Version}}" \
       "io.pavedroad.tempalte": "{{.Info.ID}}" \
@@ -12,8 +12,9 @@ LABEL "io.pavedroad.vendor": "{{.Info.Organization}}" \
 
 MAINTAINER "support@pavedroad.io"
 
-# Build paths for placing kevlar microservice
-ENV ms {{.Info.Name}}
+# Build paths for placing the microservice
+# docker images must be lowercase
+ENV ms {{.Info.Name | ToLower}}
 ENV pavedroad /pavedroad
 ENV pavedroadbin $pavedroad/$ms
 

@@ -1,6 +1,6 @@
 {{define "post_method.tpl"}}
 
-// {{.Method | ToLower}}{{.EndPointName | ToCamel}} swagger:route {{.Method}} /api/v1/namespace/{{.Namespace}}/{{.EndPointName | ToCamel}} {{.EndPointName}} {{.Method}}{{.EndPointName}}
+// {{.Method | ToLower}}{{.EndPointName}} swagger:route {{.Method}} /api/v1/namespace/{{.Namespace}}/{{.EndPointName}} {{.EndPointName}} {{.Method}}{{.EndPointName}}
 //
 // Returns a {{.EndPointName}} object
 //

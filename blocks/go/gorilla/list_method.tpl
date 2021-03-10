@@ -1,5 +1,5 @@
 {{define "list_method.tpl"}}
-// list{{.EndPointName | ToLower}} swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.EndPointName | ToCamel}}LIST {{.EndPointName}} list{{.EndPointName}}
+// list{{.EndPointName}} swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.EndPointName}}LIST {{.EndPointName}} list{{.EndPointName}}
 //
 // Returns a list of {{.EndPointName}}
 //
