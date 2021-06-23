@@ -1,0 +1,22 @@
+
+apiVersion: skaffold/v1beta9
+kind: Config
+build:
+  insecureRegistries:
+  - localhost:32000
+  artifacts:
+  - image: localhost:32000/PavedRoad/eventbridge
+    context: .
+    docker:
+      dockerfile: manifests/Dockerfile
+deploy:
+  kustomize:
+    path: "manifests/kubernetes/dev"
+profiles:
+  - name: dev-debug
+    activation:
+    - env: GODEBUG=true
+    deploy:
+      kustomize:
+        paths:
+        - "manifests/kubernetes/dev-debug"

@@ -1,0 +1,218 @@
+DESCRIPTION:
+
+The workerPool blueprint provide a low-code environment for creating a
+microservice that implement a pool of workers using goroutines. Once
+you have generated your initial code, see the README.md file for more
+specifics.
+
+To generate a definitions file you can use:
+
+roadctl describe blueprints workerPool > mydefinitions.yaml
+
+Data attributes are defined in the Tables field and tables can
+be nested.  All records are automatically assigned a UUID that
+acts as the key.
+
+FIELDS:
+info <Object>
+  api-version <string>
+  API version used to generate it
+
+  id <string> datamgr
+  Name of this blueprint
+
+  organization <string>
+  The name of your organization to use in automatically
+  generated documentation
+
+  name <string>
+  A user friendly name for your service
+
+  release-status <string>
+  Specifies the stability of this blueprint:
+    ga - general availability, aka stable
+    incubation - represents beta quality code
+    experimental - represents proof of concepts
+
+  version <string>
+  Object data model version
+
+community <object>
+     For Open Source projects, the community object specifies which web pages
+     and files are included into the repository.  This includes linking to
+     social accounts such as slack, twitter, or linked in.
+
+     description <string>
+     A descriptive string about this collection of files
+
+     community-files <object>
+      name <string>
+       The name of the file on disk
+
+      path <string>
+      The path to the directory this file is copied too.
+
+      src <string>
+      Is either "blueprintdir" or a URL.  Using a URL is useful
+      for blueprints you want to share across services.  For
+      example, shared CI/CD blueprints
+
+      MD5 <string>
+      An MD5 hash that is used to validate resource retrieved
+      via URL.
+
+
+project <object>
+     Defines project/service level objects and attributes
+
+        go <object>
+				Go configuration and compilation options
+
+				  dependency-manager <string>
+					Defines if dep or modules are used as the Go dependency.
+					This options affects the Makefile generation
+
+        kubernetes <object>
+				Go configuration and compilation options
+
+				  namespace <string>
+					Kubernetes namespace to deploy this microservice
+					into, if omitted, pavedroad is used.
+
+				  liveness <string>
+					Define the Rest API endpoint name for Kubernetes
+					liveness checks, if omitted, liveness is used.
+
+				  readiness <string>
+					Define the Rest API endpoint name for Kubernetes
+					readiness checks, if omitted, ready is used.
+
+				  metrics <string>
+					Define the Rest API endpoint name for reporting
+					metrics, if omitted, metrics is used.
+
+				  management <string>
+					Define the Rest API endpoint name for management
+					of this service, if omitted, management is used.
+
+        dependencies <array>
+        A list of images required to run this microservice.
+				It includes Dockerfile options as required, and
+				configuration data.
+
+          command <string>
+          Optional command line to pass too the container
+
+          comments <string>
+          Optional comment string
+
+          image <string>
+          A valid docker image tag
+
+          name <string>
+          Name for this instance of the image
+
+          ports <array>
+          A list of external to internal port mappings
+
+          volumes <array>
+          A valid docker volume definition
+
+          topics <array>
+					A list of topics to automatically configure including
+					partitions and replication.
+
+					  value: <string>
+						The topic name to configure
+
+					  partitions: <int>
+						The number of partitions to create.
+
+					  replication: <int>
+						The number of replicates desired amongst available
+						brokers.
+
+        description <string>
+        A description of this microservice.  It is used
+        in CI integration's and documentation
+
+        top_level_domain <string>
+				Required, sets the Top Level Domain name that API
+				requests should be directed towards.  For example,
+				api.myco.com.  This is used in API documentation
+				generation.
+
+        scheduler_name <string>
+				This blueprints requires the user to create a scheduler
+				that sends jobs to the dispatcher that allocates work
+				amongst the available workers.  A generic scheduler is
+				defined using Go interfaces.  This attributes maps your
+				implementation into the worker pool pattern.
+
+        description <string>
+        A description of this microservice.  It is used
+        in CI integration's and documentation
+
+        integrations <array>
+        A list of CI/CD integration's used by this blueprint.
+        Individual options are specific to a given integration.
+        All integration's include a list of "badges" to include
+        in the generated README.md and documentation files.
+
+         name <string>
+					The name for this integration, options
+include:
+                                          - sonarcloud
+                                          - go (goreportcard)
+                                          - fossa
+
+         enable <boolean>
+					Enable or disable configuration and execution of this
+					integration
+
+         shields <array>
+					A list of quality gates to include in Markdown and HTML reports
+
+
+        license
+        The license used to protect this service
+
+        maintainer <object>
+        Contact information to include in documentation and APIs
+
+          email <string>
+          A valid email address
+
+          name <string>
+          The name or role of the person being contacted
+
+          slack <string>
+          A slack address that can be used for support
+
+          web <string>
+          A web address that can be used for support
+
+        project-files: <array of objects>
+        A list of the files to be included in this build of
+        the datamgr blueprint.
+
+          description <string>
+          A friendly description of what this blueprint file does
+
+          name <string>
+          The name of the file on disk
+
+          path <string>
+          The path to the directory this file is copied too.
+
+          src <string>
+          Is either "blueprintdir" or a URL.  Using a URL is useful
+          for blueprints you want to share across services.  For
+          example, shared CI/CD blueprints
+
+          MD5 <string>
+          An MD5 hash that is used to validate resource retrieved
+          via URL.
+
+tables <object>
+  Not used in this microservice

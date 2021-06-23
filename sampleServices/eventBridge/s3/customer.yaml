@@ -1,0 +1,14 @@
+- id: "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+  name: "PavedRoad"
+  logs:
+    - provider: wasabi
+      name:  pipeline-artifact-logs
+      logFormat: s3
+      pruneAfterProcessing: true
+  providers:
+    - name: wasabi
+      credentials: SQ067HNHXZ04TDB28X8X
+      key: Z6ELTATwTzABH0di2oeIVmIvDyMnchZ4gZKuqugB
+      region: us-west-1
+      endpoint: s3.us-west-1.wasabisys.com
+

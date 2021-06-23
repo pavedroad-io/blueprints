@@ -1,0 +1,36 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eventbridge
+spec:
+  replicas: 3
+  strategy: {}
+  selector:
+    matchLabels:
+      pavedroad.service: eventbridge
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        pavedroad.service: eventbridge
+    spec:
+      containers:
+      - image: localhost:32000/PavedRoad/eventbridge:0.0
+        env:
+        - name: HTTP_IP_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: eventbridge-configmap
+              key: ip
+        - name: HTTP_IP_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: eventbridge-configmap
+              key: port
+        name: eventbridge
+        ports:
+        - containerPort: 8081
+        resources: {}
+      restartPolicy: Always
+status: {}

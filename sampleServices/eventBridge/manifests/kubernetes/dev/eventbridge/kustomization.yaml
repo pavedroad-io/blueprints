@@ -1,0 +1,18 @@
+
+resources:
+  - eventbridge-deployment.yaml
+  - eventbridge-service.yaml
+
+commonLabels:
+  pavedroad.service: eventbridge
+
+commonAnnotations:
+  pavedroad.roadctl.version: alphav1
+  pavedroad.roadctl.web: www.pavedroad.io
+  pavedroad.roadctl.support: support@pavedroad.io
+
+configMapGenerator:
+- name: eventbridge-configmap
+  literals:
+  - ip=0.0.0.0
+  - port=8081
