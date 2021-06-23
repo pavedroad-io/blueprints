@@ -59,7 +59,7 @@ clean:
 	@-$(MAKE) go-clean
 
 ## build: Build the binary for linux / mac x86 and amd
-build: mod-setup import-check
+build: import-check
 	@echo "  >  Building binary..."
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
 # make this conditional on build GOARCH
@@ -73,7 +73,7 @@ mod-setup: go.mod
 	go mod download
 	go mod tidy
 
-mod-graph: mod-setup $(ASSETS)
+mod-graph: $(ASSETS)
 	@echo "  >  Creating dependencies graph png..."
 	$(shell (go mod graph | modgraphviz | dot -T png -o $(ASSETS)/$(PROJECTNAME).png))
 
