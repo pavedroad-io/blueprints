@@ -88,8 +88,8 @@ func main() {
 				le := LambdaEvent{
 					Data: eventData,
 				}
-				//j, _ := json.Marshal(le)
-				_, _ = json.Marshal(le)
+				j, _ := json.Marshal(le)
+				//_, _ = json.Marshal(le)
 
 				// fmt.Println(string(j))
 				/*
@@ -105,7 +105,7 @@ func main() {
 					}
 				*/
 
-				//fmt.Println(string(j))
+				fmt.Println(string(j))
 			}
 
 			l.Processed = true

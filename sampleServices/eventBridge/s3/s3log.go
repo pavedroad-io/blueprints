@@ -7,7 +7,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type s3LogLines []s3LogLine
@@ -17,44 +16,45 @@ type LambdaEvent struct {
 }
 
 type s3LogLine struct {
-	BucketOwner    string    `yaml:"bucketOwner"`
-	Bucket         string    `yaml:"bucket"`
-	Time           time.Time `yaml:"time"`
-	RemoteIP       string    `yaml:"remoteIP"`
-	Requester      string    `yaml:"requester"`
-	RequestId      string    `yaml:"requestId"`
-	Operation      string    `yaml:"operation"`
-	Key            string    `yaml:"key"`
-	RequestURI     string    `yaml:"requestURI"`
-	HttpStatusCode int       `yaml:"httpStatusCode"`
-	BytesSent      int       `yaml:"bytesSent"`
-	ObjectSize     int       `yaml:"objectSize"`
-	TotalTime      int       `yaml:"totalTime"`
-	TurnAroundTime int       `yaml:"turnAroundTime"`
-	Referrer       string    `yaml:"referrer"`
-	UserAgent      string    `yaml:"userAgent"`
-	VersionId      int       `yaml:"versionId"`
+	BucketOwner    string `json:"bucketOwner"`    //0
+	Bucket         string `json:"bucket"`         //1
+	Time           string `json:"time"`           //2
+	RemoteIP       string `json:"remoteIP"`       //3
+	Requester      string `json:"requester"`      //4
+	RequestId      string `json:"requestId"`      //5
+	Operation      string `json:"operation"`      //6
+	Key            string `json:"key"`            //7
+	RequestURI     string `json:"requestURI"`     //8
+	HttpStatusCode int    `json:"httpStatusCode"` //9
+	ErrorCode      string `json:"errorCode"`      //10
+	BytesSent      int    `json:"bytesSent"`      //11
+	ObjectSize     int    `json:"objectSize"`     //12
+	TotalTime      int    `json:"totalTime"`      //13
+	TurnAroundTime int    `json:"turnAroundTime"` //14
+	Referrer       string `json:"referrer"`       //15
+	UserAgent      string `json:"userAgent"`      //16
+	VersionId      string `json:"versionId"`      //17
 }
 
 // S3Operation only supporting Rest, not including SOAP
 type S3Operation struct {
-	API          string `yaml:"api"`
-	HTTPMethod   string `yaml:"httpMethod"`
-	ResourceType string `yaml:"resourceType"`
+	API          string `json:"api"`
+	HTTPMethod   string `json:"httpMethod"`
+	ResourceType string `json:"resourceType"`
 }
 
 // S3RequestURI
 type S3RequestURI struct {
-	HTTPMethod string `yaml:"httpMethod"`
-	Path       string `yaml:"path"`
-	Protocol   string `yaml:"protocol"`
+	HTTPMethod string `json:"httpMethod"`
+	Path       string `json:"path"`
+	Protocol   string `json:"protocol"`
 }
 
 type S3Filter struct {
-	MatchMethods     []S3RequestURI `yaml:"matchMethods"`
-	NotMatchMethods  []S3RequestURI `yaml:"notMatchMethods"`
-	MatchProtocol    []S3RequestURI `yaml:"matchProtocol"`
-	NotMatchProtocol []S3RequestURI `yaml:"notMatchProtocol"`
+	MatchMethods     []S3RequestURI `json:"matchMethods"`
+	NotMatchMethods  []S3RequestURI `json:"notMatchMethods"`
+	MatchProtocol    []S3RequestURI `json:"matchProtocol"`
+	NotMatchProtocol []S3RequestURI `json:"notMatchProtocol"`
 }
 
 type S3PatternFilter struct {
@@ -65,7 +65,7 @@ type S3PatternFilter struct {
 
 func (li *s3LogLine) String() string {
 	return fmt.Sprintf(
-		"%s\t%s\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%d\t%d\t%d\t%s\t%s\t%d",
+		"%s\t%s\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%d\t%d\t%d\t%s\t%s\t%d",
 		li.BucketOwner,
 		li.Bucket,
 		li.Time,
@@ -76,6 +76,7 @@ func (li *s3LogLine) String() string {
 		li.Key,
 		li.RequestURI,
 		li.HttpStatusCode,
+		li.ErrorCode,
 		li.BytesSent,
 		li.ObjectSize,
 		li.TotalTime,
@@ -119,7 +120,7 @@ func parseS3(file string) ([]s3LogLine, error) {
 			continue
 		}
 
-		fields := strings.Fields(line)
+		fields := strings.Split(line, " ")
 		//		fmt.Println(fields)
 		//		os.Exit(0)
 
@@ -128,55 +129,54 @@ func parseS3(file string) ([]s3LogLine, error) {
 		lineItem.BucketOwner = fields[0]
 		lineItem.Bucket = fields[1]
 
-		layout := "02/Jan/2006:15:04:05 -0700"
-		t, _ := time.Parse(layout, fields[2])
-		lineItem.Time = t
+		/*
+			layout := "02/Jun/2021:01:28:20 +0000"
+			t, _ := time.Parse(layout, fields[2])
+		*/
+		lineItem.Time = fields[2] + fields[3]
 
-		lineItem.RemoteIP = fields[3]
-		lineItem.Requester = fields[4]
-		lineItem.RequestId = fields[5]
-		lineItem.Operation = fields[6]
-		lineItem.Key = fields[7]
-		lineItem.RequestURI = fields[8]
+		lineItem.RemoteIP = fields[4]
+		lineItem.Requester = fields[5]
+		lineItem.RequestId = fields[6]
+		lineItem.Operation = fields[7]
+		lineItem.Key = fields[8]
+		lineItem.RequestURI = fields[9]
 
-		status, err := strconv.Atoi(fields[9])
+		status, err := strconv.Atoi(fields[10])
 		if err != nil {
 			status = 0
 		}
 		lineItem.HttpStatusCode = status
 
-		bytes, err := strconv.Atoi(fields[10])
+		lineItem.ErrorCode = fields[11]
+
+		bytes, err := strconv.Atoi(fields[12])
 		if err != nil {
 			status = 0
 		}
 		lineItem.BytesSent = bytes
 
-		size, err := strconv.Atoi(fields[11])
+		size, err := strconv.Atoi(fields[13])
 		if err != nil {
 			status = 0
 		}
 		lineItem.ObjectSize = size
 
-		tt, err := strconv.Atoi(fields[12])
+		tt, err := strconv.Atoi(fields[14])
 		if err != nil {
 			status = 0
 		}
 		lineItem.TotalTime = tt
 
-		tt, err = strconv.Atoi(fields[13])
+		tt, err = strconv.Atoi(fields[15])
 		if err != nil {
 			status = 0
 		}
 		lineItem.TurnAroundTime = tt
 
-		lineItem.Referrer = fields[14]
-		lineItem.UserAgent = fields[14]
-
-		version, err := strconv.Atoi(fields[15])
-		if err != nil {
-			status = 0
-		}
-		lineItem.VersionId = version
+		lineItem.Referrer = fields[16]
+		lineItem.UserAgent = fields[17]
+		lineItem.VersionId = fields[18]
 
 		items = append(items, *lineItem)
 	}

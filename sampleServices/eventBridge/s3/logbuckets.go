@@ -151,5 +151,4 @@ func (pls *ProcessedLogs) AddProcessLog(ID string, log ProcessedLogItem) error {
 	}
 
 	return nil
-
 }
