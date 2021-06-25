@@ -1,0 +1,4 @@
+Record format: [BucketOwner Bucket Time RemoteIP Requester RequestId Operation Key Request-URI HttpStatus/ErrorCode BytesSent ObjectSize TotalTime Turn-AroundTime Referrer User-Agent VersionId] 
+ =========================================================================================================================================================
+D22FC51D48855E3988E83A22F54656159A9D704EBF061970FA52DE01AD4EEDC8 pr-release-pipeline-artifacts [02/Jun/2021:01:28:20 +0000] 10.3.113.230 D22FC51D48855E3988E83A22F54656159A9D704EBF061970FA52DE01AD4EEDC8 6E5C2C7DF02E0779 REST.PUT.OBJECT sca%2FGoSnippetCheatSheet.pdf "PUT /pr-release-pipeline-artifacts/sca/GoSnippetCheatSheet.pdf" 200 - - 122839 312 0 "" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36" -
+
