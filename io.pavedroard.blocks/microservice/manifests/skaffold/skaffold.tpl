@@ -1,4 +1,4 @@
-{{define "manifests/skaffold.yaml"}}
+{{define "skaffold.tpl"}}
 apiVersion: skaffold/v2beta10
 kind: Config
 build:
@@ -7,11 +7,13 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: localhost:32000/{{.Organization}}/{{.Name}}
+  - image: localhost:32000/{{.Info.Organization}}/{{.Info.Name | ToLower}}
     context: .
-    docker:
-      dockerfile: manifests/Dockerfile
-  - image: localhost:32000/{{.Organization}}/{{.Name}}initdb
+    custom:
+      dependencies:
+        paths:
+          - "**.go"
+  - image: localhost:32000/{{.Info.Organization}}/{{.Info.Name | ToLower}}initdb
     context: .
     docker:
       dockerfile: manifests/InitDbDockerFile

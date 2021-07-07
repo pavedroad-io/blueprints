@@ -1,0 +1,62 @@
+apiversion: v1beta
+kind: DockerfileBlock
+metadata:
+  labels:
+  - pavedroad
+  - docker
+  - dockerfile
+  - microservice
+  - dev
+  tags:
+  - pavedroad
+  - docker
+  - dockerfile
+  - microservice
+  - dev
+  information:
+    description: Generate Dockerfile for a microservice
+    title: Dockerfile generator
+    contact:
+      author: John Scharber
+      organization: PavedRoad
+      email: support@pavedroad.io
+      website: www.pavedroad.io
+      support: pavedroad-io.slack.com
+id: cache://io.pavedroard.blocks/microservice/manifests/docker/dockerfile.yaml
+family: pavedroad/microservice/blocks/manifests/docker
+usagerights:
+  termsofservice: As is
+  licenses: Apache 2
+  contributelink: ""
+  accesstoken: ""
+imports: []
+baseDirectory: io.pavedroard.blocks/microservice/manifests/docker
+homeDirectory: manifests
+templateMap:
+  - fileName: dockerfile.tpl
+    description: Dockerfile for building a container
+    templateFunction: stringFunctionMap()
+    outputFileName: Dockerfile
+    outputType: OutputFile
+  - fileName: docker-compose.tpl
+    description: docker-compoase for all services
+    templateFunction: stringFunctionMap()
+    outputFileName: docker-compose.yaml
+    outputType: OutputFile
+  - fileName: docker-db-only.tpl
+    description: docker-compoase for required testing services
+    templateFunction: stringFunctionMap()
+    outputFileName: docker-db-only.tpl
+    outputType: OutputFile
+  - fileName: InitDbDockerFile.tpl
+    description: Dockerfile to build db container that initialized tables
+    templateFunction: stringFunctionMap()
+    outputFileName: InitDbDockerFile
+    outputType: OutputFile
+templateExports:
+  - templateVar: "{{.Info.Name}}"
+  - templateVar: "{{.Info.Organization}}"
+  - templateVar: "{{.Info.Version}}"
+  - templateVar: "{{.Project.Description}}"
+  - templateVar: "{{.Info.ID}}"
+  - templateVar: "{{.DefinitionFile}}"

@@ -2,13 +2,12 @@
 
 VERSION := {{.Version}}
 BUILD := $(shell git rev-parse --short HEAD)
-PROJECTNAME := $(shell basename "$(PWD)")
+#PROJECTNAME := $(shell basename "$(PWD)")
+PROJECTNAME := {{.Name}}
 PROJDIR := $(shell pwd)
 TARGET := $(PROJECTNAME)
-
+USERGROUP := $(shell echo $USER)")
 K8SRUNNING := $(shell dev/microk8sStatus.sh)
-VOLS := $(PROJDIR)/volumes
-export DOCKER_IP = `(dev/getdockerip.sh)`
 
 ASSETS := $(PROJDIR)/assets/images
 ARTIFACTS := $(PROJDIR)/artifacts
@@ -16,18 +15,13 @@ BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
 VOLS := $(PROJDIR)/volumes
-GITTEST := .git/HEAD
-FOSSATEST := .fossa.yml
+FOSSATEST := .fossa.ymml
 PREFLIGHT := .pr_preflight_check
 
 # Go related variables.
 GOBASE := $(shell cd ../../;pwd)
 GOPATH := $(GOBASE)
-export GOPATH = $(GOBASE)
-
-#unexport Go modules needed if it is set true globally
-unexport GO111MODULE
-
+export DOCKER_IP = `(dev/getdockerip.sh)`
 GOBIN := $(GOBASE)/bin
 GOFILES := $(wildcard *.go)
 GOLINT := $(shell which golint)
@@ -39,7 +33,7 @@ GOSECREPORT := $(ARTIFACTS)/gosec.out
 GOVETREPORT := $(ARTIFACTS)/govet.out
 GOTESTREPORT := https://sonarcloud.io/dashboard?id={{.SonarPrefix}}{{.Name}}
 
-GIT_TAG := $(shell git describe 2> /dev/null)
+GIT_TAG := $(shell git describe)
 
 SHELL := /bin/bash
 
@@ -57,17 +51,15 @@ LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD) -X=main.GitT
 compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc mod-graph
 	@echo "  Compiling"
 	@-$(MAKE) -s build
-	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
 
-## clean: Remove dep, vendor, binary(s), and executes go clean
+## clean: Remove binary(s) and execute go clean
 clean:
 	@echo "  execute go-clean"
 	@-rm $(GOBIN)/$(PROJECTNAME)* 2> /dev/null || true
 	@-$(MAKE) go-clean
 
 ## build: Build the binary for linux / mac x86 and amd
-	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
-build: mod-setup import-check
+build: import-check
 	@echo "  >  Building binary..."
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
 # make this conditional on build GOARCH
@@ -76,14 +68,18 @@ build: mod-setup import-check
 	cp $(BUILDS)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(PROJECTNAME)
 	cp $(GOBIN)/$(PROJECTNAME)-"darwin"-"amd64" $(BUILDS)/$(PROJECTNAME)-"darwin"-"amd64"
 
-mod-setup:
+mod-setup: go.mod
 	@echo "  >  setting up modules..."
 	go mod download
 	go mod tidy
 
-mod-graph: mod-setup $(ASSETS)
+mod-graph: $(ASSETS)
 	@echo "  >  Creating dependencies graph png..."
 	$(shell (go mod graph | modgraphviz | dot -T png -o $(ASSETS)/$(PROJECTNAME).png))
+
+go.mod: 
+	@echo "  >  initialize modules..."
+	go mod init {{.Name}}
 
 ## deploy: Deploy image to repository and k8s cluster
 deploy:
@@ -126,7 +122,7 @@ dev-mode:
 	skaffold dev -f manifests/skaffold.yaml
 
 ## tilt-up: Start service using Tilt UI
-tilt-up: dbclean
+tilt-up:
 	@echo "  >  Start with Tilt UI..."
 	@tilt up
 
@@ -138,6 +134,7 @@ tilt-down:
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
 	$(shell (export GOPATH=$(GOPATH);swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
+	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"
@@ -147,8 +144,8 @@ install:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go install $(GOFILES)
 
 import-check: $(GOFILES)
-  @echo "  >  Valiate Go imports"
-  @GOPATH=$(GOPATH) GOBIN=$(GOBIN) goimports -w $(GOFILES)
+	@echo "  >  Valiate Go imports"
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) goimports -w $(GOFILES)
 
 go-clean:
 	@echo "  >  Cleaning build cache"
@@ -156,16 +153,14 @@ go-clean:
 
 ## check: Start services and execute static code analysis and tests
 {{.CheckBuildTarget}}
-	@echo "  >  Starting cockroach DB..."
-	docker-compose -f manifests/docker-db-only.yaml up -d --remove-orphans
-	@echo "  >  Waiting cockroach DB is ready..."
-	@sleep 5
-	@echo "  >  running to tests..."
-	go test -coverprofile=$(GOCOVERAGE) -v .
-	@echo "  >  Stopping cockroach DB..."
-	docker-compose -f manifests/docker-db-only.yaml down
+	@echo "  >  starting {{.Name}}..."
+	docker-compose -f manifests/docker-compose.yaml up -d --remove-orphans
+	@echo "  >  executing tests..."
+	go test -coverprofile=$(GOCOVERAGE) -v ./...
+	@echo "  >  stopping {{.Name}}..."
+	docker-compose -f manifests/docker-compose.yaml down
 
-sonar-scanner: dbclean $(ARTIFACTS)
+sonar-scanner: $(ARTIFACTS)
 	sonar-scanner
 
 ## show-coverage: Show go code coverage in browser
@@ -176,7 +171,7 @@ show-coverage:
 show-test:
 	xdg-open $(GOTESTREPORT)
 
-## show-devkit: Show documentation for Devkit
+## show-devkit: Show documenation for Devkit
 show-devkit:
 	xdg-open http://localhost:5000/microk8sDevKit.html
 
@@ -228,7 +223,7 @@ docker-build:
 	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}}initdb .
 
 ## up: Start service using docker-compose
-up: dbclean docker-build
+up: docker-build
 	docker-compose -f manifests/docker-compose.yaml up -d --remove-orphans
 
 
@@ -251,15 +246,10 @@ $(DOCS):
 $(LOGS):
 	$(shell mkdir -p $(LOGS))
 
-dbclean:
-	@echo "Removing cockroach volumes directory owned by root"
-	@echo "If needed you will be prompted for your sudo password"
-	$(shell sudo rm -R $(VOLS))
-
-# Preflight: ensure all requirements are met
-# Once they are the $(PREFLIGH) file will be created
+## Preflight ensure all requirements are met
+## Once they are the $(PREFLIGHT) file will be created
 $(PREFLIGHT):
 	dev/preflight.sh
 
 {{.FossaBuildSection}}
-{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

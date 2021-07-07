@@ -1,0 +1,49 @@
+apiversion: v1beta
+kind: SkaffoldBlock
+metadata:
+  labels:
+  - pavedroad
+  - skaffold
+  - kustomize
+  - microservice
+  - dev
+  - dev-debug
+  tags:
+  - pavedroad
+  - skaffold
+  - kustomize
+  - microservice
+  - dev
+  - dev-debug
+  information:
+    description: Generate skaffold.yaml configuration file
+    title: Generate skaffold.yaml configuration file
+    contact:
+      author: John Scharber
+      organization: PavedRoad
+      email: support@pavedroad.io
+      website: www.pavedroad.io
+      support: pavedroad-io.slack.com
+id: cache://io.pavedroard.blocks/microservice/manifests/skaffold
+family: pavedroad/microservice/blocks/manifests/skaffold
+usagerights:
+  termsofservice: As is
+  licenses: Apache 2
+  contributelink: ""
+  accesstoken: ""
+imports: []
+baseDirectory: io.pavedroard.blocks/microservice/manifests/skaffold
+homeDirectory: manifests
+templateMap:
+  - fileName: skaffold.tpl
+    outputFileName: skaffold.yaml
+    outputType: OutputFile
+    description: Skaffold configuration file
+    templateFunction: stringFunctionMap()
+templateExports:
+  - templateVar: "{{.Name}}"
+    sourceInDefinitions: defs.Info.Name
+  - templateVar: "{{.SkaffoldVersion}}"
+    sourceInDefinitions: defs.Info.Name
+  - templateVar: "{{.Organization}}"
+    sourceInDefinitions: defs.Info.Organization

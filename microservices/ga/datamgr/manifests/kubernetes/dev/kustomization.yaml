@@ -17,5 +17,5 @@ commonLabels:
 
 commonAnnotations:
   pavedroad.kustomize.base: {{.Name}}/manifests/kubernetes/dev
-  pavedroad.kustomize.bases: "{{.Name}},db"
+  pavedroad.kustomize.bases: "{{.Name}},db,kafka"
 {{end}}{{/* vim: set filetype=gotexttmpl: */ -}}
