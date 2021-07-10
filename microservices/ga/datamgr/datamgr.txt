@@ -217,7 +217,11 @@ tables <object>
   The name of this table
 
   table-type <string>
-  Either json or jsonb, default is jsonb
+  The type is overloaded, TBF
+  For the primary table the type is jsonb
+  For sub-tables types are:
+  - object for a new Go type
+  - list for a new list of Go types
 
   columns <object>
   A list of columns / field definitions
@@ -236,5 +240,30 @@ tables <object>
     The column name
 
     type <string>
-    The type, string, number, boolen, etc
-
+    definitions to Go internal mappings
+    
+    | defition  | Go type |
+    + --------- + ------- +
+      string      string
+      []string    []string
+      boolean     bool
+      number	    int
+      []number    []int
+      int	        int
+      uint	      uint
+      []uint	    []uint
+      byte	      byte
+      []byte	    []byte
+      rune        byte
+      []rune	    []byte
+      float       float64
+      []float     []float64
+      float64     float64
+      []float64	  []float64
+      float32     float32
+      []float32   []float32
+      uuid        string
+      []uuid      []string
+      time        time.Time
+      []time      []time.Time
+  
