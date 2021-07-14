@@ -147,8 +147,8 @@ install:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go install $(GOFILES)
 
 import-check: $(GOFILES)
-  @echo "  >  Valiate Go imports"
-  @GOPATH=$(GOPATH) GOBIN=$(GOBIN) goimports -w $(GOFILES)
+	@echo "  >  Valiate Go imports"
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) goimports -w $(GOFILES)
 
 go-clean:
 	@echo "  >  Cleaning build cache"
@@ -224,8 +224,8 @@ help: Makefile
 
 ## docker-build: Build docker images for use with docker-compose
 docker-build:
-	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}} .
-	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}}initdb .
+	docker build -f manifests/Dockerfile -t {{.Organization}}/{{.Name}} .
+	docker build -f manifests/Dockerfile -t {{.Organization}}/{{.Name}}initdb .
 
 ## up: Start service using docker-compose
 up: dbclean docker-build

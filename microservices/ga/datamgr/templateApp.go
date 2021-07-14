@@ -167,22 +167,22 @@ func (a *{{.NameExported}}App) initializeEnvironment() {
 
 {{.AllRoutesSwaggerDoc}}
 func (a *{{.NameExported}}App) initializeRoutes() {
-  uri := {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+  uri := {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
     {{.NameExported}}ResourceType + "LIST"
   a.Router.HandleFunc(uri, a.list{{.NameExported}}).Methods("GET")
 
-  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
     {{.NameExported}}ResourceType + "/{key}"
   a.Router.HandleFunc(uri, a.get{{.NameExported}}).Methods("GET")
 
-  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" + {{.NameExported}}ResourceType
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" + {{.NameExported}}ResourceType
   a.Router.HandleFunc(uri, a.create{{.NameExported}}).Methods("POST")
 
-  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
     {{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.update{{.NameExported}}).Methods("PUT")
 
-  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
     {{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.delete{{.NameExported}}).Methods("DELETE")
 }

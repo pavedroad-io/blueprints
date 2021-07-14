@@ -23,7 +23,7 @@ const (
 	Updated         string = "updated"
 	Created         string = "created"
 	Active          string = "active"
-  {{.NameExported}}URL string = "/api/v1/namespace/pavedroad.io/{{.Name}}/%s"
+  {{.NameExported}}URL string = "/api/v1/namespace/{{.Namespace}}/{{.Name}}/%s"
 )
 
 var new{{.NameExported}}JSON=`{{.PostJSON}}`
@@ -80,7 +80,7 @@ CREATE INDEX IF NOT EXISTS {{.Name}}Idx ON {{.OrgSQLSafe}}.{{.Name}} USING GIN (
 func TestEmptyTable(t *testing.T) {
 	clearTable()
 
-	req, _ := http.NewRequest("GET", "/api/v1/namespace/pavedroad.io/{{.Name}}LIST", nil)
+	req, _ := http.NewRequest("GET", "/api/v1/namespace/{{.Namespace}}/{{.Name}}LIST", nil)
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusOK, response.Code)
@@ -111,7 +111,7 @@ func TestGetWithBadUserUUID(t *testing.T) {
 	clearTable()
 
 	req, _ := http.NewRequest("GET",
-		"/api/v1/namespace/pavedroad.io/{{.Name}}/43ae99c9", nil)
+		"/api/v1/namespace/{{.Namespace}}/{{.Name}}/43ae99c9", nil)
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
@@ -151,7 +151,7 @@ func TestCreate{{.NameExported}}(t *testing.T) {
 
 	payload := []byte(new{{.NameExported}}JSON)
 
-	req, _ := http.NewRequest("POST", "/api/v1/namespace/pavedroad.io/{{.Name}}", bytes.NewBuffer(payload))
+	req, _ := http.NewRequest("POST", "/api/v1/namespace/{{.Namespace}}/{{.Name}}", bytes.NewBuffer(payload))
 	response := executeRequest(req)
 
 	checkResponseCode(t, http.StatusCreated, response.Code)
