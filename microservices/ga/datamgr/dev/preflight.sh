@@ -23,14 +23,14 @@ initRepo()
 {
 	if [[ "$defaultDirectory" == "." ]]
 	then
-		(git rev-parse --is-inside-work-tree > /dev/null)
+		(git log | grep fatal > /dev/null)
 		if [ $? -eq 0 ]
 		then
 			exit 0
 		fi
 		(git init > /dev/null)
 	else
-		(cd $defaultDirectory;git rev-parse --is-inside-work-tree > /dev/null)
+		(cd $defaultDirectory;git log | grep fatal > /dev/null)
 		if [ $? -eq 0 ]
 		then
 			exit 0

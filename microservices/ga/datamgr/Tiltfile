@@ -1,6 +1,6 @@
 {{define "Tiltfile"}}
 k8s_yaml(kustomize('manifests/kubernetes/dev'))
 
-docker_build('localhost:32000/{{.Organization}}/{{.Name}}', '.', dockerfile='manifests/Dockerfile')
-docker_build('localhost:32000/{{.Organization}}/{{.Name}}initdb', '.', dockerfile='manifests/InitDbDockerFile')
+docker_build('localhost:32000/{{.GitHubOrg}}/{{.Name}}', '.', dockerfile='manifests/Dockerfile')
+docker_build('localhost:32000/{{.GitHubOrg}}/{{.Name}}initdb', '.', dockerfile='manifests/InitDbDockerFile')
 {{end}}

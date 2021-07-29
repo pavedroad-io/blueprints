@@ -1,4 +1,4 @@
-{{define "templateDoc.go"}}
+{{define "doc.go"}}
 {{.PavedroadInfo}}
 
 // Copyright 2015 go-swagger maintainers

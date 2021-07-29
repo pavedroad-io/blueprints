@@ -1,4 +1,4 @@
-{{define "templateApp.go"}}{{.PavedroadInfo}}
+{{define "app.go"}}{{.PavedroadInfo}}
 
 // User project / copyright / usage information
 // {{.ProjectInfo}}
@@ -185,6 +185,11 @@ func (a *{{.NameExported}}App) initializeRoutes() {
   uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
     {{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.delete{{.NameExported}}).Methods("DELETE")
+
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+    {{.NameExported}}ResourceType
+  a.Router.HandleFunc(uri, a.options{{.NameExported}}).Methods("OPTIONS")
+
 }
 
 {{.GetAllSwaggerDoc}}
@@ -382,6 +387,30 @@ func (a *{{.NameExported}}App) delete{{.NameExported}}(w http.ResponseWriter, r 
   respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
+// options{{.NameExported}} swagger:route OPTIONS /api/v1/namespace/pavedroad.io/{{.NameExported}}/ {{.Name}} options{{.Name}}
+//
+// OPTIONS for browser pre-fligth checks on update operations
+//
+// Responses:
+//    default: {{.Name}}Response
+//        200: {{.Name}}Response
+//        400: genericError
+func (a *{{.NameExported}}App) options{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
+  respondOptions(w, http.StatusNoContent, map[string]string{"result": "success"})
+}
+
+// respondOptions CORS headers for pre-flight checks
+func respondOptions(w http.ResponseWriter, code int, payload interface{}) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Access-Control-Allow-Origin, DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range")
+	w.Header().Set("Access-Control-Max-Age", "1728000")
+	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Length", "0")
+	w.WriteHeader(http.StatusNoContent)
+}
+
+
 func respondWithError(w http.ResponseWriter, code int, message string) {
   respondWithJSON(w, code, map[string]string{"error": message})
 }
@@ -390,6 +419,10 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
   response, _ := json.Marshal(payload)
 
   w.Header().Set("Content-Type", "application/json")
+  w.Header().Set("Access-Control-Allow-Origin", "*")
+  w.Header().Set("Access-Control-Allow-Methods", "PUT")
+  w.Header().Set("Access-Control-Request-Headers", "access-control-allow-origin,content-type")
+
   w.WriteHeader(code)
   w.Write(response)
 }
@@ -401,9 +434,4 @@ func logRequest(handler http.Handler) http.Handler {
   })
 }
 
-/*
-func dump{{.NameExported}}(m {{.NameExported}}) {
-  fmt.Println("Dump {{.Name}}")
-  {{.DumpStructs}}
-}
-*/{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

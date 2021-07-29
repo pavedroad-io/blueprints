@@ -1,4 +1,4 @@
-{{define "templateMain.go"}}
+{{define "main.go"}}
 {{.PavedroadInfo}}
 
 // User project / copyright / usage information

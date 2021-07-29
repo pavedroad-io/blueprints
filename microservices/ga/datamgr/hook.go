@@ -1,4 +1,4 @@
-{{define "templateHook.go"}}{{.PavedroadInfo}}
+{{define "hook.go"}}{{.PavedroadInfo}}
 
 // {{.ProjectInfo}}
 
