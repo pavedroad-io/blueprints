@@ -1,4 +1,4 @@
-{{define "templateModel.go"}}
+{{define "model.go"}}
 {{.PavedroadInfo}}
 // {{.OrganizationLicense}}
 

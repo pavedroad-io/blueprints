@@ -9,6 +9,7 @@ TARGET := $(PROJECTNAME)
 K8SRUNNING := $(shell dev/microk8sStatus.sh)
 VOLS := $(PROJDIR)/volumes
 export DOCKER_IP = `(dev/getdockerip.sh)`
+export ROACH_VOLUME_DIR=/tmp
 
 ASSETS := $(PROJDIR)/assets/images
 ARTIFACTS := $(PROJDIR)/artifacts
@@ -126,7 +127,7 @@ dev-mode:
 	skaffold dev -f manifests/skaffold.yaml
 
 ## tilt-up: Start service using Tilt UI
-tilt-up: dbclean
+tilt-up:
 	@echo "  >  Start with Tilt UI..."
 	@tilt up
 
@@ -147,8 +148,8 @@ install:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go install $(GOFILES)
 
 import-check: $(GOFILES)
-  @echo "  >  Valiate Go imports"
-  @GOPATH=$(GOPATH) GOBIN=$(GOBIN) goimports -w $(GOFILES)
+	@echo "  >  Valiate Go imports"
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) goimports -w $(GOFILES)
 
 go-clean:
 	@echo "  >  Cleaning build cache"
@@ -165,7 +166,7 @@ go-clean:
 	@echo "  >  Stopping cockroach DB..."
 	docker-compose -f manifests/docker-db-only.yaml down
 
-sonar-scanner: dbclean $(ARTIFACTS)
+sonar-scanner: $(ARTIFACTS)
 	sonar-scanner
 
 ## show-coverage: Show go code coverage in browser
@@ -224,11 +225,11 @@ help: Makefile
 
 ## docker-build: Build docker images for use with docker-compose
 docker-build:
-	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}} .
-	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}}initdb .
+	docker build -f manifests/Dockerfile -t {{.GitHubOrg}}/{{.Name}} .
+	docker build -f manifests/Dockerfile -t {{.GitHubOrg}}/{{.Name}}initdb .
 
 ## up: Start service using docker-compose
-up: dbclean docker-build
+up: docker-build
 	docker-compose -f manifests/docker-compose.yaml up -d --remove-orphans
 
 
@@ -250,11 +251,6 @@ $(DOCS):
 
 $(LOGS):
 	$(shell mkdir -p $(LOGS))
-
-dbclean:
-	@echo "Removing cockroach volumes directory owned by root"
-	@echo "If needed you will be prompted for your sudo password"
-	$(shell sudo rm -R $(VOLS))
 
 # Preflight: ensure all requirements are met
 # Once they are the $(PREFLIGH) file will be created
