@@ -1,0 +1,69 @@
+apiversion: v1beta
+kind: TemplateBlock
+metadata:
+  labels:
+  - pavedroad
+  - microservice
+  - rest-tools
+  - dev-env
+  tags:
+  - pavedroad
+  - microservice
+  - rest-tools
+  - dev-env
+  information:
+    description: PavedRoad tools
+    title: PavedRoad tools
+    contact:
+      author: John Scharber
+      organization: PavedRoad
+      email: support@pavedroad.io
+      website: www.pavedroad.io
+      support: pavedroad-io.slack.com
+id: cache://io.pavedroad.blocks/microservice/development-tools/rest
+family: pavedroad/microservice/blocks/development-tools/rest
+usagerights:
+  termsofservice: As is
+  licenses: Apache 2
+  contributelink: ""
+  accesstoken: ""
+imports: []
+baseDirectory: io.pavedroad.blocks/microservice/development-tools/rest
+homeDirectory: dev
+templateMap:
+  - fileName: testAll.tpl
+    outputFileName: testAll.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Test all HTTP methods
+    templateFunction: stringFunctionMap()
+  - fileName: testDelete.tpl
+    outputFileName: testDelete.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Test HTTP DELETE method
+    templateFunction: stringFunctionMap()
+  - fileName: testGet.tpl
+    outputFileName: testGet.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Test HTTP GET method
+    templateFunction: stringFunctionMap()
+  - fileName: testPost.tpl
+    outputFileName: testPost.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Test HTTP POST method
+    templateFunction: stringFunctionMap()
+  - fileName: testPut.tpl
+    outputFileName: testPut.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Test HTTP PUT method
+    templateFunction: stringFunctionMap()
+  - fileName: testGetList.tpl
+    outputFileName: testGetList.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Test HTTP GET returning a list of resources method
+    templateFunction: stringFunctionMap()

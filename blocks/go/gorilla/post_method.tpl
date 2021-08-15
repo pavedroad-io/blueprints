@@ -1,23 +1,23 @@
 {{define "post_method.tpl"}}
 
-// {{.Method | ToLower}}{{.EndPointName}} swagger:route {{.Method}} /api/v1/namespace/{{.Namespace}}/{{.EndPointName}} {{.EndPointName}} {{.Method}}{{.EndPointName}}
+// {{.Method | ToLower}}{{.NameExported}} swagger:route {{.Method}} /api/v1/namespace/{{.Namespace}}/{{.NameExported}} {{.NameExported}} {{.Method}}{{.NameExported}}
 //
-// Returns a {{.EndPointName}} object
+// Returns a {{.NameExported}} object
 //
 // Responses:
 //    default: genericError
-//        201: {{.EndPointName | ToCamel}}Response
+//        201: {{.NameExported}}Response
 
 
-func (a *{{.EndPointName | ToCamel }}App) {{.Method | ToLower}}{{.EndPointName}}(w http.ResponseWriter, r *http.Request) {
+func (a *{{.NameExported | ToCamel }}App) {{.Method | ToLower}}{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
     var response []byte
 
     // Pre-processing hook
-    a.{{.Method | ToLower}}{{.EndPointName | ToCamel}}PreHook(w, r)
+    a.{{.Method | ToLower}}{{.NameExported}}PreHook(w, r)
 
 
     // Post-processing hook
-    a.{{.Method | ToLower}}{{.EndPointName | ToCamel}}PostHook(w, r)
+    a.{{.Method | ToLower}}{{.NameExported}}PostHook(w, r)
 
     respondWithByte(w, http.StatusOK, response)
 }

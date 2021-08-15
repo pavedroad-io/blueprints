@@ -1,0 +1,64 @@
+apiversion: v1beta
+kind: "CompositeBlock"
+metadata:
+  labels:
+  - pavedroad
+  - skaffold
+  - kubernetes
+  - kustomize
+  - microservice
+  - dev
+  - dev-debug
+  tags:
+  - pavedroad
+  - skaffold
+  - kubernetes
+  - kustomize
+  - microservice
+  - dev
+  - dev-debug
+  information:
+    description: Generate skaffold.yaml configuration file
+    title: Generate skaffold.yaml configuration file
+    contact:
+      author: John Scharber
+      organization: PavedRoad
+      email: support@pavedroad.io
+      website: www.pavedroad.io
+      support: pavedroad-io.slack.com
+id: cache://io.pavedroad.blocks/microservice/manifests/kubernetes
+family: pavedroad/microservice/blocks/manifests/kubernetes
+usagerights:
+  termsofservice: As is
+  licenses: Apache 2
+  contributelink: ""
+  accesstoken: ""
+imports: []
+baseDirectory: io.pavedroad.blocks/microservice/manifests/kubernetes
+importedBlocks:
+- apiversion: ""
+  kind: ""
+  metadata:
+    labels:
+    - kubernetes
+    - kafka
+    - zookepper
+    - kubernetes
+    - kustomize
+    - envconfiguration
+    - microservice
+    - dev
+  id: cache://io.pavedroad.blocks/microservice/manifests/kubernetes/kustomize-dev.yaml
+- apiversion: ""
+  kind: ""
+  metadata:
+    labels:
+    - kubernetes
+    - kafka
+    - zookepper
+    - kubernetes
+    - kustomize
+    - envconfiguration
+    - microservice
+    - dev-debug
+  id: cache://io.pavedroad.blocks/microservice/manifests/kubernetes/kustomize-dev-debug.yaml

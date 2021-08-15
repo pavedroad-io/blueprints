@@ -219,8 +219,7 @@ help: Makefile
 
 ## docker-build: Build docker images for use with docker-compose
 docker-build:
-	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}} .
-	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}}initdb .
+	docker build -f manifests/Dockerfile -t {{.SonarCloudOrg}}/{{.Name}} .
 
 ## up: Start service using docker-compose
 up: docker-build
