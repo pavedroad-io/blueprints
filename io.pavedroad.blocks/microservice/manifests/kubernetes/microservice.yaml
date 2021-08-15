@@ -1,0 +1,60 @@
+apiversion: v1beta
+kind: KustomizeBlock
+metadata:
+  labels:
+  - pavedroad
+  - skaffold
+  - kubernetes
+  - kustomize
+  - microservice
+  - dev
+  - dev-debug
+  - ms-packager
+  tags:
+  - pavedroad
+  - skaffold
+  - kubernetes
+  - kustomize
+  - microservice
+  - dev
+  - dev-debug
+  - ms-packager
+  information:
+    description: Service and deployment for a microservice
+    title: Service and deployment for a microservice
+    contact:
+      author: John Scharber
+      organization: PavedRoad
+      email: support@pavedroad.io
+      website: www.pavedroad.io
+      support: pavedroad-io.slack.com
+id: cache://io.pavedroad.blocks/microservice/manifests/kubernetes/microservice.yaml
+family: pavedroad/microservice/blocks/manifests/kubernetes
+usagerights:
+  termsofservice: As is
+  licenses: Apache 2
+  contributelink: ""
+  accesstoken: ""
+imports: []
+baseDirectory: io.pavedroad.blocks/microservice/manifests/kubernetes
+homeDirectory: manifests/kubernetes/dev/template
+templateMap:
+  - fileName: microservice-kustomization.tpl
+    outputFileName: kustomization.yaml
+    outputType: OutputFile
+    description: Skaffold configuration file
+    templateFunction: stringFunctionMap()
+  - fileName: microservice-deployment.tpl
+    outputFileName: template-deployment.yaml
+    outputType: OutputFile
+    description: Skaffold configuration file
+    templateFunction: stringFunctionMap()
+  - fileName: microservice-service.tpl
+    outputFileName: template-service.yaml
+    outputType: OutputFile
+    description: Skaffold configuration file
+    templateFunction: stringFunctionMap()
+templateExports:
+  - templateVar: "{{.Name}}"
+  - templateVar: "{{.SkaffoldVersion}}"
+  - templateVar: "{{.Organization}}"
