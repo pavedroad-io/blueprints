@@ -1,0 +1,15 @@
+{{ define "manifests/kubernetes/stag/db/pvc.yaml"}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stagging-db
+  labels:
+    pavedroad.service: stagging-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: gp2-ext4-retain-immediate-no-encrypt
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

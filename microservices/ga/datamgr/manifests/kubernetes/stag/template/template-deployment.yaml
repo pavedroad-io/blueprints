@@ -1,0 +1,66 @@
+{{ define "manifests/kubernetes/stag/template/template-deployment.yaml"}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Name}}
+spec:
+  replicas: 3
+  strategy: {}
+  selector:
+    matchLabels:
+      pavedroad.service: {{.Name}}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        pavedroad.service: {{.Name}}
+    spec:
+      initContainers:
+      - image: busybox:1.28
+        name: wait-for-cockroach
+        command: ['sh', '-c', 'until nslookup stagging-db; do echo waiting for stagging-db; sleep 2; done;']
+      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}initdb
+        env:
+        - name: COCKROACH_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: cockroach-configmap
+              key: host-ip
+        name: {{.Name}}dbinit
+      containers:
+      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}
+        env:
+        - name: PRLOG_AUTOINIT
+          value: "true"
+        - name: PRLOG_CFGTYPE
+          value: "env"
+        - name: PRLOG_ENABLEKAFKA
+          value: "true"
+        - name: PRLOG_FILEFORMAT
+          value: "text"
+        - name: PRLOG_FILELOCATION
+          value: "logs/{{.Name}}.log"
+        - name: PRKAFKA_BROKERS
+          value: "kafka:9092"
+        - name: HTTP_IP_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: {{.Name}}-configmap
+              key: ip
+        - name: HTTP_IP_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: {{.Name}}-configmap
+              key: port
+        - name: APP_DB_IP
+          valueFrom:
+            configMapKeyRef:
+              name: {{.Name}}-configmap
+              key: database-ip
+        name: {{.Name}}
+        ports:
+        - containerPort: 8082
+        resources: {}
+      restartPolicy: Always
+status: {}
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

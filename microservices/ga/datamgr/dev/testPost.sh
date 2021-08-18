@@ -3,7 +3,7 @@
 
 ## set default values
 host=127.0.0.1
-port=8081
+port=8082
 service="{{.Name}}"
 namespace="{{.Namespace}}"
 

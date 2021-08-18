@@ -1,0 +1,10 @@
+{{ define "manifests/kubernetes/stag/db/kustomization.yaml"}}
+resources:
+  - stagging-db-deployment.yaml
+  - stagging-db-service.yaml
+
+configMapGenerator:
+- name: cockroach-configmap
+  literals:
+  - host-ip=stagging-db.pavedroad
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

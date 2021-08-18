@@ -187,7 +187,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
   a.Router.HandleFunc(uri, a.delete{{.NameExported}}).Methods("DELETE")
 
   uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
-    {{.NameExported}}ResourceType
+    {{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.options{{.NameExported}}).Methods("OPTIONS")
 
 }

@@ -1,4 +1,4 @@
-{{define "manifests/skaffold.yaml"}}
+{{define "skaffold-stag-aws.tpl"}}
 apiVersion: skaffold/v2beta10
 kind: Config
 build:
@@ -7,14 +7,12 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: localhost:32000/{{.GitHubOrg}}/{{.Name}}
+  - image: localhost:32000/{{.Info.GitHubOrg}}/{{.Info.Name | ToLower}}
     context: .
-    docker:
-      dockerfile: manifests/Dockerfile
-  - image: localhost:32000/{{.GitHubOrg}}/{{.Name}}initdb
-    context: .
-    docker:
-      dockerfile: manifests/InitDbDockerFile
+    custom:
+      dependencies:
+        paths:
+          - "**.go"
 deploy:
   kustomize:
     paths:
@@ -27,17 +25,13 @@ profiles:
       kustomize:
         paths:
         - "manifests/kubernetes/dev-debug"
-  - name: stagging
+  - name: staging
     build:
       artifacts:
-      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}
+      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Info.Name | ToLower}}
         context: .
         docker:
           dockerfile: manifests/Dockerfile
-      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}initdb
-        context: .
-        docker:
-          dockerfile: manifests/InitDbDockerFile
     deploy:
       kustomize:
         paths:

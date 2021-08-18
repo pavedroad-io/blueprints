@@ -1,10 +1,11 @@
-{{define "microservice-kustomization.tpl"}}
+{{define "kustomization-stag-aws.tpl"}}
 resources:
-  - {{.Info.Name}}-deployment.yaml
-  - {{.Info.Name}}-service.yaml
+  - {{.Info.Name}}-deployment-stag-aws.yaml
+  - {{.Info.Name}}-service-stag-aws.yaml
 
 commonLabels:
   pavedroad.service: {{.Info.Name | ToLower}}
+  pavedroad.env: stag
 
 commonAnnotations:
   pavedroad.roadctl.version: alphav1
@@ -14,14 +15,13 @@ commonAnnotations:
 configMapGenerator:
 - name: {{.Info.Name | ToLower}}-configmap
   literals:
-  - database-ip=roach-ui
   - ip=0.0.0.0
   - port=8081
   - prlog-auto-init=true
   - prlog-conf-type=env
   - prlog-enable-kafka=true
   - prlog-file-format=text
-  - prlog-file-location=logs/{{.Name}}.log"
+  - prlog-file-location=logs/{{.Info.Name | ToLower}}.log"
   - prlog-kafka-brokers=kafka:9092
 
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

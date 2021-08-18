@@ -1,0 +1,60 @@
+apiversion: v1beta
+kind: KustomizeBlock
+metadata:
+  labels:
+  - pavedroad
+  - skaffold
+  - kubernetes
+  - kustomize
+  - microservice
+  - dev
+  tags:
+  - pavedroad
+  - skaffold
+  - kubernetes
+  - kustomize
+  - microservice
+  - dev
+  information:
+    description: Generate skaffold.yaml configuration file
+    title: Generate skaffold.yaml configuration file
+    contact:
+      author: John Scharber
+      organization: PavedRoad
+      email: support@pavedroad.io
+      website: www.pavedroad.io
+      support: pavedroad-io.slack.com
+id: cache://io.pavedroad.blocks/microservice/manifests/kubernetes/kustomize-stag.yaml
+family: pavedroad/microservice/blocks/manifests/kubernetes
+usagerights:
+  termsofservice: As is
+  licenses: Apache 2
+  contributelink: ""
+  accesstoken: ""
+imports: []
+baseDirectory: io.pavedroad.blocks/microservice/manifests/kubernetes
+homeDirectory: manifests/kubernetes/stag
+templateMap:
+  - fileName: kustomization-app-stag-aws.tpl
+    outputFileName: kustomization.yaml
+    outputType: OutputFile
+    description: Top level kustomize configuration for development environment
+    templateFunction: stringFunctionMap()
+  - fileName: Namespace.tpl
+    outputFileName: namespace.yaml
+    outputType: OutputFile
+    description: Namespace for all manifests to deploy in
+    templateFunction: stringFunctionMap()
+templateExports:
+  - templateVar: "{{.Info.Name}}"
+  - templateVar: "{{.Project.KubeConfig.Namespace}}"
+importedBlocks:
+- apiversion: ""
+  kind: ""
+  metadata:
+    labels:
+    - kubernetes
+    - kustomize
+    - app
+    - stag
+  id: cache://io.pavedroad.blocks/microservice/manifests/kubernetes/app-only/app-stag-aws.yaml
