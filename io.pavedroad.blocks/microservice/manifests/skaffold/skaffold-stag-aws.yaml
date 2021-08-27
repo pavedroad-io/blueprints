@@ -36,6 +36,13 @@ usagerights:
   contributelink: ""
   accesstoken: ""
 imports: []
+importedBlocks:
+- apiversion: ""
+  kind: ""
+  metadata:
+    labels:
+    - dev
+  id: cache://io.pavedroad.blocks/microservice/manifests/skaffold/config.yaml
 baseDirectory: io.pavedroad.blocks/microservice/manifests/skaffold
 homeDirectory: manifests
 templateMap:

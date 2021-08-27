@@ -58,3 +58,5 @@ importedBlocks:
     - app
     - stag
   id: cache://io.pavedroad.blocks/microservice/manifests/kubernetes/app-only/app-stag-aws.yaml
+- id: cache://io.pavedroad.blocks/microservice/manifests/kubernetes/kafka-stag.yaml
+- id: cache://io.pavedroad.blocks/microservice/manifests/kubernetes/ingress/ingress.yaml

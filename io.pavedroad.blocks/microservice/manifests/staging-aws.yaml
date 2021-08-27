@@ -1,0 +1,82 @@
+apiversion: v1beta
+kind: CompositeBlock
+metadata:
+  labels:
+  - pavedroad
+  - microservice
+  - manifests
+  - docker
+  - docker-file
+  - skaffold
+  - kustomize
+  - kubernetes
+  tags:
+  - pavedroad
+  - microservice
+  - manifests
+  - docker
+  - docker-file
+  - skaffold
+  - kubernetes
+  information:
+    description: Composite for building manifests for a microservice
+    title: Composite for building manifests for a microservice
+    contact:
+      author: John Scharber
+      organization: PavedRoad
+      email: support@pavedroad.io
+      website: www.pavedroad.io
+      support: pavedroad-io.slack.com
+id: cache://io.pavedroad.blocks/microservice/manifests
+family: pavedroad/microservice/blocks/manifests
+baseDirectory: /microservice/manifests
+usagerights:
+  termsofservice: As is
+  licenses: Apache 2
+  contributelink: ""
+  accesstoken: ""
+imports: []
+importedBlocks:
+- apiversion: ""
+  kind: ""
+  metadata:
+    labels:
+    - kubernetes
+    - kafka
+    - zookepper
+    - kustomize
+    - envconfiguration
+    - microservice
+    - dev
+    - dev-debug
+  id: cache://io.pavedroad.blocks/microservice/manifests/kubernetes/kustomize-stag.yaml
+- apiversion: ""
+  kind: ""
+  metadata:
+    labels:
+    - docker
+    - dockerfile
+    - microservice
+    - cockroach
+    - dev
+  id: cache://io.pavedroad.blocks/microservice/manifests/docker/docker.yaml
+- apiversion: ""
+  kind: ""
+  metadata:
+    labels:
+    - skaffold
+    - kustomize
+    - microservice
+    - dev
+    - dev-debug
+  id: cache://io.pavedroad.blocks/microservice/manifests/skaffold/skaffold-stag-aws.yaml
+- apiversion: ""
+  kind: ""
+  metadata:
+    labels:
+    - titl
+    - kubernetes
+    - dev
+    - dev-debug
+  id: cache://io.pavedroad.blocks/microservice/manifests/tilt/tilt.yaml
+  baseDirectory: .

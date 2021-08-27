@@ -27,7 +27,7 @@ profiles:
       kustomize:
         paths:
         - "manifests/kubernetes/dev-debug"
-  - name: stagging
+  - name: staging
     build:
       artifacts:
       - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}

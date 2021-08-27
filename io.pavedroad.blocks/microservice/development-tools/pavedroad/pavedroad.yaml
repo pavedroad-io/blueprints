@@ -49,3 +49,21 @@ templateMap:
     outputType: OutputFile
     description: Cleanup image repositories
     templateFunction: stringFunctionMap()
+  - fileName: make-stagging-repo-app.tpl
+    outputFileName: make-stagging-repo-app.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Create AWS ECR repository for the applications
+    templateFunction: stringFunctionMap()
+  - fileName: make-stagging-repo-db.tpl
+    outputFileName: make-stagging-repo-db.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Create AWS ECR repository for the database if needed
+    templateFunction: stringFunctionMap()
+  - fileName: login-stagging-repo.tpl
+    outputFileName: login-stagging-repo.sh
+    executePermissions: true
+    outputType: OutputFile
+    description: Login to AWS ECR repository service
+    templateFunction: stringFunctionMap()
