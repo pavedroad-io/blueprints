@@ -5,12 +5,12 @@ services:
   {{.Name}}:
     image: {{.GitHubOrg}}/{{.Name}}
     expose:
-     - "8081"
+     - "{{.HTTPPort}}"
     ports: 
-     - 8081:8081
+     - {{.HTTPPort}}:{{.HTTPPort}}
     environment:
-     - HTTP_IP_ADDR=0.0.0.0
-     - HTTP_IP_PORT=8081
+     - HTTP_IP_ADDR={{.HTTPHost}}
+     - HTTP_IP_PORT={{.HTTPPort}}
      - APP_DB_IP=manifests_roach-ui_1
      - PRLOG_AUTOINIT=true
      - PRLOG_CFGTYPE=env

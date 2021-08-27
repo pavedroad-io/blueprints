@@ -1,7 +1,7 @@
 {{define "dev/testAll.sh"}}
 #!/bin/bash
 host=127.0.0.1
-port=8082
+port={{.HTTPPort}}
 service="{{.Name}}"
 namespace="{{.Namespace}}"
 flag=""

@@ -1,0 +1,54 @@
+apiversion: v1beta
+kind: KustomizeBlock
+metadata:
+  labels:
+  - pavedroad
+  - kubernetes
+  - kustomize
+  - ingress
+  - stag
+  tags:
+  - pavedroad
+  - kubernetes
+  - kustomize
+  - ingress
+  - stag
+  information:
+    description: Deploys k8s ingress controller form ms
+    title: Deploys k8s ingress controller for this ms
+    contact:
+      author: John Scharber
+      organization: PavedRoad
+      email: support@pavedroad.io
+      website: www.pavedroad.io
+      support: pavedroad-io.slack.com
+id: cache://io.pavedroad.blocks/microservice/manifests/kubernetes/ingress/ingress.yaml
+family: pavedroad/microservice/blocks/manifests/kubernetes
+usagerights:
+  termsofservice: As is
+  licenses: Apache 2
+  contributelink: ""
+  accesstoken: ""
+imports: []
+baseDirectory: io.pavedroad.blocks/microservice/manifests/kubernetes/ingress
+homeDirectory: manifests/kubernetes/stag/ingress
+templateMap:
+  - fileName: kustomization.tpl
+    outputFileName: kustomization.yaml
+    outputType: OutputFile
+    description: Kustomize file for ingress
+    templateFunction: stringFunctionMap()
+  - fileName: rproxy.tpl
+    outputFileName: rproxy.yaml
+    outputType: OutputFile
+    description: Ingress manifest
+    templateFunction: stringFunctionMap()
+  - fileName: deploy.tpl
+    outputFileName: deploy.yaml
+    outputType: OutputFile
+    description: Manifest for deploying AWS ELB
+    templateFunction: stringFunctionMap()
+templateExports:
+  - templateVar: "{{.Name}}"
+  - templateVar: "{{.SkaffoldVersion}}"
+  - templateVar: "{{.Organization}}"

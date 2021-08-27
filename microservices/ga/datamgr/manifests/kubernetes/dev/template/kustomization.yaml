@@ -15,6 +15,6 @@ configMapGenerator:
 - name: {{.Name}}-configmap
   literals:
   - database-ip=roach-ui
-  - ip=0.0.0.0
-  - port=8081
+  - ip={{.HTTPHost}}
+  - port={{.HTTPPort}}
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

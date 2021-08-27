@@ -22,7 +22,7 @@ const (
   // {{.NameExported}}NamespaceID Prefix for namespaces
   {{.NameExported}}NamespaceID string = "namespace"
   // {{.NameExported}}DefaultNamespace Default namespace
-  {{.NameExported}}DefaultNamespace string = "pavedroad.io"
+  {{.NameExported}}DefaultNamespace string = "{{.Namespace}}"
   // {{.NameExported}}ResourceType CRD Type per k8s
   {{.NameExported}}ResourceType string = "{{.Name}}"
   // The email or account login used by 3rd party provider
@@ -68,7 +68,7 @@ type httpConfig struct {
 var dbconf = databaseConfig{username: "root", password: "", database: "pavedroad", sslMode: "disable", dbDriver: "postgres", ip: "127.0.0.1", port: "26257"}
 
 // Set default http configuration
-var httpconf = httpConfig{ip: "127.0.0.1", port: "8082", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "127.0.0.1:8082"}
+var httpconf = httpConfig{ip: "{{.HTTPHost}}", port: "{{.HTTPPort}}", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "{{.HTTPHost}}:{{.HTTPPort}}"}
 
 // shutdownTimeout will be initialized based on the default or HTTP_SHUTDOWN_TIMEOUT
 var shutdowTimeout time.Duration

@@ -2,7 +2,8 @@
 
 VERSION := {{.Version}}
 BUILD := $(shell git rev-parse --short HEAD)
-PROJECTNAME := $(shell basename "$(PWD)")
+#PROJECTNAME := $(shell basename "$(PWD)")
+PROJECTNAME := {{.Name}}
 PROJDIR := $(shell pwd)
 TARGET := $(PROJECTNAME)
 
@@ -139,6 +140,7 @@ tilt-down:
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
 	$(shell (export GOPATH=$(GOPATH);swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
+	$(shell (grep -qxF definitions: docs/api.json || cat docs/api.json | jq '. + {definitions: {}}' > docs/fix.json;mv docs/fix.json docs/api.json))
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"

@@ -22,6 +22,6 @@ RUN mkdir -p ${pavedroad}/logs
 WORKDIR ${pavedroad}
 COPY $ms $pavedroad
 
-EXPOSE 8081
+EXPOSE {{.HTTPPort}}
 CMD ["/bin/sh", "-c", "$pavedroadbin"]
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

@@ -80,7 +80,7 @@ type httpConfig struct {
 }
 
 // Set default http configuration
-var httpconf = httpConfig{ip: "127.0.0.1", port: "8081", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "127.0.0.1:8081", logPath: "logs/", diagnosticsFile: "diagnostics.log", accessFile: "access.log"}
+var httpconf = httpConfig{ip: "{{.EndpointHost", port: "{{.EndpointPort}}", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "{{.EndpointHost}}:{{.EndpointPort}}", logPath: "logs/", diagnosticsFile: "diagnostics.log", accessFile: "access.log"}
 
 // shutdownTimeout will be initialized based on the default or HTTP_SHUTDOWN_TIMEOUT
 var shutdowTimeout time.Duration
@@ -101,7 +101,7 @@ func printVersion() {
 	os.Exit(0)
 }
 
-//printError
+// printError
 func printError(em error) {
         fmt.Println(em)
 }

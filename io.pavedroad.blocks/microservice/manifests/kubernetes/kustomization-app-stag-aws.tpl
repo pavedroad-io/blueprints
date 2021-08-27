@@ -6,6 +6,8 @@ namespace: {{.Project.Kubernetes.Namespace}}
 
 bases:
   - {{.Info.Name}}
+  - kafka
+  - ingress
 
 resources:
   - namespace.yaml

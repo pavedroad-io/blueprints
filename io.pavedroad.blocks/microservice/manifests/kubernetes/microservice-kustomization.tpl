@@ -21,7 +21,7 @@ configMapGenerator:
   - prlog-conf-type=env
   - prlog-enable-kafka=true
   - prlog-file-format=text
-  - prlog-file-location=logs/{{.Name}}.log"
+  - prlog-file-location=logs/{{.Info.Name | ToLower}}.log"
   - prlog-kafka-brokers=kafka:9092
 
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

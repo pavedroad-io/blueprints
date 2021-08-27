@@ -11,6 +11,8 @@ import (
   "encoding/json"
   "fmt"
   "github.com/gorilla/mux"
+  "github.com/gorilla/handlers"
+
   _ "github.com/lib/pq"
   "io/ioutil"
   "net/http"
@@ -52,12 +54,18 @@ func (a *{{.NameExported}}App) Initialize() {
 func (a *{{.NameExported}}App) Run(addr string) {
 
   log.Println("Listing at: " + addr)
+      // Wrap router with W3C logging
+
+  lf, _ := os.OpenFile("logs/access.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+
+  loggedRouter := handlers.LoggingHandler(lf, a.Router)
   srv := &http.Server{
-    Handler:      a.Router,
-    Addr:         addr,
-    WriteTimeout: httpconf.writeTimeout * time.Second,
-    ReadTimeout:  httpconf.readTimeout * time.Second,
+	Handler:      loggedRouter,
+	Addr:         addr,
+	WriteTimeout: httpconf.writeTimeout * time.Second,
+	ReadTimeout:  httpconf.readTimeout * time.Second,
   }
+
 
   go func() {
     if err := srv.ListenAndServe(); err != nil {
@@ -167,26 +175,26 @@ func (a *{{.NameExported}}App) initializeEnvironment() {
 
 {{.AllRoutesSwaggerDoc}}
 func (a *{{.NameExported}}App) initializeRoutes() {
-  uri := {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+  uri := {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
     {{.NameExported}}ResourceType + "LIST"
   a.Router.HandleFunc(uri, a.list{{.NameExported}}).Methods("GET")
 
-  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
     {{.NameExported}}ResourceType + "/{key}"
   a.Router.HandleFunc(uri, a.get{{.NameExported}}).Methods("GET")
 
-  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" + {{.NameExported}}ResourceType
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" + {{.NameExported}}ResourceType
   a.Router.HandleFunc(uri, a.create{{.NameExported}}).Methods("POST")
 
-  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
     {{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.update{{.NameExported}}).Methods("PUT")
 
-  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
     {{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.delete{{.NameExported}}).Methods("DELETE")
 
-  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{namespace}/" +
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
     {{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.options{{.NameExported}}).Methods("OPTIONS")
 
