@@ -1,0 +1,17 @@
+{{ define "manifests/kubernetes/stag/template/template-service.yaml"}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Name}}
+spec:
+  ports:
+  - name: "8082"
+    port: 8082
+    targetPort: 8082
+  selector:
+    pavedroad.service: {{.Name}}
+  type: NodePort
+status:
+  loadBalancer: {}
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

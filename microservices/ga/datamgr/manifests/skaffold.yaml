@@ -7,11 +7,11 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: localhost:32000/{{.Organization}}/{{.Name}}
+  - image: localhost:32000/{{.GitHubOrg}}/{{.Name}}
     context: .
     docker:
       dockerfile: manifests/Dockerfile
-  - image: localhost:32000/{{.Organization}}/{{.Name}}initdb
+  - image: localhost:32000/{{.GitHubOrg}}/{{.Name}}initdb
     context: .
     docker:
       dockerfile: manifests/InitDbDockerFile
@@ -27,4 +27,19 @@ profiles:
       kustomize:
         paths:
         - "manifests/kubernetes/dev-debug"
+  - name: staging
+    build:
+      artifacts:
+      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}
+        context: .
+        docker:
+          dockerfile: manifests/Dockerfile
+      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}initdb
+        context: .
+        docker:
+          dockerfile: manifests/InitDbDockerFile
+    deploy:
+      kustomize:
+        paths:
+        - "manifests/kubernetes/stag"
 {{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

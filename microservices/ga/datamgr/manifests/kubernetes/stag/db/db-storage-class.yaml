@@ -1,0 +1,15 @@
+{{ define "manifests/kubernetes/stag/db/db-storage-class.yaml"}}
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp2-ext4-delete-immediate-no-encrypt
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp2
+  fstype: ext4
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+mountOptions:
+volumeBindingMode: Immediate
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}
+

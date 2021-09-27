@@ -1,0 +1,6 @@
+{{ define "manifests/kubernetes/stag/namespace.yaml"}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pavedroad
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

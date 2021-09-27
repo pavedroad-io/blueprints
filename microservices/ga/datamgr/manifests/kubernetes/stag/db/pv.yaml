@@ -1,0 +1,15 @@
+{{ define "manifests/kubernetes/stag/db/pv.yaml"}}
+apiVersion: "v1"
+kind: "PersistentVolume"
+metadata:
+  name: "db-drive-1"
+spec:
+  capacity:
+    storage: "10Gi" 
+  accessModes:
+    - "ReadWriteOnce"
+  awsElasticBlockStore: 
+    volumeID: "vol-012b5ec801af8fcf3" 
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

@@ -1,0 +1,42 @@
+{{ define "manifests/kubernetes/stag/db/stagging-db-deployment.yaml"}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    pavedroad.service: stagging-db 
+  name:  stagging-db
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      pavedroad.service: stagging-db
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        pavedroad.service: stagging-db
+    spec:
+      containers:
+      - args:
+        - start-single-node
+        - --insecure
+        image: cockroachdb/cockroach
+        name: stagging-db
+        tty: true
+        stdin: true
+        ports:
+        - containerPort: 26257
+        - containerPort: 8080
+        resources: {}
+        volumeMounts:
+        - mountPath: /cockroach/cockroach-data
+          name: stagging-db
+      restartPolicy: Always
+      volumes:
+      - name: stagging-db
+        awsElasticBlockStore:
+          volumeID: "vol-012b5ec801af8fcf3"
+          fsType: ext4
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

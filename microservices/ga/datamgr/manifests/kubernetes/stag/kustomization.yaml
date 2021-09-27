@@ -1,0 +1,22 @@
+{{ define "manifests/kubernetes/stag/kustomization.yaml"}}
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: {{.Namespace}}
+
+bases:
+  - kafka
+  - db
+  - {{.Name}}
+  - ingress
+
+resources:
+  - namespace.yaml
+
+commonLabels:
+  pavedroad.env: stagging
+
+commonAnnotations:
+  pavedroad.kustomize.base: {{.Name}}/manifests/kubernetes/stag
+  pavedroad.kustomize.bases: "{{.Name}},db,kafka"
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

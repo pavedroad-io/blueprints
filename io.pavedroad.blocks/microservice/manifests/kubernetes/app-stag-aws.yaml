@@ -1,0 +1,58 @@
+apiversion: v1beta
+kind: TemplateBlock
+metadata:
+  labels:
+  - pavedroad
+  - skaffold
+  - kubernetes
+  - kustomize
+  - stag
+  - app
+  - aws
+  tags:
+  - pavedroad
+  - skaffold
+  - kubernetes
+  - kustomize
+  - app
+  - stag
+  - aws
+  information:
+    description: Kustomize files for deploying an application into an AWS staging environment
+    title: Kustomize files for deploying an application into an AWS staging environment
+    contact:
+      author: John Scharber
+      organization: PavedRoad
+      email: support@pavedroad.io
+      website: www.pavedroad.io
+      support: pavedroad-io.slack.com
+id: cache://io.pavedroad.blocks/microservice/manifests/kubernetes/app-only
+family: pavedroad/microservice/blocks/manifests/kubernetes
+usagerights:
+  termsofservice: As is
+  licenses: Apache 2
+  contributelink: ""
+  accesstoken: ""
+imports: []
+baseDirectory: io.pavedroad.blocks/microservice/manifests/kubernetes/app-only
+homeDirectory: manifests/kubernetes/stag/template
+templateMap:
+  - fileName: kustomization-stag-aws.tpl
+    outputFileName: kustomization.yaml
+    outputType: OutputFile
+    description: Kustomzation file
+    templateFunction: stringFunctionMap()
+  - fileName: template-deployment-stag-aws.tpl
+    outputFileName: template-deployment-stag-aws.yaml
+    outputType: OutputFile
+    description: Kubernetes manifest
+    templateFunction: stringFunctionMap()
+  - fileName: template-service-stag-aws.tpl
+    outputFileName: template-service-stag-aws.yaml
+    outputType: OutputFile
+    description: Kubernetes manifest
+    templateFunction: stringFunctionMap()
+templateExports:
+  - templateVar: "{{.Name}}"
+  - templateVar: "{{.SkaffoldVersion}}"
+  - templateVar: "{{.Organization}}"

@@ -16,7 +16,7 @@ MAINTAINER "support@pavedroad.io"
 ENV scripts dev/db
 ENV cmd {{.Name}}ExecuteAll.sh
 
-# make working directory, move to it, and copy in prToken ms
+# make working directory, and copy the microservice into it
 RUN mkdir -p pavedroad
 WORKDIR pavedroad
 COPY dev/db .
