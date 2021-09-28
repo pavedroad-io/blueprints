@@ -4,5 +4,5 @@ aws ec2 create-volume \
   --availability-zone us-west-1b \
   --size 10 \
   --volume-type gp3 \
-  --tag-specifications 'ResourceType=volume,Tags=[{Key=env,Value=stagging},{Key=Name,Value=staging-db}]' 
+  --tag-specifications 'ResourceType=volume,Tags=[{Key=env,Value=staging},{Key=Name,Value=staging-db}]' 
 {{end}}{{/* vim: set filetype=gotexttmpl: */ -}}
