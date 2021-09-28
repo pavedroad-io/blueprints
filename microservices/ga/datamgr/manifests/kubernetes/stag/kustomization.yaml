@@ -5,18 +5,13 @@ kind: Kustomization
 namespace: {{.Namespace}}
 
 bases:
-  - kafka
-  - db
   - {{.Name}}
   - ingress
 
-resources:
-  - namespace.yaml
-
 commonLabels:
-  pavedroad.env: stagging
+  pavedroad.env: staging
 
 commonAnnotations:
   pavedroad.kustomize.base: {{.Name}}/manifests/kubernetes/stag
-  pavedroad.kustomize.bases: "{{.Name}},db,kafka"
+  pavedroad.kustomize.bases: "{{.Name}}"
 {{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

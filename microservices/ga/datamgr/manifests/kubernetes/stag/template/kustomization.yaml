@@ -14,7 +14,9 @@ commonAnnotations:
 configMapGenerator:
 - name: {{.Name}}-configmap
   literals:
-  - database-ip=stagging-db
+  - database-ip=staging-db
   - ip=0.0.0.0
   - port=8082
+  - host-ip=staging-db.pavedroad
+
 {{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

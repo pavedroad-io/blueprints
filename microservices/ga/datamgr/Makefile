@@ -10,7 +10,7 @@ TARGET := $(PROJECTNAME)
 K8SRUNNING := $(shell dev/microk8sStatus.sh)
 VOLS := $(PROJDIR)/volumes
 export DOCKER_IP = `(dev/getdockerip.sh)`
-export ROACH_VOLUME_DIR=/tmp
+export ROACH_VOLUME_DIR=$(HOME)/volumes
 
 ASSETS := $(PROJDIR)/assets/images
 ARTIFACTS := $(PROJDIR)/artifacts
@@ -140,7 +140,7 @@ tilt-down:
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
 	$(shell (export GOPATH=$(GOPATH);swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
-	$(shell (grep -qxF definitions: docs/api.json || cat docs/api.json | jq '. + {definitions: {}}' > docs/fix.json;mv docs/fix.json docs/api.json))
+	$(shell (cat docs/api.json | jq '.definitions' > /dev/null || cat docs/api.json | jq '. + {definitions: {}}' > docs/fi  x.json;mv docs/fix.json docs/api.json))
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"

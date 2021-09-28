@@ -30,11 +30,11 @@ profiles:
   - name: staging
     build:
       artifacts:
-      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}
+      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.staging/{{.Name}}
         context: .
         docker:
           dockerfile: manifests/Dockerfile
-      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}initdb
+      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.staging/{{.Name}}initdb
         context: .
         docker:
           dockerfile: manifests/InitDbDockerFile
