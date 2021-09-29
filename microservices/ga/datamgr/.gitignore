@@ -13,6 +13,10 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# PR files
+.pr_git_initialize_file
+.pr_preflight_check
+
 /builds/*
 /docs/*
 /vendor/*

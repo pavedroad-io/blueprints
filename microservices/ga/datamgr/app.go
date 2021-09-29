@@ -198,10 +198,17 @@ func (a *{{.NameExported}}App) initializeRoutes() {
     {{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.options{{.NameExported}}).Methods("OPTIONS")
 
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
+    {{.NameExported}}ResourceType + "/"
+  a.Router.HandleFunc(uri, a.options{{.NameExported}}).Methods("OPTIONS")
+
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
+    {{.NameExported}}ResourceType
+  a.Router.HandleFunc(uri, a.options{{.NameExported}}).Methods("OPTIONS")
 }
 
 {{.GetAllSwaggerDoc}}
-// list{{.NameExported}} swagger:route GET /api/v1/namespace/pavedroad.io/{{.NameExported}}LIST {{.Name}} list{{.Name}}
+// list{{.NameExported}} swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}LIST {{.Name}} list{{.Name}}
 //
 // Returns a list of {{.Name}}
 //
@@ -238,7 +245,7 @@ func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *h
 }
 
 {{.GetSwaggerDoc}}
-// get{{.NameExported}} swagger:route GET /api/v1/namespace/pavedroad.io/{{.NameExported}}/{key} {{.Name}} get{{.Name}}
+// get{{.NameExported}} swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{key} {{.Name}} get{{.Name}}
 //
 // Returns a {{.Name}} given a key, where key is a UUID
 //
@@ -275,7 +282,7 @@ func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *ht
 }
 
 {{.PostSwaggerDoc}}
-// create{{.NameExported}} swagger:route POST /api/v1/namespace/pavedroad.io/{{.NameExported}} {{.Name}} create{{.Name}}
+// create{{.NameExported}} swagger:route POST /api/v1/namespace/{{.Namespace}}/{{.NameExported}} {{.Name}} create{{.Name}}
 //
 // Create a new {{.Name}}
 //
@@ -299,8 +306,9 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
 
   err = json.Unmarshal(htmlData, &{{.Name}})
   if err != nil {
-    log.Println(err)
-    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	msg := fmt.Sprintf("Invalid request payload %v\n", err)
+    log.Println(msg)
+    respondWithError(w, http.StatusBadRequest, msg)
 	return
   }
 
@@ -322,7 +330,7 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
 }
 
 {{.PutSwaggerDoc}}
-// update{{.NameExported}} swagger:route PUT /api/v1/namespace/pavedroad.io/{{.NameExported}}/{key} {{.Name}} update{{.Name}}
+// update{{.NameExported}} swagger:route PUT /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{key} {{.Name}} update{{.Name}}
 //
 // Update a {{.Name}} specified by key, where key is a UUID
 //
@@ -348,7 +356,9 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
 
   err = json.Unmarshal(htmlData, &{{.Name}})
   if err != nil {
-    log.Println(err)
+	msg := fmt.Sprintf("Invalid request payload %v\n", err)
+    log.Println(msg)
+    respondWithError(w, http.StatusBadRequest, msg)
     return
   }
 
@@ -367,7 +377,7 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
 }
 
 {{.DeleteSwaggerDoc}}
-// delete{{.NameExported}} swagger:route DELETE /api/v1/namespace/pavedroad.io/{{.NameExported}}/{key} {{.Name}} delete{{.Name}}
+// delete{{.NameExported}} swagger:route DELETE /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{key} {{.Name}} delete{{.Name}}
 //
 // Update a {{.Name}} specified by key, which is a uuid
 //
@@ -395,7 +405,7 @@ func (a *{{.NameExported}}App) delete{{.NameExported}}(w http.ResponseWriter, r 
   respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
-// options{{.NameExported}} swagger:route OPTIONS /api/v1/namespace/pavedroad.io/{{.NameExported}}/ {{.Name}} options{{.Name}}
+// options{{.NameExported}} swagger:route OPTIONS /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/ {{.Name}} options{{.Name}}
 //
 // OPTIONS for browser pre-fligth checks on update operations
 //

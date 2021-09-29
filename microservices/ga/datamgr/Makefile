@@ -140,7 +140,8 @@ tilt-down:
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
 	$(shell (export GOPATH=$(GOPATH);swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
-	$(shell (cat docs/api.json | jq '.definitions' > /dev/null || cat docs/api.json | jq '. + {definitions: {}}' > docs/fi  x.json;mv docs/fix.json docs/api.json))
+	@dev/apifix.sh
+
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"
