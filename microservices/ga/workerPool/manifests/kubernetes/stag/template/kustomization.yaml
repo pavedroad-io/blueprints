@@ -1,4 +1,4 @@
-{{define "manifests/kubernetes/dev/template/kustomization.yaml"}}
+{{ define "manifests/kubernetes/stag/template/kustomization.yaml"}}
 resources:
   - {{.Name}}-deployment.yaml
   - {{.Name}}-service.yaml
@@ -7,13 +7,16 @@ commonLabels:
   pavedroad.service: {{.Name}}
 
 commonAnnotations:
-  pavedroad.roadctl.version: alphav1
+  pavedroad.roadctl.version: v1.0.0beta
   pavedroad.roadctl.web: www.pavedroad.io
   pavedroad.roadctl.support: support@pavedroad.io
 
 configMapGenerator:
 - name: {{.Name}}-configmap
   literals:
+  - database-ip=staging-db
   - ip=0.0.0.0
   - port={{.HTTPPort}}
+  - host-ip=staging-db.pavedroad
+
 {{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

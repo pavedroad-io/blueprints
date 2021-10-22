@@ -16,6 +16,7 @@ build:
     docker:
       dockerfile: manifests/InitDbDockerFile
 deploy:
+  kubeContext: microk8s
   kustomize:
     paths:
     - "manifests/kubernetes/dev"
@@ -39,6 +40,7 @@ profiles:
         docker:
           dockerfile: manifests/InitDbDockerFile
     deploy:
+      kubeContext: john.scharber@eo-stagging.us-west-1.eksctl.io
       kustomize:
         paths:
         - "manifests/kubernetes/stag"

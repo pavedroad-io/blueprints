@@ -5,9 +5,9 @@ metadata:
   name: {{.Info.Name | ToLower}}
 spec:
   ports:
-  - name: "8081"
-    port: 8081
-    targetPort: 8081
+  - name: "{{.Project.Config.HTTPPort}}"
+    port: {{.Project.Config.HTTPPort}}
+    targetPort: {{.Project.Config.HTTPPort}}
   selector:
     pavedroad.service: {{.Info.Name | ToLower}}
   type: NodePort

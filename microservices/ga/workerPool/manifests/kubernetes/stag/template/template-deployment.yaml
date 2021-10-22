@@ -1,4 +1,4 @@
-{{define "manifests/kubernetes/dev/template/template-deployment.yaml"}}
+{{ define "manifests/kubernetes/stag/template/template-deployment.yaml"}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,8 +16,22 @@ spec:
         pavedroad.service: {{.Name}}
     spec:
       containers:
-      - image: localhost:32000/{{.Organization}}/{{.Name}}:0.0
+      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.staging/{{.Name}}
         env:
+        - name: PRLOG_AUTOINIT
+          value: "true"
+        - name: PRLOG_CFGTYPE
+          value: "env"
+        - name: PRLOG_ENABLEKAFKA
+          value: "false"
+        - name: PRLOG_FILEFORMAT
+          value: "text"
+        - name: PRLOG_FILELOCATION
+          value: "logs/{{.Name}}.log"
+        - name: PRKAFKA_BROKERS
+          value: "kafka:9092"
+        - name: PR_BACKEND_END
+          value: "prod"
         - name: HTTP_IP_ADDR
           valueFrom:
             configMapKeyRef:

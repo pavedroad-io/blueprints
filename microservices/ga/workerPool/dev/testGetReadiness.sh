@@ -1,8 +1,8 @@
 {{define "dev/testGetReadiness.sh"}}#!/bin/bash
-# curl -v http://127.0.0.1:8081/api/v1/namespace/mirantis/eventCollector/ready
+# curl -v http://127.0.0.1:{{.HTTPPort}}/api/v1/namespace/mirantis/eventCollector/ready
 
 host=127.0.0.1
-port=8081
+port={{.HTTPPort}}
 service="{{.NameExported}}"
 namespace="{{.Namespace}}"
 

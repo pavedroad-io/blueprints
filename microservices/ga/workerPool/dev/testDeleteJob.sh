@@ -1,7 +1,7 @@
 {{define "dev/testDeleteJob.sh"}}#!/bin/bash
 
 host=127.0.0.1
-port=8081
+port={{.HTTPPort}}
 service="{{.NameExported}}"
 namespace="{{.Namespace}}"
 uuid=""

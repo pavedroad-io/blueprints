@@ -1,4 +1,5 @@
-{{define "manifests/kubernetes/dev/template/template-service.yaml"}}
+{{ define "manifests/kubernetes/stag/template/template-service.yaml"}}
+
 apiVersion: v1
 kind: Service
 metadata:

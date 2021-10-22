@@ -16,7 +16,7 @@ configMapGenerator:
 - name: {{.Info.Name | ToLower}}-configmap
   literals:
   - ip=0.0.0.0
-  - port=8081
+  - port={{.Project.Config.HTTPPort}}
   - prlog-auto-init=true
   - prlog-conf-type=env
   - prlog-enable-kafka=true
