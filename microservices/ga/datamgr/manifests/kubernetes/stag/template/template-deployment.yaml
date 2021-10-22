@@ -18,24 +18,24 @@ spec:
       initContainers:
       - image: busybox:1.28
         name: wait-for-cockroach
-        command: ['sh', '-c', 'until nslookup stagging-db; do echo waiting for stagging-db; sleep 2; done;']
-      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}initdb
+        command: ['sh', '-c', 'until nslookup staging-db; do echo waiting for staging-db; sleep 2; done;']
+      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.staging/{{.Name}}initdb
         env:
         - name: COCKROACH_HOST
           valueFrom:
             configMapKeyRef:
-              name: cockroach-configmap
-              key: host-ip
+              name: {{.Name}}-configmap
+              key: database-ip
         name: {{.Name}}dbinit
       containers:
-      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}
+      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.staging/{{.Name}}
         env:
         - name: PRLOG_AUTOINIT
           value: "true"
         - name: PRLOG_CFGTYPE
           value: "env"
         - name: PRLOG_ENABLEKAFKA
-          value: "true"
+          value: "false"
         - name: PRLOG_FILEFORMAT
           value: "text"
         - name: PRLOG_FILELOCATION

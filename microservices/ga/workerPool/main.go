@@ -1,4 +1,4 @@
-{{define "templateMain.go"}}{{.PavedroadInfo}}
+{{define "main.go"}}{{.PavedroadInfo}}
 
 // {{.ProjectInfo}}
 
@@ -88,7 +88,7 @@ type httpConfig struct {
 }
 
 // Set default http configuration
-var httpconf = httpConfig{ip: "127.0.0.1", port: "8081", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "127.0.0.1:8081", logPath: "logs/", diagnosticsFile: "diagnostics.log", accessFile: "access.log"}
+var httpconf = httpConfig{ ip: "{{.HTTPHost}}", port: "{{.HTTPPort}}", shutdownTimeout: 15, readTimeout: 60, writeTimeout: 60, listenString: "{{.HTTPHost}}:{{.HTTPPort}}", logPath: "logs/", diagnosticsFile: "diagnostics.log", accessFile: "access.log"}
 
 // shutdownTimeout will be initialized based on the default or HTTP_SHUTDOWN_TIMEOUT
 var shutdowTimeout time.Duration
@@ -105,7 +105,7 @@ var Build string
 // printVersion
 func printVersion() {
 	fmt.Printf("{\"Version\": \"%v\", \"Build\": \"%v\", \"GitTag\": \"%v\"}\n",
-		Version, Build, GitTag)
+	Version, Build, GitTag)
 	os.Exit(0)
 }
 

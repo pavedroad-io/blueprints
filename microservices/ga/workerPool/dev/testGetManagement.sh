@@ -1,8 +1,8 @@
 {{define "dev/testGetManagement.sh"}}#!/bin/bash
-# curl -v http://127.0.0.1:8081/api/v1/namespace/mirantis/eventCollector/management
+# curl -v http://127.0.0.1:{{.HTTPPort}}/api/v1/namespace/mirantis/eventCollector/management
 
 host=127.0.0.1
-port=8081
+port={{.HTTPPort}}
 service="{{.NameExported}}"
 namespace="{{.Namespace}}"
 

@@ -1,4 +1,4 @@
-{{define "templateScheduler.go"}}{{.PavedroadInfo}}
+{{define "schedulerInterface.go"}}{{.PavedroadInfo}}
 package main
 
 import "os"

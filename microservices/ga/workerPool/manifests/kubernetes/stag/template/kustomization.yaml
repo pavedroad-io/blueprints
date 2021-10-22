@@ -16,7 +16,7 @@ configMapGenerator:
   literals:
   - database-ip=staging-db
   - ip=0.0.0.0
-  - port=8082
+  - port={{.HTTPPort}}
   - host-ip=staging-db.pavedroad
 
 {{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

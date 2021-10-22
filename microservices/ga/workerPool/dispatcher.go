@@ -1,4 +1,4 @@
-{{define "templateDispatcher.go"}}package main
+{{define "dispatcher.go"}}package main
 
 import (
 	"encoding/json"
@@ -59,6 +59,23 @@ type managementGetResponse struct {
 	// Fields is a list of fields that can be changed
 	Fields []string `json:"fields"`
 }
+
+// A []listJobsResponse is a single job but returned as a list
+//
+// swagger:response listJobResponse
+type listJobsResponse struct {
+       // in: body
+
+       //ID: uuid for this job
+       ID string `json:"id"`
+
+       // URL for this http request
+       URL string `json:"url"`
+
+       //Type: of job the represents
+       Type string `json:"type"`
+}
+
 
 // get404Response Not found
 //

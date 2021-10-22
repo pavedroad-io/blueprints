@@ -10,7 +10,7 @@ TARGET := $(PROJECTNAME)
 K8SRUNNING := $(shell dev/microk8sStatus.sh)
 VOLS := $(PROJDIR)/volumes
 export DOCKER_IP = `(dev/getdockerip.sh)`
-export ROACH_VOLUME_DIR=/tmp
+export ROACH_VOLUME_DIR=$(HOME)/volumes
 
 ASSETS := $(PROJDIR)/assets/images
 ARTIFACTS := $(PROJDIR)/artifacts
@@ -18,17 +18,12 @@ BUILDS := $(PROJDIR)/builds
 DOCS := $(PROJDIR)/docs
 LOGS := $(PROJDIR)/logs
 VOLS := $(PROJDIR)/volumes
-GITTEST := .git/HEAD
 FOSSATEST := .fossa.yml
 PREFLIGHT := .pr_preflight_check
 
 # Go related variables.
 GOBASE := $(shell cd ../../;pwd)
-GOPATH := $(GOBASE)
-export GOPATH = $(GOBASE)
-
-#unexport Go modules needed if it is set true globally
-unexport GO111MODULE
+#GOPATH := $(GOBASE)
 
 GOBIN := $(GOBASE)/bin
 GOFILES := $(wildcard *.go)
@@ -59,7 +54,6 @@ LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD) -X=main.GitT
 compile: $(LOGS) $(ARTIFACTS) $(ASSETS) $(DOCS) $(BUILDS) api-doc mod-graph
 	@echo "  Compiling"
 	@-$(MAKE) -s build
-	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
 
 ## clean: Remove dep, vendor, binary(s), and executes go clean
 clean:
@@ -140,7 +134,8 @@ tilt-down:
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
 	$(shell (export GOPATH=$(GOPATH);swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
-	$(shell (grep -qxF definitions: docs/api.json || cat docs/api.json | jq '. + {definitions: {}}' > docs/fix.json;mv docs/fix.json docs/api.json))
+	@dev/apifix.sh
+
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"

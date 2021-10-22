@@ -10,7 +10,7 @@ services:
      - 8081:8081
     environment:
      - HTTP_IP_ADDR=0.0.0.0
-     - HTTP_IP_PORT=8081
+     - HTTP_IP_PORT={{.Project.Config.HTTPPort}}
      - APP_DB_IP=manifests_roach-ui_1
      - PRLOG_AUTOINIT=true
      - PRLOG_CFGTYPE=env

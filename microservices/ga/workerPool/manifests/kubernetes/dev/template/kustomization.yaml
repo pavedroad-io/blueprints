@@ -15,5 +15,5 @@ configMapGenerator:
 - name: {{.Name}}-configmap
   literals:
   - ip=0.0.0.0
-  - port=8081
+  - port={{.HTTPPort}}
 {{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

@@ -17,12 +17,12 @@ spec:
           service:
             name: {{.Info.Name}}
             port:
-              number: 8082
+              number: {{.Project.Config.HTTPPort}}
       - path: /api/v1/namespace/{{.Project.Kubernetes.Namespace}}/{{.Info.Name | ToLower}}LIST
         pathType: Prefix
         backend:
           service:
             name: {{.Info.Name | ToLower}}
             port:
-              number: 8082
+              number: {{.Project.Config.HTTPPort}}
 {{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

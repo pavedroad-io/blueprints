@@ -1,4 +1,4 @@
-{{define "templateHook.go"}}
+{{define "hooks.go"}}
 package main
 
 import (
