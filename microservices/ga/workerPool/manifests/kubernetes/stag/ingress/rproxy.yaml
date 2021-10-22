@@ -18,12 +18,12 @@ spec:
           service:
             name: {{.Name}}
             port:
-              number: 8082
+              number: {{.HTTPPort}}
       - path: /api/v1/namespace/{{.Namespace}}/{{.Name}}LIST
         pathType: Prefix
         backend:
           service:
             name: {{.Name}}
             port:
-              number: 8082
+              number: {{.HTTPPort}}
 {{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

@@ -1,4 +1,4 @@
-{{define "templateMetric.go"}}package main
+{{define "metricInterface.go"}}package main
 
 // Metric returns metrics for a given function
 type Metric interface {

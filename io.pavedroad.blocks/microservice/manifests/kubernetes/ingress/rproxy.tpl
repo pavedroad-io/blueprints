@@ -11,18 +11,18 @@ spec:
   - host: api.pavedroad.io
     http:
       paths:
-      - path: /api/v1/namespace/{{.Project.Kubernetes.Namespace}}/{{.Info.Name | ToLower}}
+      - path: /api/v1/namespace/{{.Project.Kubernetes.Namespace}}/{{.Info.Name | ToCamel}}
         pathType: Prefix
         backend:
           service:
             name: {{.Info.Name}}
             port:
-              number: 8082
-      - path: /api/v1/namespace/{{.Project.Kubernetes.Namespace}}/{{.Info.Name | ToLower}}LIST
+              number: {{.Project.Config.HTTPPort}}
+      - path: /api/v1/namespace/{{.Project.Kubernetes.Namespace}}/{{.Info.Name | Camel}}LIST
         pathType: Prefix
         backend:
           service:
             name: {{.Info.Name | ToLower}}
             port:
-              number: 8082
+              number: {{.Project.Config.HTTPPort}}
 {{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

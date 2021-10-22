@@ -2,7 +2,8 @@
 
 VERSION := {{.Version}}
 BUILD := $(shell git rev-parse --short HEAD)
-PROJECTNAME := $(shell basename "$(PWD)")
+#PROJECTNAME := $(shell basename "$(PWD)")
+PROJECTNAME := {{.Name}}
 PROJDIR := $(shell pwd)
 TARGET := $(PROJECTNAME)
 
@@ -19,7 +20,7 @@ PREFLIGHT := .pr_preflight_check
 
 # Go related variables.
 GOBASE := $(shell cd ../../;pwd)
-GOPATH := $(GOBASE)
+#GOPATH := $(GOBASE)
 export DOCKER_IP = `(dev/getdockerip.sh)`
 GOBIN := $(GOBASE)/bin
 GOFILES := $(wildcard *.go)
@@ -32,7 +33,7 @@ GOSECREPORT := $(ARTIFACTS)/gosec.out
 GOVETREPORT := $(ARTIFACTS)/govet.out
 GOTESTREPORT := https://sonarcloud.io/dashboard?id={{.SonarPrefix}}{{.Name}}
 
-GIT_TAG := $(shell git describe)
+GIT_TAG := $(shell git describe 2> /dev/null)
 
 SHELL := /bin/bash
 
@@ -59,7 +60,7 @@ clean:
 
 ## build: Build the binary for linux / mac x86 and amd
 	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
-build: mod-setup
+build: mod-setup import-check
 	@echo "  >  Building binary..."
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(GOBIN)/$(PROJECTNAME)-$(GOOS)-$(GOARCH) $(GOFILES)
 # make this conditional on build GOARCH
@@ -118,7 +119,7 @@ dev-mode:
 	skaffold dev -f manifests/skaffold.yaml
 
 ## tilt-up: Start service using Tilt UI
-tilt-up: dbclean
+tilt-up:
 	@echo "  >  Start with Tilt UI..."
 	@tilt up
 
@@ -130,7 +131,8 @@ tilt-down:
 api-doc: $(DOCS)
 	@echo "  >  Generate swagger specification..."
 	$(shell (export GOPATH=$(GOPATH);swagger generate spec -m -t $(PROJECTNAME) -o docs/api.json))
-	$(shell (grep -q '"definitions": {' docs/api.json || sed -i -e 's/"swagger": "2.0",/"swagger": "2.0",\n"definitions": { "Streams": { "type": "object", "allOf": [ { "properties": {} } ] } },/' docs/api.json))
+	@dev/apifix.sh
+
 	@echo "  >  Generate HTML..."
 	pretty-swag -i docs/api.json -o docs/api.html
 	@echo "  >  Done"
@@ -138,6 +140,10 @@ api-doc: $(DOCS)
 ## install: Install packages or main
 install:
 	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go install $(GOFILES)
+
+import-check: $(GOFILES)
+	@echo "  >  Valiate Go imports"
+	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) goimports -w $(GOFILES)
 
 go-clean:
 	@echo "  >  Cleaning build cache"
@@ -211,11 +217,11 @@ help: Makefile
 
 ## docker-build: Build docker images for use with docker-compose
 docker-build:
-	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}} .
-	docker build -f manifests/Dockerfile -t acme-demo/{{.Name}}initdb .
+	docker build -f manifests/Dockerfile -t {{.GitHubOrg}}/{{.Name}} .
+	docker build -f manifests/Dockerfile -t {{.GitHubOrg}}/{{.Name}}initdb .
 
 ## up: Start service using docker-compose
-up: dbclean docker-build
+up: docker-build
 	docker-compose -f manifests/docker-compose.yaml up -d --remove-orphans
 
 
@@ -237,10 +243,6 @@ $(DOCS):
 
 $(LOGS):
 	$(shell mkdir -p $(LOGS))
-
-# Null target for roadctl
-dbclean:
-	@echo ""
 
 ## Preflight ensure all requirements are met
 ## Once they are the $(PREFLIGH) file will be created

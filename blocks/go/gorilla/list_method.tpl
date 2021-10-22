@@ -10,23 +10,30 @@
 
 
 func (a *{{.NameExported | ToCamel }}App)list{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
-    count, _ := strconv.Atoi(r.FormValue("count"))
-    start, _ := strconv.Atoi(r.FormValue("start"))
+    count := 10
+    start := 0
     var response []byte
 
-    if count > 10 || count < 1 {
-        count = 10
+    c := r.URL.Query().Get("count")
+    if c != "" {
+        count, _ = strconv.Atoi(c)
     }
-    if start < 0 {
-        start = 0
+    s := r.URL.Query().Get("start")
+    if s != "" {
+        start, _ = strconv.Atoi(s)
     }
 
+
     // Pre-processing hook
-    a.list{{.NameExported}}PreHook(w, r, count, start)
+    if final := a.list{{.NameExported}}PreHook(w, r, count, start); final {
+	return
+	}
 
 
     // Post-processing hook
-    a.list{{.NameExported}}PostHook(w, r)
+    if final := a.list{{.NameExported}}PostHook(w, r); final {
+	return
+	}
 
     respondWithByte(w, http.StatusOK, response)
 }

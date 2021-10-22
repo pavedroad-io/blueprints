@@ -1,4 +1,4 @@
-{{define "templateJob.go"}}package main
+{{define "jobInterface.go"}}package main
 
 // Job interface abstraction for worker pools
 // ID() a unique ID assigned to each job
@@ -11,6 +11,7 @@ type Job interface {
 	ID() string
 	Type() string
 	Init() error
+	InitWithJobChan(job chan Job) error
 	Run() (result Result, err error)
 	Pause() (status string, err error)
 	Shutdown() error

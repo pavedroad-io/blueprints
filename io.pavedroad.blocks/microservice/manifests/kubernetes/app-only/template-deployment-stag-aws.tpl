@@ -60,7 +60,7 @@ spec:
               key: prlog-kafka-brokers
         name: {{.Info.Name | ToLower}}
         ports:
-        - containerPort: 8081
+        - containerPort: {{.Project.Config.HTTPPort}}
         resources: {}
       restartPolicy: Always
 status: {}

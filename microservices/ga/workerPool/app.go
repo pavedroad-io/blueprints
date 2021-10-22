@@ -1,4 +1,4 @@
-{{define "templateApp.go"}}{{.PavedroadInfo}}
+{{define "app.go"}}{{.PavedroadInfo}}
 
 // User project / copyright / usage information
 // {{.ProjectInfo}}
@@ -23,6 +23,7 @@ import (
 )
 
 // Initialize setups database connection object and the http server
+
 func (a *{{.NameExported}}App) Initialize() {
 
 	// set k8s probe
@@ -36,12 +37,12 @@ func (a *{{.NameExported}}App) Initialize() {
 	a.Scheduler = &{{.SchedulerName}}{}
 
 	dConf := &dispatcherConfiguration{
-		scheduler:           a.Scheduler,
-		sizeOfJobChannel:    SizeOfJobChannel,
+		scheduler:			 a.Scheduler,
+		sizeOfJobChannel:	 SizeOfJobChannel,
 		sizeOfResultChannel: SizeOfResultChannel,
-		numberOfWorkers:     NumberOfWorkers,
-		gracefulShutdown:    GracefullShutdown,
-		hardShutdown:        HardShutdown,
+		numberOfWorkers:	 NumberOfWorkers,
+		gracefulShutdown:	 GracefullShutdown,
+		hardShutdown:		 HardShutdown,
 	}
 
 	a.Dispatcher.Init(dConf)
@@ -55,7 +56,6 @@ func (a *{{.NameExported}}App) Initialize() {
 	}
 	go a.Scheduler.Run()
 
-	a.Ready = true
 	// Start rest end points
 	httpconf.listenString = fmt.Sprintf("%s:%s", httpconf.ip, httpconf.port)
 	a.Router = mux.NewRouter()
@@ -66,18 +66,19 @@ func (a *{{.NameExported}}App) Initialize() {
 func (a *{{.NameExported}}App) Run(addr string) {
 
 	log.Println("Listing at: " + addr)
-	// Wrap router with W3C logging
 
+	// Wrap router with W3C logging
 	lf, _ := os.OpenFile("logs/access.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 
 	loggedRouter := handlers.LoggingHandler(lf, a.Router)
 	srv := &http.Server{
-		Handler:      loggedRouter,
-		Addr:         addr,
+		Handler:	  loggedRouter,
+		Addr:		  addr,
 		WriteTimeout: httpconf.writeTimeout * time.Second,
 		ReadTimeout:  httpconf.readTimeout * time.Second,
 	}
 
+	a.Ready = true
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
@@ -99,10 +100,10 @@ func (a *{{.NameExported}}App) Run(addr string) {
 	// until the timeout deadline.
 	err := srv.Shutdown(ctx)
 	if err == nil {
-                log.Println("Shutting Down...")
-        } else {
-                log.Println("Shutting Down...", err)
-        }
+		log.Println("Shutting Down...")
+	} else {
+		log.Println("Shutting Down...", err)
+	}
 
 	os.Exit(0)
 }
@@ -296,7 +297,7 @@ func (a *{{.NameExported}}App) initializeRoutes() {
 //
 // Responses:
 //				200: listJobResponse
-//        		500: genericError
+//				500: genericError
 
 func (a *{{.NameExported}}App) listJobs(w http.ResponseWriter, r *http.Request) {
 	count, _ := strconv.Atoi(r.FormValue("count"))
@@ -384,9 +385,9 @@ func (a *{{.NameExported}}App) getSchedule(w http.ResponseWriter, r *http.Reques
 	// Pre-processing hook
 	getSchedulePreHook(w, r, key)
 
-  status, respBody, e := a.Scheduler.GetSchedule()
-  if e != nil {
-    log.Println(e)
+	status, respBody, e := a.Scheduler.GetSchedule()
+	if e != nil {
+		log.Println(e)
   }
 
 	// Pre-processing hook
@@ -549,9 +550,9 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 		time.Sleep(time.Duration(a.Dispatcher.conf.gracefulShutdown) * time.Second)
 		e = syscall.Kill(syscall.Getpid(), syscall.SIGINT)
 		if e != nil {
-                        msg := fmt.Sprintf("{\"error\": \"Shutting down with\", \"Error\": \"%v\"}", e.Error())
-                        log.Println("shutdown error:", msg)
-                }
+			msg := fmt.Sprintf("{\"error\": \"Shutting down with\", \"Error\": \"%v\"}", e.Error())
+			log.Println("shutdown error:", msg)
+		}
 
 	}
 
@@ -561,9 +562,9 @@ func (a *{{.NameExported}}App) putManagement(w http.ResponseWriter, r *http.Requ
 		time.Sleep(time.Duration(a.Dispatcher.conf.hardShutdown) * time.Second)
 		e = syscall.Kill(syscall.Getpid(), syscall.SIGINT)
 		if e != nil {
-                        msg := fmt.Sprintf("{\"error\": \"Shutting down with\", \"Error\": \"%v\"}", e.Error())
-                        log.Println("shutdown_now error:", msg)
-                }
+						msg := fmt.Sprintf("{\"error\": \"Shutting down with\", \"Error\": \"%v\"}", e.Error())
+						log.Println("shutdown_now error:", msg)
+				}
 
 	}
 
@@ -778,9 +779,9 @@ func respondWithByte(w http.ResponseWriter, code int, payload []byte) {
 	w.WriteHeader(code)
 	_, e := w.Write(payload)
 	if e != nil {
-                msg := fmt.Sprintf("{\"error\": \"payload error: \", \"Error\": \"%v\"}", e.Error())
-                log.Println("respondWithByte error:", msg)
-        }
+				msg := fmt.Sprintf("{\"error\": \"payload error: \", \"Error\": \"%v\"}", e.Error())
+				log.Println("respondWithByte error:", msg)
+		}
 }
 
 // respondWithJSON will Marshal the payload
@@ -791,9 +792,9 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.WriteHeader(code)
 	_, e := w.Write(response)
 	if e != nil {
-                msg := fmt.Sprintf("{\"error\": \"payload error: \", \"Error\": \"%v\"}", e.Error())
-                log.Println("respondWithByte error:", msg)
-        }
+				msg := fmt.Sprintf("{\"error\": \"payload error: \", \"Error\": \"%v\"}", e.Error())
+				log.Println("respondWithByte error:", msg)
+		}
 
 }
 

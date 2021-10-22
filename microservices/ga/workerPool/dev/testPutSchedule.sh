@@ -6,7 +6,7 @@
 #}
 
 host=127.0.0.1
-port=8081
+port={{.HTTPPort}}
 service="{{.NameExported}}"
 namespace="{{.Namespace}}"
 putdata="{\"schedule_type\": \"Constant interval scheduler\", \"send_interval_seconds\": 30}"

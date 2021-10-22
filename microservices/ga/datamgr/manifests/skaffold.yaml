@@ -16,6 +16,7 @@ build:
     docker:
       dockerfile: manifests/InitDbDockerFile
 deploy:
+  kubeContext: microk8s
   kustomize:
     paths:
     - "manifests/kubernetes/dev"
@@ -30,15 +31,16 @@ profiles:
   - name: staging
     build:
       artifacts:
-      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}
+      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.staging/{{.Name}}
         context: .
         docker:
           dockerfile: manifests/Dockerfile
-      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.stagging/{{.Name}}initdb
+      - image: 400276217548.dkr.ecr.us-west-1.amazonaws.com/io.pavedroad.staging/{{.Name}}initdb
         context: .
         docker:
           dockerfile: manifests/InitDbDockerFile
     deploy:
+      kubeContext: john.scharber@eo-stagging.us-west-1.eksctl.io
       kustomize:
         paths:
         - "manifests/kubernetes/stag"

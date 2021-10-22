@@ -1,0 +1,20 @@
+{{define "manifests/docker-app.yaml"}}
+version: '3'
+
+services:
+  {{.Name}}:
+    image: {{.GitHubOrg}}/{{.Name}}
+    expose:
+     - "{{.HTTPPort}}"
+    ports: 
+     - {{.HTTPPort}}:{{.HTTPPort}}
+    environment:
+     - HTTP_IP_ADDR={{.HTTPHost}}
+     - HTTP_IP_PORT={{.HTTPPort}}
+     - PRLOG_AUTOINIT=true
+     - PRLOG_CFGTYPE=env
+     - PRLOG_ENABLEKAFKA=false
+     - PRLOG_FILEFORMAT=text
+     - PRLOG_FILELOCATION=logs/{{.Name}}.log
+     - PRKAFKA_BROKERS=kafka:9092
+{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

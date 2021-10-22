@@ -1,8 +1,8 @@
 {{define "dev/testGetLiveness.sh"}}#!/bin/bash
-# curl -v http://127.0.0.1:8081/api/v1/namespace/mirantis/eventCollector/liveness
+# curl -v http://127.0.0.1:{{.HTTPPort}}/api/v1/namespace/mirantis/eventCollector/liveness
 
 host=127.0.0.1
-port=8081
+port={{.HTTPPort}}
 service="{{.NameExported}}"
 namespace="{{.Namespace}}"
 

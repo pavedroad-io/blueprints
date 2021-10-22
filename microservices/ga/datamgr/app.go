@@ -6,86 +6,99 @@
 package main
 
 import (
-  "context"
-  "database/sql"
-  "encoding/json"
-  "fmt"
-  "github.com/gorilla/mux"
-  "github.com/gorilla/handlers"
-
-  _ "github.com/lib/pq"
-  "io/ioutil"
-  "net/http"
-  "os"
-  "strconv"
-  "time"
-  log "github.com/pavedroad-io/go-core/logger"
+	"context"
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"github.com/gorilla/mux"
+	"github.com/gorilla/handlers"
+	
+	_ "github.com/lib/pq"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+	log "github.com/pavedroad-io/go-core/logger"
 )
 
 // Initialize setups database connection object and the http server
 //
 func (a *{{.NameExported}}App) Initialize() {
 
-  // Override defaults
-  a.initializeEnvironment()
+	// set k8s probe
+	a.Live = false
+	a.Ready = false
 
-  // Build connection strings
-  connectionString := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s host=%s port=%s",
-    dbconf.username,
-    dbconf.password,
-    dbconf.database,
-    dbconf.sslMode,
-    dbconf.ip,
-    dbconf.port)
+	// Override defaults
+	a.initializeEnvironment()
 
-  httpconf.listenString = fmt.Sprintf("%s:%s", httpconf.ip, httpconf.port)
+	// Build connection strings
+	connectionString := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s host=%s port=%s",
+		dbconf.username,
+		dbconf.password,
+		dbconf.database,
+		dbconf.sslMode,
+		dbconf.ip,
+		dbconf.port)
 
-  var err error
-  a.DB, err = sql.Open(dbconf.dbDriver, connectionString)
-  if err != nil {
-    log.Fatal(err)
-  }
+	var err error
+	a.DB, err = sql.Open(dbconf.dbDriver, connectionString)
 
-  a.Router = mux.NewRouter()
-  a.initializeRoutes()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Start rest end points
+	httpconf.listenString = fmt.Sprintf("%s:%s", httpconf.ip, httpconf.port)
+	a.Router = mux.NewRouter()
+	a.initializeRoutes()
 }
 
 // Start the server
 func (a *{{.NameExported}}App) Run(addr string) {
 
-  log.Println("Listing at: " + addr)
-      // Wrap router with W3C logging
+	log.Println("Listing at: " + addr)
 
-  lf, _ := os.OpenFile("logs/access.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	// Wrap router with W3C logging
+	lf, _ := os.OpenFile("logs/access.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 
-  loggedRouter := handlers.LoggingHandler(lf, a.Router)
-  srv := &http.Server{
-	Handler:      loggedRouter,
-	Addr:         addr,
-	WriteTimeout: httpconf.writeTimeout * time.Second,
-	ReadTimeout:  httpconf.readTimeout * time.Second,
-  }
+	loggedRouter := handlers.LoggingHandler(lf, a.Router)
+	srv := &http.Server{
+		Handler:	  loggedRouter,
+		Addr:		  addr,
+		WriteTimeout: httpconf.writeTimeout * time.Second,
+		ReadTimeout:  httpconf.readTimeout * time.Second,
+	}
 
+	a.Ready = true
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Println(err)
+		}
+	}()
 
-  go func() {
-    if err := srv.ListenAndServe(); err != nil {
-      log.Println(err)
-    }
-  }()
+	a.Live = true
 
-  // Listen for SIGHUP
-  c := make(chan os.Signal, 1)
-  <-c
+	// Listen for SIGHUP
+	a.httpInterruptChan = make(chan os.Signal, 1)
 
-  // Create a deadline to wait for.
-  ctx, cancel := context.WithTimeout(context.Background(), httpconf.shutdownTimeout)
-  defer cancel()
+	<-a.httpInterruptChan
 
-  // Doesn't block if no connections, but will otherwise wait
-  // until the timeout deadline.
-  srv.Shutdown(ctx)
-  log.Println("shutting down")
-  os.Exit(0)
+	// Create a deadline to wait for.
+	ctx, cancel := context.WithTimeout(context.Background(), httpconf.shutdownTimeout)
+	defer cancel()
+
+	// Doesn't block if no connections, but will otherwise wait
+	// until the timeout deadline.
+	err := srv.Shutdown(ctx)
+	if err == nil {
+		log.Println("Shutting Down...")
+	} else {
+		log.Println("Shutting Down...", err)
+	}
+
+	os.Exit(0)
 }
 
 // Get for environment variable overrides
@@ -95,140 +108,148 @@ func (a *{{.NameExported}}App) initializeEnvironment() {
   //look for environment variables overrides
   envVar = os.Getenv("APP_DB_USERNAME")
   if envVar != "" {
-    dbconf.username = envVar
+	dbconf.username = envVar
   }
 
   envVar = os.Getenv("APP_DB_PASSWORD")
   if envVar != "" {
-    dbconf.password = envVar
+	dbconf.password = envVar
   }
 
   envVar = os.Getenv("APP_DB_NAME")
   if envVar != "" {
-    dbconf.database = envVar
+	dbconf.database = envVar
   }
   envVar = os.Getenv("APP_DB_SSL_MODE")
   if envVar != "" {
-    dbconf.sslMode = envVar
+	dbconf.sslMode = envVar
   }
 
   envVar = os.Getenv("APP_DB_SQL_DRIVER")
   if envVar != "" {
-    dbconf.dbDriver = envVar
+	dbconf.dbDriver = envVar
   }
 
   envVar = os.Getenv("APP_DB_IP")
   if envVar != "" {
-    dbconf.ip = envVar
+	dbconf.ip = envVar
   }
 
    envVar = os.Getenv("APP_DB_PORT")
   if envVar != "" {
-    dbconf.port = envVar
+	dbconf.port = envVar
   }
 
   envVar = os.Getenv("HTTP_IP_ADDR")
   if envVar != "" {
-    httpconf.ip = envVar
+	httpconf.ip = envVar
   }
 
   envVar = os.Getenv("HTTP_IP_PORT")
   if envVar != "" {
-    httpconf.port = envVar
+	httpconf.port = envVar
   }
 
   envVar = os.Getenv("HTTP_READ_TIMEOUT")
   if envVar != "" {
-    to, err := strconv.Atoi(envVar)
-    if err == nil {
-      log.Printf("failed to convert HTTP_READ_TIMEOUT: %s to int", envVar)
-    } else {
-      httpconf.readTimeout = time.Duration(to) * time.Second
-    }
-    log.Printf("Read timeout: %d", httpconf.readTimeout)
+	to, err := strconv.Atoi(envVar)
+	if err == nil {
+ log.Printf("failed to convert HTTP_READ_TIMEOUT: %s to int", envVar)
+	} else {
+ httpconf.readTimeout = time.Duration(to) * time.Second
+	}
+	log.Printf("Read timeout: %d", httpconf.readTimeout)
   }
 
   envVar = os.Getenv("HTTP_WRITE_TIMEOUT")
   if envVar != "" {
-    to, err := strconv.Atoi(envVar)
-    if err == nil {
-      log.Printf("failed to convert HTTP_READ_TIMEOUT: %s to int", envVar)
-    } else {
-      httpconf.writeTimeout = time.Duration(to) * time.Second
-    }
-    log.Printf("Write timeout: %d", httpconf.writeTimeout)
+	to, err := strconv.Atoi(envVar)
+	if err == nil {
+ log.Printf("failed to convert HTTP_READ_TIMEOUT: %s to int", envVar)
+	} else {
+ httpconf.writeTimeout = time.Duration(to) * time.Second
+	}
+	log.Printf("Write timeout: %d", httpconf.writeTimeout)
   }
 
   envVar = os.Getenv("HTTP_SHUTDOWN_TIMEOUT")
   if envVar != "" {
-    if envVar != "" {
-      to, err := strconv.Atoi(envVar)
-      if err != nil {
-        httpconf.shutdownTimeout = time.Second * time.Duration(to)
-      } else {
-        httpconf.shutdownTimeout = time.Second * httpconf.shutdownTimeout
-      }
-      log.Println("Shutdown timeout", httpconf.shutdownTimeout)
-    }
+	if envVar != "" {
+ to, err := strconv.Atoi(envVar)
+ if err != nil {
+		httpconf.shutdownTimeout = time.Second * time.Duration(to)
+ } else {
+		httpconf.shutdownTimeout = time.Second * httpconf.shutdownTimeout
+ }
+ log.Println("Shutdown timeout", httpconf.shutdownTimeout)
+	}
   }
 }
 
 {{.AllRoutesSwaggerDoc}}
 func (a *{{.NameExported}}App) initializeRoutes() {
   uri := {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
-    {{.NameExported}}ResourceType + "LIST"
+	{{.NameExported}}ResourceType + "LIST"
   a.Router.HandleFunc(uri, a.list{{.NameExported}}).Methods("GET")
 
   uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
-    {{.NameExported}}ResourceType + "/{key}"
+	{{.NameExported}}ResourceType + "/{key}"
   a.Router.HandleFunc(uri, a.get{{.NameExported}}).Methods("GET")
 
   uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" + {{.NameExported}}ResourceType
   a.Router.HandleFunc(uri, a.create{{.NameExported}}).Methods("POST")
 
   uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
-    {{.NameExported}}ResourceType + {{.NameExported}}Key
+	{{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.update{{.NameExported}}).Methods("PUT")
 
   uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
-    {{.NameExported}}ResourceType + {{.NameExported}}Key
+	{{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.delete{{.NameExported}}).Methods("DELETE")
 
   uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
-    {{.NameExported}}ResourceType + {{.NameExported}}Key
+	{{.NameExported}}ResourceType + {{.NameExported}}Key
   a.Router.HandleFunc(uri, a.options{{.NameExported}}).Methods("OPTIONS")
 
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
+	{{.NameExported}}ResourceType + "/"
+  a.Router.HandleFunc(uri, a.options{{.NameExported}}).Methods("OPTIONS")
+
+  uri = {{.NameExported}}APIVersion + "/" + {{.NameExported}}NamespaceID + "/{{.Namespace}}/" +
+	{{.NameExported}}ResourceType
+  a.Router.HandleFunc(uri, a.options{{.NameExported}}).Methods("OPTIONS")
 }
 
 {{.GetAllSwaggerDoc}}
-// list{{.NameExported}} swagger:route GET /api/v1/namespace/pavedroad.io/{{.NameExported}}LIST {{.Name}} list{{.Name}}
+// list{{.NameExported}} swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}LIST {{.Name}} list{{.Name}}
 //
 // Returns a list of {{.Name}}
 //
 // Responses:
-//    default: genericError
-//        200: {{.Name}}List
+//	  default: genericError
+//		  200: {{.Name}}List
 
 func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   {{.Name}} := {{.PrimaryTableName}}{}
 
-  count, _ := strconv.Atoi(r.FormValue("count"))
-  start, _ := strconv.Atoi(r.FormValue("start"))
-
-  if count > 10 || count < 1 {
-    count = 10
-  }
-  if start < 0 {
-    start = 0
-  }
+	count := 10
+	start := 0
+	c := r.URL.Query().Get("count")
+	if c != "" {
+		count, _ = strconv.Atoi(c)
+	}
+	s := r.URL.Query().Get("start")
+	if s != "" {
+		start, _ = strconv.Atoi(s)
+	}
 
   // Pre-processing hook
   a.list{{.NameExported}}PreHook(w, r, count, start)
 
   mappings, err := {{.Name}}.list{{.NameExported}}(a.DB, start, count)
   if err != nil {
-    respondWithError(w, http.StatusInternalServerError, err.Error())
-    return
+	respondWithError(w, http.StatusInternalServerError, err.Error())
+	return
   }
 
 	// Post-processing hook
@@ -238,13 +259,13 @@ func (a *{{.NameExported}}App) list{{.NameExported}}(w http.ResponseWriter, r *h
 }
 
 {{.GetSwaggerDoc}}
-// get{{.NameExported}} swagger:route GET /api/v1/namespace/pavedroad.io/{{.NameExported}}/{key} {{.Name}} get{{.Name}}
+// get{{.NameExported}} swagger:route GET /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{key} {{.Name}} get{{.Name}}
 //
 // Returns a {{.Name}} given a key, where key is a UUID
 //
 // Responses:
-//    default: genericError
-//        200: {{.Name}}Response
+//	  default: genericError
+//		  200: {{.Name}}Response
 
 func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   vars := mux.Vars(r)
@@ -258,14 +279,14 @@ func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *ht
   err := {{.Name}}.get{{.NameExported}}(a.DB, key, UUID)
 
   if err != nil {
-    errmsg := err.Error()
-    errno :=  errmsg[0:3]
-    if errno == "400" {
-      respondWithError(w, http.StatusBadRequest, err.Error())
-    } else {
-      respondWithError(w, http.StatusNotFound, err.Error())
-    }
-    return
+	errmsg := err.Error()
+	errno :=  errmsg[0:3]
+	if errno == "400" {
+ respondWithError(w, http.StatusBadRequest, err.Error())
+	} else {
+ respondWithError(w, http.StatusNotFound, err.Error())
+	}
+	return
   }
 
   // Pre-processing hook
@@ -275,14 +296,14 @@ func (a *{{.NameExported}}App) get{{.NameExported}}(w http.ResponseWriter, r *ht
 }
 
 {{.PostSwaggerDoc}}
-// create{{.NameExported}} swagger:route POST /api/v1/namespace/pavedroad.io/{{.NameExported}} {{.Name}} create{{.Name}}
+// create{{.NameExported}} swagger:route POST /api/v1/namespace/{{.Namespace}}/{{.NameExported}} {{.Name}} create{{.Name}}
 //
 // Create a new {{.Name}}
 //
 // Responses:
-//    default: genericError
-//        201: {{.Name}}Response
-//        400: genericError
+//	  default: genericError
+//		  201: {{.Name}}Response
+//		  400: genericError
 func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   // New map structure
   {{.Name}} := {{.PrimaryTableName}}{}
@@ -292,15 +313,16 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
 
   htmlData, err := ioutil.ReadAll(r.Body)
   if err != nil {
-    log.Println(err)
-    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	log.Println(err)
+	respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 	return
   }
 
   err = json.Unmarshal(htmlData, &{{.Name}})
   if err != nil {
-    log.Println(err)
-    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	msg := fmt.Sprintf("Invalid request payload %v\n", err)
+	log.Println(msg)
+	respondWithError(w, http.StatusBadRequest, msg)
 	return
   }
 
@@ -311,8 +333,8 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
   // Save into back end storage
   // returns the UUID if needed
   if _, err := {{.Name}}.create{{.NameExported}}(a.DB); err != nil {
-    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-    return
+	respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	return
   }
 
  // Post-processing hook
@@ -322,14 +344,14 @@ func (a *{{.NameExported}}App) create{{.NameExported}}(w http.ResponseWriter, r 
 }
 
 {{.PutSwaggerDoc}}
-// update{{.NameExported}} swagger:route PUT /api/v1/namespace/pavedroad.io/{{.NameExported}}/{key} {{.Name}} update{{.Name}}
+// update{{.NameExported}} swagger:route PUT /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{key} {{.Name}} update{{.Name}}
 //
 // Update a {{.Name}} specified by key, where key is a UUID
 //
 // Responses:
-//    default: genericError
-//        201: {{.Name}}Response
-//        400: genericError
+//	  default: genericError
+//		  201: {{.Name}}Response
+//		  400: genericError
 func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   {{.Name}} := {{.PrimaryTableName}}{}
 
@@ -342,22 +364,24 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
 
   htmlData, err := ioutil.ReadAll(r.Body)
   if err != nil {
-    log.Println(err)
-    return
+	log.Println(err)
+	return
   }
 
   err = json.Unmarshal(htmlData, &{{.Name}})
   if err != nil {
-    log.Println(err)
-    return
+	msg := fmt.Sprintf("Invalid request payload %v\n", err)
+	log.Println(msg)
+	respondWithError(w, http.StatusBadRequest, msg)
+	return
   }
 
   ct := time.Now().UTC()
   {{.Name}}.Updated = ct
 
   if err := {{.Name}}.update{{.NameExported}}(a.DB, {{.Name}}.{{.NameExported}}UUID); err != nil {
-    respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-    return
+	respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	return
   }
 
   // Post-processing hook
@@ -367,14 +391,14 @@ func (a *{{.NameExported}}App) update{{.NameExported}}(w http.ResponseWriter, r 
 }
 
 {{.DeleteSwaggerDoc}}
-// delete{{.NameExported}} swagger:route DELETE /api/v1/namespace/pavedroad.io/{{.NameExported}}/{key} {{.Name}} delete{{.Name}}
+// delete{{.NameExported}} swagger:route DELETE /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/{key} {{.Name}} delete{{.Name}}
 //
 // Update a {{.Name}} specified by key, which is a uuid
 //
 // Responses:
-//    default: genericError
-//        200: {{.Name}}Response
-//        400: genericError
+//	  default: genericError
+//		  200: {{.Name}}Response
+//		  400: genericError
 func (a *{{.NameExported}}App) delete{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   {{.Name}} := {{.PrimaryTableName}}{}
   vars := mux.Vars(r)
@@ -385,8 +409,8 @@ func (a *{{.NameExported}}App) delete{{.NameExported}}(w http.ResponseWriter, r 
 
   err := {{.Name}}.delete{{.NameExported}}(a.DB, key)
   if err != nil {
-    respondWithError(w, http.StatusNotFound, err.Error())
-    return
+	respondWithError(w, http.StatusNotFound, err.Error())
+	return
   }
 
   // Post-processing hook
@@ -395,14 +419,14 @@ func (a *{{.NameExported}}App) delete{{.NameExported}}(w http.ResponseWriter, r 
   respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
-// options{{.NameExported}} swagger:route OPTIONS /api/v1/namespace/pavedroad.io/{{.NameExported}}/ {{.Name}} options{{.Name}}
+// options{{.NameExported}} swagger:route OPTIONS /api/v1/namespace/{{.Namespace}}/{{.NameExported}}/ {{.Name}} options{{.Name}}
 //
 // OPTIONS for browser pre-fligth checks on update operations
 //
 // Responses:
-//    default: {{.Name}}Response
-//        200: {{.Name}}Response
-//        400: genericError
+//	  default: {{.Name}}Response
+//		  200: {{.Name}}Response
+//		  400: genericError
 func (a *{{.NameExported}}App) options{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
   respondOptions(w, http.StatusNoContent, map[string]string{"result": "success"})
 }
@@ -434,12 +458,56 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
   w.WriteHeader(code)
   w.Write(response)
 }
+func openAccessLogFile(accesslogfile string) *os.File {
+	var lf *os.File
+	var err error
+
+	if accesslogfile == "" {
+		accesslogfile = "access.log"
+		log.Println("Access log file name not declared using access.log")
+	}
+
+	_, _ = rollLogIfExists(accesslogfile)
+
+	lf, err = os.OpenFile(accesslogfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+
+	if err != nil {
+		log.Println("Error opening access log file: os.OpenFile:", err)
+		return nil
+	}
+
+	return lf
+}
 
 func logRequest(handler http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
-    handler.ServeHTTP(w, r)
+	log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
+	handler.ServeHTTP(w, r)
   })
 }
+func rollLogIfExists(logfilename string) (string, error) {
 
-{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}
+	if _, err := os.Stat(logfilename); os.IsNotExist(err) {
+		return "", err
+	}
+	var newFileName string
+	tn := time.Now()
+	endsWithDotLogIdx := strings.LastIndex(logfilename, ".log")
+	if endsWithDotLogIdx == -1 {
+		newFileName = logfilename + tn.Format(time.RFC3339)
+	} else {
+		newFileName = logfilename[0:endsWithDotLogIdx] +
+			tn.Format(time.RFC3339) + ".log"
+	}
+
+	err := os.Rename(logfilename, newFileName)
+	if err != nil {
+		msg := fmt.Sprintf("Rename logfile %v to %v failed with error %v\n",
+			logfilename, newFileName, err.Error())
+		log.Printf(msg)
+		return "", err
+	}
+
+	return newFileName, nil
+
+}{{/* vim: set filetype=gotexttmpl: */ -}}{{end}}

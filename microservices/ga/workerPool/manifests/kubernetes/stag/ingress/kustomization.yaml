@@ -1,0 +1,4 @@
+{{ define "manifests/kubernetes/stag/ingress/kustomization.yaml"}}
+resources:
+  - rproxy.yaml
+{{end}}{{/* vim: set filetype=gotexttmpl: */ -}}

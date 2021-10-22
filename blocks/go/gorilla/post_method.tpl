@@ -10,15 +10,18 @@
 
 
 func (a *{{.NameExported | ToCamel }}App) {{.Method | ToLower}}{{.NameExported}}(w http.ResponseWriter, r *http.Request) {
-    var response []byte
+	var response []byte
 
-    // Pre-processing hook
-    a.{{.Method | ToLower}}{{.NameExported}}PreHook(w, r)
-
-
-    // Post-processing hook
-    a.{{.Method | ToLower}}{{.NameExported}}PostHook(w, r)
-
-    respondWithByte(w, http.StatusOK, response)
+	// Pre-processing hook
+	if fianl := a.{{.Method | ToLower}}{{.NameExported}}PreHook(w, r); final {
+		return
+	}
+	
+	// Post-processing hook
+	if fianl := a.{{.Method | ToLower}}{{.NameExported}}PostHook(w, r); final {
+		return
+	}
+    	respondWithByte(w, http.StatusOK, response)
 }
+	
 {{end}}

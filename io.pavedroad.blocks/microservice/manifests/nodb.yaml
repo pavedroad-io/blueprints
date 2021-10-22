@@ -57,6 +57,7 @@ importedBlocks:
     - docker
     - dockerfile
     - microservice
+    - cockroach
     - dev
   id: cache://io.pavedroad.blocks/microservice/manifests/docker/docker.yaml
 - apiversion: ""
