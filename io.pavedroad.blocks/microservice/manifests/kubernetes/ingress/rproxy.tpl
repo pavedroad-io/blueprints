@@ -18,7 +18,7 @@ spec:
             name: {{.Info.Name}}
             port:
               number: {{.Project.Config.HTTPPort}}
-      - path: /api/v1/namespace/{{.Project.Kubernetes.Namespace}}/{{.Info.Name | Camel}}LIST
+      - path: /api/v1/namespace/{{.Project.Kubernetes.Namespace}}/{{.Info.Name | ToCamel}}LIST
         pathType: Prefix
         backend:
           service:
