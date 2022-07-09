@@ -13,12 +13,12 @@ func (a *{{.NameExported | ToCamel }}App) {{.Method | ToLower}}{{.NameExported}}
 	var response []byte
 
 	// Pre-processing hook
-	if fianl := a.{{.Method | ToLower}}{{.NameExported}}PreHook(w, r); final {
+	if final := a.{{.Method | ToLower}}{{.NameExported}}PreHook(w, r); final {
 		return
 	}
 	
 	// Post-processing hook
-	if fianl := a.{{.Method | ToLower}}{{.NameExported}}PostHook(w, r); final {
+	if final := a.{{.Method | ToLower}}{{.NameExported}}PostHook(w, r); final {
 		return
 	}
     	respondWithByte(w, http.StatusOK, response)

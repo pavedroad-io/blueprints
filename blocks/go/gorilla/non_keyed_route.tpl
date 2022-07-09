@@ -2,7 +2,7 @@
 
     uri = "/api/"+ "{{.APIVersion}} " + "/" +
            "namespace" + "/" + "{{.Namespace}}" +"/"+
-           {{.NameExported}}
+           "{{.NameExported}}"
     a.Router.HandleFunc(uri, a.{{.Method|ToLower}}{{.NameExported}}).Methods("{{.Method}}")
     log.Println("{{.Method}}: ", uri)
 
